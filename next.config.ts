@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
-  output: "standalone",
+  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
   outputFileTracingIncludes: { "/*": ["./certs/supabase-ca.crt"] },
   poweredByHeader: false,
   devIndicators: false,
