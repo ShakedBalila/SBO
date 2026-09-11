@@ -1,0 +1,32 @@
+import { notFound } from 'next/navigation';
+import { requireUser } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { moduleData } from '@/lib/module-data';
+import { ModuleWorkspace } from '@/components/module-workspace';
+import { getIsraelFuelPrice } from '@/lib/fuel-price';
+export default async function ModulePage({ params }: { params: Promise<{ module: string }> }) {
+  const module = (await params).module;
+  if (module !== 'water' && module !== 'car' && module !== 'nutrition') notFound();
+  const user = await requireUser();
+  const summary = await moduleData(user.id, user.settings?.timezone ?? 'Asia/Jerusalem');
+  const [water, vehicles, fuel, nutrition, policies, reminders, fuelPrice] = await Promise.all([
+    module === 'water' ? db.waterEntry.findMany({ where: { userId: user.id }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }], take: 200 }) : [],
+    module === 'car' ? db.vehicle.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'asc' } }) : [],
+    module === 'car' ? db.fuelEntry.findMany({ where: { userId: user.id }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }], take: 200 }) : [],
+    module === 'nutrition' ? db.nutritionEntry.findMany({ where: { userId: user.id }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }], take: 200 }) : [],
+    module === 'car' ? db.vehiclePolicy.findMany({ where: { userId: user.id }, orderBy: { endDate: 'asc' } }) : [],
+    module === 'car' ? db.vehicleReminder.findMany({ where: { userId: user.id }, orderBy: { dueDate: 'asc' } }) : [],
+    module === 'car' ? getIsraelFuelPrice() : null
+  ]);
+  return <ModuleWorkspace module={module} summary={{ today: summary.today, waterMl: summary.waterMl,
+    calories: summary.calories, proteinG: summary.proteinG, fuelCost: summary.fuelCost,
+    waterGoalMl: summary.settings?.waterGoalMl ?? null, calorieGoal: summary.settings?.calorieGoal ?? null,
+    proteinGoalG: summary.settings?.proteinGoalG ?? null, currency: summary.settings?.currency ?? 'ILS' }}
+    water={water.map(row => ({ id: row.id, date: row.date.toISOString().slice(0, 10), amountMl: row.amountMl }))}
+    vehicles={vehicles.map(row => ({ id: row.id, name: row.name, licensePlate: row.licensePlate, year: row.year, odometerKm: row.odometerKm, fuelTankLiters: Number(row.fuelTankLiters ?? 0) || null }))}
+    fuel={fuel.map(row => ({ id: row.id, vehicleId: row.vehicleId, date: row.date.toISOString().slice(0, 10), estimatedRangeKm: row.estimatedRangeKm, actualDistanceKm: row.actualDistanceKm, liters: Number(row.liters), pricePerLiter: Number(row.pricePerLiter) }))}
+    nutrition={nutrition.map(row => ({ id: row.id, name: row.name, date: row.date.toISOString().slice(0, 10), meal: row.meal, calories: row.calories, proteinG: Number(row.proteinG) }))}
+    policies={policies.map(row => ({ id: row.id, vehicleId: row.vehicleId, type: row.type, provider: row.provider, annualCost: Number(row.annualCost), startDate: row.startDate.toISOString().slice(0,10), endDate: row.endDate.toISOString().slice(0,10) }))}
+    reminders={reminders.map(row => ({ id: row.id, vehicleId: row.vehicleId, type: row.type, title: row.title, dueDate: row.dueDate.toISOString().slice(0,10), cost: Number(row.cost ?? 0) || null, notes: row.notes }))}
+    fuelPrice={fuelPrice}/>
+}

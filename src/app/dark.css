@@ -1,0 +1,55 @@
+/* Default dark palette, including native form controls. */
+:root { color-scheme:dark; --ink:#e7edf8; --muted:#a4afc3; --line:#2a3448; --blue:#7f9aff; --background:#101522; }
+body { background:var(--background); }
+.sidebar,.mobile-header,.module-card,.focus-panel,.task-panel,.task-stats>div,.modal,.module-placeholder,.auth-page { background:#182030; }
+.sidebar { background:#131b29; }
+.brand-mark,.primary { background:#526fe3; color:#fff; }
+.primary:hover { background:#6581f1; }
+.nav-link { color:#a9b5cc; }
+.nav-link:hover,.icon-button:hover { background:#222e45; color:#b2c5ff; }
+.nav-link.active { background:#263459; color:#b2c5ff; }
+.nav-dot { background:#96adff; }
+.topline strong,.card-metrics b,.preview-task strong,.task-content h3 { color:#d9e2f3; }
+.count-badge,.empty-icon,.stat-icon { background:#25314a; color:#b0c1f0; }
+.module-card,.tasks-card { --accent:#a1b6ff; --tint:#263359; }
+.water-card { --accent:#76c8ee; --tint:#183d50; }
+.car-card { --accent:#81d1b4; --tint:#203c35; }
+.nutrition-card { --accent:#f2bb7c; --tint:#453525; }
+.secondary { background:#202b3e; color:#d9e4f8; border-color:#3a4963; }
+.secondary:hover { background:#2a3851; }
+.icon-button { color:#a6b4ce; }
+.progress-ring { background:conic-gradient(#859ef5 var(--progress),#2c3850 0); }
+.progress-ring>div { background:#182030; }
+.water-visual { background:#193546; border-color:#325366; color:#77c3e8; }
+.water-visual span { background:#285670; }
+.car-visual { background:#20392f; color:#85c8ae; }
+.plate-visual { border-color:#493824; outline-color:#675037; color:#e1b67f; }
+.avatar { background:#3e352c; color:#efcfaa; }
+input,textarea,select { background:#111a29; color:#e0e8f6; border-color:#3b4962; }
+input::placeholder,textarea::placeholder { color:#96a5be; }
+.search-field { background:#111a29; }
+.task-check { background:#111a29; border-color:#70809d; }
+.task-check.checked { background:#526fe3; border-color:#849bf1; }
+.task-row { border-color:#273247; }
+.priority-low { background:#203d34; color:#9cddc5; }
+.priority-medium { background:#29354c; color:#c0cdef; }
+.priority-high { background:#453821; color:#efd092; }
+.priority-urgent { background:#482d37; color:#ffb3bf; }
+.error-text,.task-meta .overdue { color:#ffadbb; }
+.feedback { color:#92d9be; }
+.auth-story { background:radial-gradient(ellipse at 10% 20%,#293c69,transparent 75%),#172138; }
+.auth-modules span { background:#26344c; color:#c0ccec; }
+.auth-toggle a { color:#a7baff; font-weight:600; }
+.modal label,.auth-form label { color:#c0cce1; }
+.nav-caption,.eyebrow,.topline,.date-label,.card-label small,.task-card-body p,.card-metrics span,
+.empty-card-body p,.section-heading>span,.section-heading p,.dashboard-empty p,.workspace-footer,
+.task-content>p,.task-meta,.task-panel-footer,.task-tabs button,.task-stats div div span,
+.tasks-empty p,.auth-form>p,.auth-form small,.auth-story p,.auth-story>small,.local-note,
+.progress-ring span,.big-number span,.optional,.profile small { color:#a4afc3; }
+.task-tabs .selected { color:#b4c4ff; border-color:#8ba4ff; }
+.is-done .task-content h3 { color:#a4afc3; }
+.bottom-nav { background:#141d2ef5; }
+.bottom-nav a { color:#acbad2; }
+.bottom-nav .active { color:#acc0ff; }
+.skip-link { background:#263459; }
+@media(max-width:650px) { .auth-story { background:#1b2945; } }

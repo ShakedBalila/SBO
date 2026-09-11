@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+enum Recurrence {
+  NONE
+  DAILY
+  WEEKLY
+}
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  name String
+  passwordHash String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  settings UserSettings?
+  sessions Session[]
+  tasks Task[]
+  taskEvents TaskEvent[]
+  waterEntries WaterEntry[]
+  vehicles Vehicle[]
+  fuelEntries FuelEntry[]
+  nutritionEntries NutritionEntry[]
+  calendarEvents CalendarEvent[]
+  vehiclePolicies VehiclePolicy[]
+  vehicleReminders VehicleReminder[]
+}
+model UserSettings {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locale String @default("he")
+  timezone String @default("Asia/Jerusalem")
+  enabledModules String[] @default(["tasks", "water", "car", "nutrition"])
+  waterGoalMl Int?
+  calorieGoal Int?
+  proteinGoalG Int?
+  currency String @default("ILS")
+}
+model Session {
+  id String @id @default(cuid())
+  tokenHash String @unique
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId])
+  @@index([expiresAt])
+}
+model Task {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title String @db.VarChar(200)
+  description String @default("") @db.VarChar(5000)
+  status TaskStatus @default(TODO)
+  priority TaskPriority @default(MEDIUM)
+  dueDate DateTime? @db.Date
+  recurrence Recurrence @default(NONE)
+  seriesId String?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, status, dueDate])
+  @@index([userId, seriesId])
+}
+model TaskEvent {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId String
+  action String
+  snapshot Json
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+}
+model LoginAttempt {
+  key String @id
+  count Int @default(1)
+  windowStart DateTime @default(now())
+}
+model WaterEntry {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountMl Int
+  date DateTime @db.Date
+  createdAt DateTime @default(now())
+  @@index([userId, date])
+}
+model Vehicle {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name String @db.VarChar(100)
+  licensePlate String @default("") @db.VarChar(30)
+  year Int?
+  odometerKm Int @default(0)
+  fuelTankLiters Decimal? @db.Decimal(8, 1)
+  createdAt DateTime @default(now())
+  fuelEntries FuelEntry[]
+  policies VehiclePolicy[]
+  reminders VehicleReminder[]
+  @@unique([id, userId])
+  @@index([userId])
+}
+model FuelEntry {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId String
+  vehicle Vehicle @relation(fields: [vehicleId, userId], references: [id, userId], onDelete: Cascade)
+  date DateTime @db.Date
+  estimatedRangeKm Int
+  actualDistanceKm Int?
+  liters Decimal @db.Decimal(10, 2)
+  pricePerLiter Decimal @db.Decimal(10, 3)
+  createdAt DateTime @default(now())
+  @@index([userId, date])
+}
+model VehiclePolicy {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId String
+  vehicle Vehicle @relation(fields: [vehicleId, userId], references: [id, userId], onDelete: Cascade)
+  type String @db.VarChar(20)
+  provider String @default("") @db.VarChar(100)
+  annualCost Decimal @db.Decimal(12, 2)
+  startDate DateTime @db.Date
+  endDate DateTime @db.Date
+  @@index([userId, endDate])
+}
+model VehicleReminder {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId String
+  vehicle Vehicle @relation(fields: [vehicleId, userId], references: [id, userId], onDelete: Cascade)
+  type String @db.VarChar(20)
+  title String @db.VarChar(150)
+  dueDate DateTime @db.Date
+  cost Decimal? @db.Decimal(12, 2)
+  notes String @default("") @db.VarChar(2000)
+  completedAt DateTime?
+  @@index([userId, dueDate])
+}
+model NutritionEntry {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name String @db.VarChar(200)
+  meal String @db.VarChar(20)
+  calories Int
+  proteinG Decimal @db.Decimal(8, 1)
+  date DateTime @db.Date
+  createdAt DateTime @default(now())
+  @@index([userId, date])
+}
+model CalendarEvent {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title String @db.VarChar(200)
+  type String @default("Other") @db.VarChar(30)
+  date DateTime @db.Date
+  notes String @default("") @db.VarChar(2000)
+  createdAt DateTime @default(now())
+  @@index([userId, date])
+}
