@@ -24,7 +24,7 @@ The production architecture uses Vercel for the Next.js server and Supabase Post
 2. Apply the schema to the new project with `DIRECT_URL` set: `pnpm db:migrate`.
 3. Copy the existing local users and records with `SOURCE_DATABASE_URL` pointing to the local database and `TARGET_DATABASE_URL` pointing to the Supabase direct URL: `pnpm db:migrate-data`. Password hashes are preserved; active local sessions are intentionally omitted.
 4. Push the repository to GitHub and import it into Vercel.
-5. Add `DATABASE_URL`, `COOKIE_SECURE=true` and, for migrations outside Vercel, `DIRECT_URL` to the deployment environment. Same-origin Vercel requests are trusted automatically.
+5. Add `DATABASE_URL`, `COOKIE_SECURE=true`, `SUPABASE_CA_CERT=bundled` and, for migrations outside Vercel, `DIRECT_URL` to the deployment environment. Same-origin Vercel requests are trusted automatically.
 
 Do not commit `.env` or database credentials. The production URL becomes the only address needed by phones, tablets and computers.
 

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
   output: "standalone",
+  outputFileTracingIncludes: { "/*": ["./certs/supabase-ca.crt"] },
   poweredByHeader: false,
   devIndicators: false,
   allowedDevOrigins: (process.env.APP_ORIGINS ?? '').split(',').filter(Boolean).map(origin => new URL(origin.trim()).hostname),
