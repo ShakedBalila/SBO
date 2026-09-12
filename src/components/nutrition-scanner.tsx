@@ -6,9 +6,9 @@ type Product = { code:string; name:string; brand:string; servingSize:string; per
 type Draft = Record<string, string | number | null>;
 
 export function NutritionScanner({ today, onProduct }: { today:string; onProduct:(draft:Draft)=>void }) {
-  const dialog=useRef<HTMLDialogElement>(null), video=useRef<HTMLVideoElement>(null), stream=useRef<MediaStream|null>(null);
+  const dialog=useRef<HTMLDialogElement>(null), video=useRef<HTMLVideoElement>(null), controls=useRef<{stop:()=>void}|null>(null);
   const [code,setCode]=useState(''), [quantity,setQuantity]=useState(100), [busy,setBusy]=useState(false), [error,setError]=useState(''), [camera,setCamera]=useState(false);
-  function stop(){stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;setCamera(false);}
+  function stop(){controls.current?.stop();controls.current=null;if(video.current?.srcObject)(video.current.srcObject as MediaStream).getTracks().forEach(track=>track.stop());setCamera(false);}
   useEffect(()=>()=>stop(),[]);
   async function lookup(raw=code){
     setBusy(true);setError('');
@@ -23,13 +23,10 @@ export function NutritionScanner({ today, onProduct }: { today:string; onProduct
   async function startCamera(){
     setError('');
     try{
-      const Detector=(window as unknown as {BarcodeDetector?:new(opts:{formats:string[]})=>{detect:(source:HTMLVideoElement)=>Promise<{rawValue:string}[]>}}).BarcodeDetector;
-      if(!Detector) throw new Error('הדפדפן הזה לא תומך בזיהוי ברקוד חי. אפשר להקליד את המספר.');
-      setCamera(true); await new Promise(resolve=>setTimeout(resolve,0));
-      stream.current=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});
-      if(video.current){video.current.srcObject=stream.current;await video.current.play();}
-      setCamera(true);const detector=new Detector({formats:['ean_13','ean_8','upc_a','upc_e']});
-      const scan=async()=>{if(!stream.current||!video.current)return;try{const hits=await detector.detect(video.current);if(hits[0]){setCode(hits[0].rawValue);await lookup(hits[0].rawValue);return;}}catch{}requestAnimationFrame(scan);};requestAnimationFrame(scan);
+      stop();setCamera(true);await new Promise(resolve=>setTimeout(resolve,0));
+      if(!video.current)throw new Error('לא ניתן להפעיל את תצוגת המצלמה.');
+      const {BrowserMultiFormatReader}=await import('@zxing/browser');const reader=new BrowserMultiFormatReader();
+      controls.current=await reader.decodeFromConstraints({video:{facingMode:{ideal:'environment'}}},video.current,(result)=>{if(result){const value=result.getText();setCode(value);controls.current?.stop();void lookup(value);}});
     }catch(e){stop();setError(e instanceof Error?e.message:'לא ניתן לפתוח את המצלמה.');}
   }
   return <section className="scanner-panel"><div><Camera size={24}/><div><h2>סריקת מוצר</h2><p>סריקת ברקוד ומשיכת ערכים תזונתיים מ־Open Food Facts.</p></div></div><button className="button secondary" onClick={()=>dialog.current?.showModal()}><Camera size={17}/>פתיחת סורק</button>
