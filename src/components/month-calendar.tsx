@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {useRouter} from 'next/navigation';
-import {ChevronLeft,ChevronRight,Plus,Trash2,X,CalendarDays,Palette} from 'lucide-react';
+import {ChevronLeft,ChevronRight,Plus,Trash2,X,CalendarDays} from 'lucide-react';
 import type {TaskDTO} from '@/lib/tasks';
 import type {ModuleRecord} from '@/lib/modules';
 import {IsraeliDatePicker} from '@/components/israeli-date-picker';
@@ -13,8 +13,8 @@ const recurrenceLabels:Record<string,string>={NONE:'ללא חזרתיות',DAILY
 const weekdays=[{v:0,l:'א׳'},{v:1,l:'ב׳'},{v:2,l:'ג׳'},{v:3,l:'ד׳'},{v:4,l:'ה׳'},{v:5,l:'ו׳'},{v:6,l:'ש׳'}];
 type EventForm={title:string;type:string;date:string;endDate:string|null;time:string|null;endTime:string|null;allDay:boolean;color:string;eventTypeId:string|null;recurrence:string;recurrenceDays:number[];recurrenceUntil:string|null;reminderMinutes:number|null;notes:string};
 const emptyEvent=(date:string):EventForm=>({title:'',type:'אירוע',date,endDate:date,time:null,endTime:null,allDay:true,color:'#4f7cff',eventTypeId:null,recurrence:'NONE',recurrenceDays:[],recurrenceUntil:null,reminderMinutes:null,notes:''});
-const eventColors=['#4f7cff','#20b486','#f2b84b','#f0793e','#e05263','#b66ee8','#36a9c9','#8f9aaa'];
-function ColorPalette({value,onChange}:{value:string;onChange:(value:string)=>void}){return <div className="color-palette" role="radiogroup" aria-label="בחירת צבע">{eventColors.map(color=><button type="button" role="radio" aria-checked={value===color} aria-label={`צבע ${color}`} className={value===color?'selected':''} style={{background:color}} onClick={()=>onChange(color)} key={color}/>) }<label className="custom-color" aria-label="בחירת צבע מותאם"><Palette size={18}/><input type="color" value={value} onChange={e=>onChange(e.target.value)}/></label></div>}
+const eventColors=['#5277ff','#25b88a','#30a7d8','#f4bd4f','#f58a42','#eb5f70','#df62b1','#a66be8','#7b73e8','#8d9aad','#c48a68','#4aa979'];
+function ColorPalette({value,onChange}:{value:string;onChange:(value:string)=>void}){return <div className="color-palette" role="radiogroup" aria-label="בחירת צבע">{eventColors.map(color=><button type="button" role="radio" aria-checked={value===color} aria-label={`צבע ${color}`} className={value===color?'selected':''} style={{background:color}} onClick={()=>onChange(color)} key={color}/>)}</div>}
 function closeOnBackdrop(event:React.MouseEvent<HTMLDialogElement>){if(event.target===event.currentTarget)event.currentTarget.close();}
 function dayDelta(a:string,b:string){return Math.max(0,Math.round((new Date(`${b}T00:00:00Z`).getTime()-new Date(`${a}T00:00:00Z`).getTime())/86400000));}
 function shift(value:string,days:number){const d=new Date(`${value}T00:00:00Z`);d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);}
