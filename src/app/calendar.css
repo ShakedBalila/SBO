@@ -19,7 +19,11 @@ html:has(dialog[open]),body:has(dialog[open]){overflow:hidden;overscroll-behavio
 .compact-option>span{white-space:nowrap}
 .recurrence-control select{width:58%;margin:0;padding:8px;font-size:14px}
 .calendar-visibility i{flex:0 0 23px}
+.modern-check input{width:1px!important;height:1px!important;inset:auto!important}
 .restore-button{white-space:nowrap}
+.israeli-date-picker{position:relative;display:flex;align-items:center;justify-content:space-between;width:100%;height:48px;margin-top:7px;padding:0 13px;border:1px solid var(--line);border-radius:9px;background:#111824;color:#8492aa;font-size:16px;font-weight:500;overflow:hidden}
+.israeli-date-picker.has-value{color:var(--ink)}
+.israeli-date-picker>input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;opacity:0;cursor:pointer}
 .color-field{margin-top:14px;padding:0;border:0}
 .color-field legend{font-size:15px;font-weight:650;margin-bottom:8px}
 .color-palette{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#111824}
