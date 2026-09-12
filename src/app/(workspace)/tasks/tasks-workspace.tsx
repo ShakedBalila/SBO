@@ -25,7 +25,6 @@ export function TasksWorkspace({ initialTasks, events,eventTypes, timezone,today
   const dialog=useRef<HTMLDialogElement>(null), deleteDialog=useRef<HTMLDialogElement>(null);
   useEffect(()=>{setReady(true);fetch('/api/push/subscriptions').then(r=>r.ok?r.json():null).then(body=>setNotificationEnabled(Boolean(body?.enabled&&Notification.permission==='granted'))).catch(()=>{});},[]);
   useEffect(()=>{if(initiallyOpen){openEditor();router.replace("/tasks",{scroll:false});}},[initiallyOpen,router]);
-  useEffect(()=>{const refresh=()=>router.refresh();window.addEventListener("focus",refresh);return()=>window.removeEventListener("focus",refresh);},[router]);
   const selectedWeekDates=weekDates(week,Number(today.slice(0,4)));
   const weeklyEvents=filter==='Week'?events.filter(event=>selectedWeekDates.some(date=>eventOccurs(event,date))):[];
   const activeTasks=initialTasks.filter(t=>!t.deletedAt);

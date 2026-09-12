@@ -4,11 +4,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, CheckCheck, Droplets, CarFront, Utensils, LogOut, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 const links = [
-  { href: "/", label: "סקירה", Icon: LayoutGrid },
-  { href: "/tasks", label: "זמן ומשימות", Icon: CheckCheck },
-  { href: "/water", label: "מים", Icon: Droplets },
-  { href: "/car", label: "רכב", Icon: CarFront },
-  { href: "/nutrition", label: "תזונה", Icon: Utensils }
+  { href: "/", label: "סקירה", mobileLabel:"ראשי", Icon: LayoutGrid },
+  { href: "/tasks", label: "זמן ומשימות", mobileLabel:"משימות", Icon: CheckCheck },
+  { href: "/water", label: "מים", mobileLabel:"מים", Icon: Droplets },
+  { href: "/car", label: "רכב", mobileLabel:"רכב", Icon: CarFront },
+  { href: "/nutrition", label: "תזונה", mobileLabel:"תזונה", Icon: Utensils }
 ];
 export function Navigation({ name }: { name: string }) {
   const pathname = usePathname();
@@ -31,6 +31,6 @@ export function Navigation({ name }: { name: string }) {
       <div className="sidebar-bottom"><div className="local-note"><span className="online-dot"/>SBO מחובר<ArrowUpRight size={15}/></div><div className="profile"><div className="avatar">{name.slice(0, 1).toUpperCase()}</div><div><strong>{name}</strong><small>חשבון אישי</small></div><button className="icon-button" aria-label="התנתקות" disabled={busy} onClick={logout}><LogOut size={18}/></button></div>{error && <p role="alert" className="error-text">{error}</p>}</div>
     </aside>
     <header className="mobile-header"><Link href="/" className="brand"><span className="brand-mark">s</span>SBO.</Link><button className="icon-button" aria-label="התנתקות" disabled={busy} onClick={logout}><LogOut size={20}/></button>{error && <p role="alert">{error}</p>}</header>
-    <nav className="bottom-nav" aria-label="ניווט בנייד">{links.map(({ href, label, Icon }) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} className={pathname === href ? "active" : ""}><Icon size={21}/><span>{label}</span></Link>)}</nav>
+    <nav className="bottom-nav" aria-label="ניווט בנייד">{links.map(({ href, mobileLabel, Icon }) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} className={pathname === href ? "active" : ""}><Icon size={21}/><span>{mobileLabel}</span></Link>)}</nav>
   </>;
 }

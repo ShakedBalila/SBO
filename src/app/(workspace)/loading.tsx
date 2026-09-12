@@ -1,1 +1,1 @@
-export default function Loading() { return <div className="loading-state" role="status">סביבת העבודה נטענת…</div>; }
+export { default } from "@/components/module-loading";

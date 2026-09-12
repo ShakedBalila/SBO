@@ -7,7 +7,7 @@ export function LiveModuleCards({ summary }: { summary: Awaited<ReturnType<typeo
   const currency = summary.settings?.currency ?? 'ILS';
   return <>
     <Link href="/water" className="module-card water-card">
-      <div className="card-top"><span className="module-icon"><Droplets/></span><span className="card-label">מים<small>כל כוס נחשבת</small></span><ArrowUpRight className="card-arrow" size={20}/></div>
+      <div className="card-top"><span className="module-icon"><Droplets/></span><span className="card-label">מים<small>מעקב שתייה יומי</small></span><ArrowUpRight className="card-arrow" size={20}/></div>
       <div className="live-card-body"><div className="big-number">{summary.waterMl.toLocaleString('he-IL')}<span>מ״ל היום</span></div><p>{waterGoal ? `מתוך יעד יומי של ${waterGoal.toLocaleString('he-IL')} מ״ל` : 'הגדרת יעד שתייה יומי'}</p>
         {waterGoal && <div className="card-meter" role="progressbar" aria-label="יעד מים" aria-valuenow={Math.min(100, Math.round(summary.waterMl / waterGoal * 100))} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${Math.min(100, summary.waterMl / waterGoal * 100)}%` }}/></div>}
       </div><div className="card-footer">הוספת שתייה<ArrowRight size={16}/></div>
