@@ -40,7 +40,7 @@ export const eventInput = z.object({
   .refine(value => !value.endDate || value.endDate >= value.date, 'תאריך הסיום חייב להיות לאחר תאריך ההתחלה.')
   .refine(value => value.allDay || !!value.time, 'יש לבחור שעת התחלה או לסמן אירוע יום שלם.')
   .refine(value => value.recurrence !== 'CUSTOM' || value.recurrenceDays.length > 0, 'יש לבחור לפחות יום אחד לחזרתיות מותאמת.');
-export const eventTypeInput = z.object({name:z.string().trim().min(1).max(80),color:color.default('#4f7cff'),icon:z.string().trim().max(40).default(''),defaultDescription:z.string().trim().max(2000).default(''),defaultDurationMinutes:z.number().int().min(5).max(14400).nullable().default(null),defaultReminderMinutes:z.number().int().min(0).max(10080).nullable().default(null)}).strict();
+export const eventTypeInput = z.object({name:z.string().trim().min(1).max(80),color:color.default('#4f7cff')}).strict();
 export const nutritionInput = z.object({
   name: z.string().trim().min(1, 'Enter a food or meal name.').max(200),
   meal: z.string().trim().max(20).default('Other'),

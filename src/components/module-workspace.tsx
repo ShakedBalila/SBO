@@ -68,7 +68,7 @@ function RecordPanel({ kind, title, action, fields, records, defaults, describe,
       })}</div>}
     <dialog className="modal" ref={dialog} onCancel={event => { if (busy) event.preventDefault(); }}><form onSubmit={submit}>
       <div className="modal-heading"><h2>{editing ? `עריכת רשומה: ${title}` : action}</h2><button type="button" className="icon-button" disabled={busy} aria-label="סגירת הטופס" onClick={() => dialog.current?.close()}><X size={20}/></button></div>
-      {fields.filter(field=>!field.hidden).map(field => <label key={field.key} htmlFor={`${kind}-${field.key}`}>{field.label}{field.optional && <span className="optional">לא חובה</span>}
+      {fields.filter(field=>!field.hidden).map(field => <label key={field.key} htmlFor={`${kind}-${field.key}`}>{field.label}{field.optional && <span className="optional">(לא חובה)</span>}
         {field.options ? <select id={`${kind}-${field.key}`} required value={String(values[field.key] ?? '')} onChange={event => setValues({ ...values, [field.key]: event.target.value })}>{field.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select> :
           <input id={`${kind}-${field.key}`} type={field.type ?? 'text'} required={!field.optional} min={field.min} max={field.max} maxLength={field.type === undefined || field.type === 'text' ? field.max ?? 200 : undefined} step={field.step} value={values[field.key] ?? ''} onChange={event => setValues({ ...values, [field.key]: event.target.value })}/>}
       </label>)}
@@ -182,3 +182,4 @@ export function ModuleWorkspace({ module, summary, water, vehicles, fuel, nutrit
     </>}
   </>;
 }
+

@@ -133,6 +133,10 @@ docs/                      V3 reference and development decisions
 - The schema does not prematurely model all future modules. Add owner-scoped tables when implementing each module; global foods and private foods will need distinct access policies.
 - `TaskEvent` intentionally has no task foreign key so deletion keeps the activity snapshot. Account deletion can cascade through events; the user-facing deletion/export flow is still to be built.
 
+## Background notifications
+
+Push notifications use a per-device Web Push subscription, so the browser tab does not need to stay open. Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `DISPATCH_SECRET` in the production environment. Call `POST /api/notifications/dispatch` every minute with `Authorization: Bearer <DISPATCH_SECRET>`; the production setup uses Supabase Cron with `pg_net`. On iPhone and iPad, install SBO to the Home Screen before enabling notifications. Each device must enable the notification toggle once.
+
 ## Checks
 
 With dependencies generated:

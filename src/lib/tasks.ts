@@ -1,6 +1,6 @@
 import { z } from "zod";
 export const taskStatuses = ["TODO", "IN_PROGRESS", "DONE", "POSTPONED", "CANCELLED"] as const;
-export const taskPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
+export const taskPriorities = ["LOW", "MEDIUM", "HIGH"] as const;
 export const recurrences = ["NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY", "CUSTOM"] as const;
 const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a valid due date.").refine(value => {
   const date = new Date(value + "T00:00:00.000Z");
