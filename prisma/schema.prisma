@@ -9,6 +9,8 @@ enum TaskStatus {
   TODO
   IN_PROGRESS
   DONE
+  POSTPONED
+  CANCELLED
 }
 enum TaskPriority {
   LOW
@@ -21,6 +23,7 @@ enum Recurrence {
   DAILY
   WEEKLY
   MONTHLY
+  YEARLY
   CUSTOM
 }
 model User {
@@ -39,6 +42,7 @@ model User {
   fuelEntries FuelEntry[]
   nutritionEntries NutritionEntry[]
   calendarEvents CalendarEvent[]
+  eventTypes EventType[]
   vehiclePolicies VehiclePolicy[]
   vehicleReminders VehicleReminder[]
   vehicleExpenses VehicleExpense[]
@@ -79,10 +83,16 @@ model Task {
   status TaskStatus @default(TODO)
   priority TaskPriority @default(MEDIUM)
   dueDate DateTime? @db.Date
+  startDate DateTime? @db.Date
+  endDate DateTime? @db.Date
   recurrence Recurrence @default(NONE)
   recurrenceDays Int[] @default([])
   recurrenceUntil DateTime? @db.Date
   time String? @db.VarChar(5)
+  startTime String? @db.VarChar(5)
+  endTime String? @db.VarChar(5)
+  color String? @db.VarChar(7)
+  category String? @db.VarChar(80)
   showOnCalendar Boolean @default(true)
   reminderMinutes Int?
   seriesId String?
@@ -214,6 +224,11 @@ model CalendarEvent {
   date DateTime @db.Date
   endDate DateTime? @db.Date
   time String? @db.VarChar(5)
+  endTime String? @db.VarChar(5)
+  allDay Boolean @default(false)
+  color String @default("#4f7cff") @db.VarChar(7)
+  eventTypeId String?
+  eventType EventType? @relation(fields: [eventTypeId], references: [id], onDelete: SetNull)
   recurrence Recurrence @default(NONE)
   recurrenceDays Int[] @default([])
   recurrenceUntil DateTime? @db.Date
@@ -221,4 +236,20 @@ model CalendarEvent {
   notes String @default("") @db.VarChar(2000)
   createdAt DateTime @default(now())
   @@index([userId, date])
+  @@index([userId, eventTypeId])
+}
+model EventType {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name String @db.VarChar(80)
+  color String @default("#4f7cff") @db.VarChar(7)
+  icon String @default("") @db.VarChar(40)
+  defaultDescription String @default("") @db.VarChar(2000)
+  defaultDurationMinutes Int?
+  defaultReminderMinutes Int?
+  createdAt DateTime @default(now())
+  events CalendarEvent[]
+  @@unique([userId, name])
+  @@index([userId])
 }

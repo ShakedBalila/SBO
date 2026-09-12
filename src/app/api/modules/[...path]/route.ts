@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { apiError, checkOrigin, HttpError, jsonBody } from '@/lib/http';
-import { waterInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput } from '@/lib/modules';
+import { waterInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
 type Context = { params: Promise<{ path: string[] }> };
 async function handle(request: Request, context: Context) {
   try {
@@ -85,9 +85,17 @@ async function handle(request: Request, context: Context) {
       case 'events': {
         if (deleting) { count = (await db.calendarEvent.deleteMany({ where })).count; break; }
         const parsed = eventInput.parse(input);
+        if(parsed.eventTypeId&&!await db.eventType.findFirst({where:{id:parsed.eventTypeId,userId:user.id}}))throw new HttpError(404,'סוג האירוע לא נמצא.');
         const data = { ...parsed, date: new Date(parsed.date), endDate: parsed.endDate ? new Date(parsed.endDate) : null, recurrenceUntil: parsed.recurrenceUntil ? new Date(parsed.recurrenceUntil) : null };
         if (id) count = (await db.calendarEvent.updateMany({ where, data })).count;
         else await db.calendarEvent.create({ data: { ...data, userId: user.id } });
+        break;
+      }
+      case 'event-types': {
+        if (deleting) { count=(await db.eventType.deleteMany({where})).count; break; }
+        const data=eventTypeInput.parse(input);
+        if(id) count=(await db.eventType.updateMany({where,data})).count;
+        else await db.eventType.create({data:{...data,userId:user.id}});
         break;
       }
       default: throw new HttpError(404, 'התחום לא נמצא.');

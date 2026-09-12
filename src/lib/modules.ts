@@ -19,19 +19,28 @@ export const fuelInput = z.object({
 }).strict();
 export const policyInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Mandatory', 'Comprehensive', 'Third party']), provider: z.string().trim().max(100).default(''), annualCost: z.number().min(0).max(1000000), startDate: recordDate, endDate: recordDate }).strict();
 export const reminderInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Test']), title: z.string().trim().min(1).max(150), dueDate: recordDate, cost: z.number().min(0).max(1000000).nullable().default(null), notes: z.string().trim().max(2000).default('') }).strict();
-const recurrence = z.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY', 'CUSTOM']);
+const recurrence = z.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY', 'CUSTOM']);
+const color = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'יש לבחור צבע תקין.');
 export const eventInput = z.object({
   title: z.string().trim().min(1).max(200),
   type: z.string().trim().min(1).max(30).default('אחר'),
   date: recordDate,
   endDate: recordDate.nullable().default(null),
   time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
+  allDay: z.boolean().default(false),
+  color: color.default('#4f7cff'),
+  eventTypeId: z.string().min(1).nullable().default(null),
   recurrence: recurrence.default('NONE'),
   recurrenceDays: z.array(z.number().int().min(0).max(6)).max(7).default([]),
   recurrenceUntil: recordDate.nullable().default(null),
   reminderMinutes: z.number().int().min(0).max(10080).nullable().default(null),
   notes: z.string().trim().max(2000).default('')
-}).strict().refine(value => !value.endDate || value.endDate >= value.date, 'תאריך הסיום חייב להיות לאחר תאריך ההתחלה.');
+}).strict()
+  .refine(value => !value.endDate || value.endDate >= value.date, 'תאריך הסיום חייב להיות לאחר תאריך ההתחלה.')
+  .refine(value => value.allDay || !!value.time, 'יש לבחור שעת התחלה או לסמן אירוע יום שלם.')
+  .refine(value => value.recurrence !== 'CUSTOM' || value.recurrenceDays.length > 0, 'יש לבחור לפחות יום אחד לחזרתיות מותאמת.');
+export const eventTypeInput = z.object({name:z.string().trim().min(1).max(80),color:color.default('#4f7cff'),icon:z.string().trim().max(40).default(''),defaultDescription:z.string().trim().max(2000).default(''),defaultDurationMinutes:z.number().int().min(5).max(14400).nullable().default(null),defaultReminderMinutes:z.number().int().min(0).max(10080).nullable().default(null)}).strict();
 export const nutritionInput = z.object({
   name: z.string().trim().min(1, 'Enter a food or meal name.').max(200),
   meal: z.string().trim().max(20).default('Other'),
@@ -56,6 +65,6 @@ export const goalInput = z.object({
   activityLevel: z.enum(['sedentary', 'light', 'moderate', 'active', 'very_active']).nullable().optional(),
   weightGoal: z.enum(['lose', 'maintain', 'gain']).nullable().optional()
 }).strict().refine(input => Object.keys(input).length > 0, 'Enter a goal.');
-export type RecordKind = 'water' | 'vehicles' | 'fuel' | 'nutrition' | 'policies' | 'reminders' | 'expenses' | 'events';
+export type RecordKind = 'water' | 'vehicles' | 'fuel' | 'nutrition' | 'policies' | 'reminders' | 'expenses' | 'events' | 'event-types';
 export type ModuleValue = string | number | boolean | null | number[];
 export type ModuleRecord = { id: string; [key: string]: ModuleValue };

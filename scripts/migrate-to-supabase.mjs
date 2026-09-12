@@ -21,6 +21,7 @@ const tables = [
   { name: 'VehiclePolicy', key: ['id'] },
   { name: 'VehicleReminder', key: ['id'] },
   { name: 'NutritionEntry', key: ['id'] },
+  { name: 'EventType', key: ['id'] },
   { name: 'CalendarEvent', key: ['id'] },
   { name: 'VehicleExpense', key: ['id'] }
 ];

@@ -5,7 +5,7 @@ import { LayoutGrid, CheckCheck, Droplets, CarFront, Utensils, LogOut, ArrowUpRi
 import { useState } from "react";
 const links = [
   { href: "/", label: "סקירה", Icon: LayoutGrid },
-  { href: "/tasks", label: "משימות", Icon: CheckCheck },
+  { href: "/tasks", label: "זמן ומשימות", Icon: CheckCheck },
   { href: "/water", label: "מים", Icon: Droplets },
   { href: "/car", label: "רכב", Icon: CarFront },
   { href: "/nutrition", label: "תזונה", Icon: Utensils }

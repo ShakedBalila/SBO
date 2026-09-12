@@ -6,7 +6,7 @@ A local-first personal dashboard built from the approved **SBO Product Specifica
 
 - Personal accounts: register, sign in and sign out; salted scrypt password hashes and revocable, seven-day database sessions.
 - Main Dashboard with four live module cards. New records are added from each module dashboard.
-- Tasks and calendar: CRUD from the list or calendar, optional calendar visibility, date ranges, daily/weekly/monthly/custom-weekday recurrence, reminders and ISO week navigation.
+- Time and task management: Sunday–Saturday monthly calendar, Israeli holidays, task/event editing from the calendar, multi-day ranges, yearly and custom recurrence, per-user event templates, colored events, fixed-height task list and week-number navigation.
 - Water: persistent daily goal, quick add, editable history, daily totals and a body-shaped visual progress meter.
 - Car: vehicles and tank capacity, online Israel 95-octane price, fuel range/actual distance, insurance, maintenance/test reminders, additional expenses and a six-month cost chart.
 - Nutrition: camera barcode scanning through Open Food Facts, quantity-scaled nutrients, editable food history and automatic BMR/TDEE/calorie/protein recommendations.

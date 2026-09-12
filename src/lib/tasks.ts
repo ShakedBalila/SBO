@@ -1,7 +1,7 @@
 import { z } from "zod";
-export const taskStatuses = ["TODO", "IN_PROGRESS", "DONE"] as const;
+export const taskStatuses = ["TODO", "IN_PROGRESS", "DONE", "POSTPONED", "CANCELLED"] as const;
 export const taskPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
-export const recurrences = ["NONE", "DAILY", "WEEKLY", "MONTHLY", "CUSTOM"] as const;
+export const recurrences = ["NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY", "CUSTOM"] as const;
 const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a valid due date.").refine(value => {
   const date = new Date(value + "T00:00:00.000Z");
   return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
@@ -11,14 +11,22 @@ export const taskInput = z.object({
   description: z.string().trim().max(5000).default(""),
   status: z.enum(taskStatuses).default("TODO"),
   priority: z.enum(taskPriorities).default("MEDIUM"),
-  dueDate: dateOnly.nullable().default(null),
+  startDate: dateOnly.nullable().default(null),
+  endDate: dateOnly.nullable().default(null),
   recurrence: z.enum(recurrences).default('NONE'),
   recurrenceDays: z.array(z.number().int().min(0).max(6)).max(7).default([]),
   recurrenceUntil: dateOnly.nullable().default(null),
-  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().default(null),
+  category: z.string().trim().max(80).nullable().default(null),
   showOnCalendar: z.boolean().default(true),
   reminderMinutes: z.number().int().min(0).max(10080).nullable().default(null)
-}).strict().refine(input => input.recurrence === 'NONE' || !!input.dueDate, { message: 'יש לבחור תאריך למשימה חוזרת.' });
+}).strict()
+  .refine(input => input.recurrence === 'NONE' || !!input.startDate, { message: 'יש לבחור תאריך למשימה חוזרת.' })
+  .refine(input => !input.endDate || (!!input.startDate && input.endDate >= input.startDate), { message: 'תאריך הסיום חייב להיות לאחר תאריך ההתחלה.' })
+  .refine(input => !input.endTime || !input.startTime || input.endDate !== input.startDate || input.endTime >= input.startTime, { message: 'שעת הסיום חייבת להיות לאחר שעת ההתחלה.' })
+  .refine(input => input.recurrence !== 'CUSTOM' || input.recurrenceDays.length > 0, { message: 'יש לבחור לפחות יום אחד לחזרתיות מותאמת.' });
 export type TaskInput = z.infer<typeof taskInput>;
 export type TaskDTO = TaskInput & { id: string; seriesId: string | null; createdAt: string; completedAt: string | null };
 export function todayIn(timezone: string, now = new Date()) {

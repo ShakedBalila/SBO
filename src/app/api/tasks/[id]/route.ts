@@ -15,11 +15,11 @@ async function mutate(request: Request, context: Context, remove: boolean) {
       const existing = await tx.task.findFirst({ where: { id, userId: user.id } });
       if (!existing) throw new HttpError(404, "המשימה לא נמצאה.");
       if (input) {
-        await tx.task.update({ where: { id, userId: user.id }, data: { ...input, dueDate: input.dueDate ? new Date(input.dueDate) : null, recurrenceUntil: input.recurrenceUntil ? new Date(input.recurrenceUntil) : null, completedAt: input.status === "DONE" ? existing.completedAt ?? new Date() : null } });
+        await tx.task.update({ where: { id, userId: user.id }, data: { ...input, startDate:input.startDate?new Date(input.startDate):null,endDate:input.endDate?new Date(input.endDate):null,dueDate:input.startDate?new Date(input.startDate):null,time:input.startTime,recurrenceUntil: input.recurrenceUntil ? new Date(input.recurrenceUntil) : null, completedAt: input.status === "DONE" ? existing.completedAt ?? new Date() : null } });
       } else {
         await tx.task.delete({ where: { id, userId: user.id } });
       }
-      await tx.taskEvent.create({ data: { userId: user.id, taskId: id, action: remove ? "DELETED" : "UPDATED", snapshot: input ?? { title: existing.title, description: existing.description, status: existing.status, priority: existing.priority, dueDate: existing.dueDate?.toISOString().slice(0, 10) ?? null } } });
+        await tx.taskEvent.create({ data: { userId: user.id, taskId: id, action: remove ? "DELETED" : "UPDATED", snapshot: input ?? { title: existing.title, description: existing.description, status: existing.status, priority: existing.priority, startDate: existing.startDate?.toISOString().slice(0, 10) ?? null } } });
     });
     return NextResponse.json({ ok: true });
   } catch (error) { return apiError(error); }

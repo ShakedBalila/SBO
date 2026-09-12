@@ -4,14 +4,17 @@ import { taskInput, todayIn } from '../src/lib/tasks.ts';
 import { hashPassword, verifyPassword } from '../src/lib/password.ts';
 test('task validation rejects bad dates, blank titles and owner injection', () => {
   assert.equal(taskInput.safeParse({ title: '   ' }).success, false);
-  assert.equal(taskInput.safeParse({ title: 'Hello', dueDate: '2026-02-30' }).success, false);
+  assert.equal(taskInput.safeParse({ title: 'Hello', startDate: '2026-02-30' }).success, false);
   assert.equal(taskInput.safeParse({ title: 'Hello', userId: 'another-user' }).success, false);
   assert.equal(taskInput.safeParse({ title: 'Hello', status: 'UNKNOWN' }).success, false);
-  assert.equal(taskInput.safeParse({ title: 'Hello', dueDate: '2028-02-29' }).success, true);
+  assert.equal(taskInput.safeParse({ title: 'Hello', startDate: '2028-02-29',endDate:'2028-03-02' }).success, true);
+  assert.equal(taskInput.safeParse({ title:'Backwards',startDate:'2028-03-02',endDate:'2028-02-29' }).success,false);
 });
 test('recurring tasks require only valid recurrence values', () => {
-  assert.equal(taskInput.safeParse({ title: 'Daily habit', dueDate: '2026-09-12', recurrence: 'DAILY' }).success, true);
+  assert.equal(taskInput.safeParse({ title: 'Daily habit', startDate: '2026-09-12', recurrence: 'DAILY' }).success, true);
   assert.equal(taskInput.safeParse({ title: 'Bad habit', recurrence: 'MONTHLY' }).success, false);
+  assert.equal(taskInput.safeParse({ title:'Annual',startDate:'2026-09-12',recurrence:'YEARLY' }).success,true);
+  assert.equal(taskInput.safeParse({ title:'Custom',startDate:'2026-09-12',recurrence:'CUSTOM',recurrenceDays:[] }).success,false);
 });
 test('today follows the user timezone at a UTC date boundary', () => {
   const now = new Date('2026-09-11T22:30:00Z');
