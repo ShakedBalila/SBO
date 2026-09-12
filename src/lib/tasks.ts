@@ -20,7 +20,7 @@ export const taskInput = z.object({
   endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().default(null),
   category: z.string().trim().max(80).nullable().default(null),
-  showOnCalendar: z.boolean().default(true),
+  showOnCalendar: z.boolean().default(false),
   reminderMinutes: z.number().int().min(0).max(10080).nullable().default(null)
 }).strict()
   .refine(input => input.recurrence === 'NONE' || !!input.startDate, { message: 'יש לבחור תאריך למשימה חוזרת.' })
@@ -28,7 +28,7 @@ export const taskInput = z.object({
   .refine(input => !input.endTime || !input.startTime || input.endDate !== input.startDate || input.endTime >= input.startTime, { message: 'שעת הסיום חייבת להיות לאחר שעת ההתחלה.' })
   .refine(input => input.recurrence !== 'CUSTOM' || input.recurrenceDays.length > 0, { message: 'יש לבחור לפחות יום אחד לחזרתיות מותאמת.' });
 export type TaskInput = z.infer<typeof taskInput>;
-export type TaskDTO = TaskInput & { id: string; seriesId: string | null; createdAt: string; completedAt: string | null };
+export type TaskDTO = TaskInput & { id: string; seriesId: string | null; createdAt: string; completedAt: string | null; deletedAt: string | null };
 export function todayIn(timezone: string, now = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
   return ["year", "month", "day"].map(key => parts.find(p => p.type === key)!.value).join("-");

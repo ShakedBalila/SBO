@@ -16,10 +16,10 @@ export async function POST(request:Request){
     if(!user)throw new HttpError(401,"יש להתחבר מחדש.");
     const input=inputSchema.parse(await jsonBody(request));
     const ids=[...new Set(input.ids)];
-    const owned=await db.task.findMany({where:{userId:user.id,id:{in:ids}},select:{id:true}});
+    const owned=await db.task.findMany({where:{userId:user.id,id:{in:ids},deletedAt:null},select:{id:true}});
     if(owned.length!==ids.length)throw new HttpError(404,"אחת המשימות לא נמצאה.");
-    if(input.action==="delete")await db.task.deleteMany({where:{userId:user.id,id:{in:ids}}});
-    else await db.task.updateMany({where:{userId:user.id,id:{in:ids}},data:{status:input.status,completedAt:input.status==="DONE"?new Date():null}});
+    if(input.action==="delete")await db.task.updateMany({where:{userId:user.id,id:{in:ids},deletedAt:null},data:{deletedAt:new Date()}});
+    else await db.task.updateMany({where:{userId:user.id,id:{in:ids},deletedAt:null},data:{status:input.status,completedAt:input.status==="DONE"?new Date():null}});
     return NextResponse.json({ok:true,count:ids.length});
   }catch(error){return apiError(error);}
 }

@@ -94,14 +94,16 @@ model Task {
   endTime String? @db.VarChar(5)
   color String? @db.VarChar(7)
   category String? @db.VarChar(80)
-  showOnCalendar Boolean @default(true)
+  showOnCalendar Boolean @default(false)
   reminderMinutes Int?
   seriesId String?
   completedAt DateTime?
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([userId, status, dueDate])
   @@index([userId, seriesId])
+  @@index([userId, deletedAt])
 }
 model TaskEvent {
   id String @id @default(cuid())

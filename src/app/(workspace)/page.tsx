@@ -10,7 +10,7 @@ export default async function Dashboard() {
   const user = await requireUser();
   const summary = await moduleData(user.id, user.settings?.timezone ?? 'Asia/Jerusalem');
   const today = todayIn(user.settings?.timezone ?? "Asia/Jerusalem");
-  const tasks = await db.task.findMany({ where: { userId: user.id }, orderBy: [{ startDate: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }] });
+  const tasks = await db.task.findMany({ where: { userId: user.id, deletedAt: null }, orderBy: [{ startDate: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }] });
   const open = tasks.filter(t => t.status !== "DONE"&&t.status!=="CANCELLED");
   const done = tasks.length - open.length;
   const due = open.filter(t => t.startDate?.toISOString().slice(0, 10) === today).length;
