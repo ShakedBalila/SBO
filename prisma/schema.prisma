@@ -81,7 +81,7 @@ model Task {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   title String @db.VarChar(200)
   description String @default("") @db.VarChar(5000)
-  status TaskStatus @default(TODO)
+  status TaskStatus @default(IN_PROGRESS)
   priority TaskPriority @default(MEDIUM)
   dueDate DateTime? @db.Date
   startDate DateTime? @db.Date

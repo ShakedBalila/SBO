@@ -1,0 +1,2 @@
+UPDATE "Task" SET "status" = 'IN_PROGRESS' WHERE "status" = 'TODO';
+ALTER TABLE "Task" ALTER COLUMN "status" SET DEFAULT 'IN_PROGRESS';

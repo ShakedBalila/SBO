@@ -6,3 +6,37 @@
 
 html:has(dialog[open]),body:has(dialog[open]){overflow:hidden;overscroll-behavior:none}.task-editor-modal,.event-editor-modal{width:min(680px,calc(100vw - 32px));height:min(820px,90dvh);max-height:90dvh;overflow:auto}.task-editor-modal>form,.event-editor-modal>form{min-height:100%;display:flex;flex-direction:column}.task-editor-modal .modal-actions,.event-editor-modal .modal-actions{margin-top:auto;padding-top:20px}.recurrence-options{align-items:end}.calendar-visibility{min-height:48px;margin:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111824}.israeli-date-input{text-align:center;letter-spacing:.04em}.task-row.is-deleted{opacity:.72}.deleted-badge{background:#4a3540;color:#ffc6d1}
 @media(max-width:760px){.task-editor-modal,.event-editor-modal{width:calc(100vw - 20px);height:calc(100dvh - 20px);max-height:calc(100dvh - 20px)}.calendar-day{height:132px}.calendar-item{display:-webkit-box;height:32px;padding:3px;font-size:8.5px;line-height:12px;white-space:normal;-webkit-line-clamp:2;-webkit-box-orient:vertical}.recurrence-options{grid-template-columns:1fr 1fr!important}.recurrence-options>label:last-child:nth-child(3){grid-column:1/-1}}
+
+/* iPhone-first task and calendar refinements */
+.modal{overflow-x:hidden;overscroll-behavior:contain}
+.modal form,.modal form *{max-width:100%;min-width:0;box-sizing:border-box}
+.task-editor-modal,.event-editor-modal{width:min(560px,calc(100vw - 24px));height:auto;max-height:calc(100dvh - 24px);overflow-x:hidden;overflow-y:auto}
+.task-editor-modal>form,.event-editor-modal>form{display:block;min-height:0;width:100%}
+.task-editor-modal .modal-actions,.event-editor-modal .modal-actions{margin-top:18px;padding-top:0}
+.task-description textarea,.event-editor-modal textarea{min-height:58px;height:58px;resize:vertical}
+.recurrence-options{align-items:stretch}
+.compact-option{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:50px;margin:0;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:#111824}
+.compact-option>span{white-space:nowrap}
+.recurrence-control select{width:58%;margin:0;padding:8px;font-size:14px}
+.calendar-visibility i{flex:0 0 23px}
+.restore-button{white-space:nowrap}
+.color-field{margin-top:14px;padding:0;border:0}
+.color-field legend{font-size:15px;font-weight:650;margin-bottom:8px}
+.color-palette{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#111824}
+.color-palette>button{width:34px;height:34px;border:2px solid transparent;border-radius:50%;cursor:pointer;box-shadow:inset 0 0 0 1px #ffffff26}
+.color-palette>button.selected{border-color:#fff;box-shadow:0 0 0 3px #5f81ef66}
+.custom-color{position:relative;display:grid!important;place-items:center;width:36px;height:36px!important;margin:0!important;border:1px dashed #71809b;border-radius:50%;color:#d9e3f7;cursor:pointer;overflow:hidden}
+.custom-color input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+
+@media(max-width:760px){
+  .task-editor-modal,.event-editor-modal{width:calc(100vw - 16px);height:auto;max-height:calc(100dvh - 16px);padding:18px 14px;inset-inline:0}
+  .task-editor-modal .form-grid:not(.recurrence-options),.event-editor-modal .form-grid{grid-template-columns:1fr}
+  .recurrence-options{grid-template-columns:1fr 1fr!important;gap:8px}
+  .week-number{font-size:8px;writing-mode:horizontal-tb;white-space:normal;line-height:1.2;padding:3px 1px}
+  .week-title{writing-mode:horizontal-tb}
+  .calendar-grid{grid-template-columns:42px repeat(7,minmax(0,1fr))}
+  .calendar-item{font-size:9px;line-height:12px;padding-inline:2px}
+  .modal-actions{position:sticky;bottom:-18px;background:#182030;padding:12px 0 2px!important;z-index:2}
+  .color-palette{gap:8px}
+  .color-palette>button{width:31px;height:31px}
+}

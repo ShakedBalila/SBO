@@ -31,9 +31,9 @@ input::placeholder,textarea::placeholder { color:#96a5be; }
 .task-check { background:#111a29; border-color:#70809d; }
 .task-check.checked { background:#526fe3; border-color:#849bf1; }
 .task-row { border-color:#273247; }
-.priority-low { background:#203d34; color:#9cddc5; }
-.priority-medium { background:#29354c; color:#c0cdef; }
-.priority-high { background:#453821; color:#efd092; }
+.priority-low { background:#4a411a; color:#ffe27a; }
+.priority-medium { background:#51301c; color:#ffb36b; }
+.priority-high { background:#4f222b; color:#ff8998; }
 .priority-urgent { background:#482d37; color:#ffb3bf; }
 .error-text,.task-meta .overdue { color:#ffadbb; }
 .feedback { color:#92d9be; }

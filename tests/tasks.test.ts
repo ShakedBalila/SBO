@@ -11,6 +11,7 @@ test('task validation rejects bad dates, blank titles and owner injection', () =
   assert.equal(taskInput.safeParse({ title:'Backwards',startDate:'2028-03-02',endDate:'2028-02-29' }).success,false);
 });
 test('recurring tasks require only valid recurrence values', () => {
+  assert.equal(taskInput.parse({ title: 'New task' }).status, 'IN_PROGRESS');
   assert.equal(taskInput.safeParse({ title: 'Daily habit', startDate: '2026-09-12', recurrence: 'DAILY' }).success, true);
   assert.equal(taskInput.safeParse({ title: 'Bad habit', recurrence: 'MONTHLY' }).success, false);
   assert.equal(taskInput.safeParse({ title:'Annual',startDate:'2026-09-12',recurrence:'YEARLY' }).success,true);

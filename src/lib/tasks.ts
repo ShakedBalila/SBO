@@ -1,5 +1,6 @@
 import { z } from "zod";
-export const taskStatuses = ["TODO", "IN_PROGRESS", "DONE", "POSTPONED", "CANCELLED"] as const;
+export const taskStatuses = ["IN_PROGRESS", "CANCELLED", "POSTPONED", "DONE"] as const;
+export const storedTaskStatuses = ["TODO", ...taskStatuses] as const;
 export const taskPriorities = ["LOW", "MEDIUM", "HIGH"] as const;
 export const recurrences = ["NONE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY", "CUSTOM"] as const;
 const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a valid due date.").refine(value => {
@@ -9,7 +10,7 @@ const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a valid due dat
 export const taskInput = z.object({
   title: z.string().trim().min(1, "Give your task a title.").max(200, "Keep the title under 200 characters."),
   description: z.string().trim().max(5000).default(""),
-  status: z.enum(taskStatuses).default("TODO"),
+  status: z.enum(storedTaskStatuses).default("IN_PROGRESS"),
   priority: z.enum(taskPriorities).default("MEDIUM"),
   startDate: dateOnly.nullable().default(null),
   endDate: dateOnly.nullable().default(null),

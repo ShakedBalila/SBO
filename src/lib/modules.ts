@@ -28,7 +28,7 @@ export const eventInput = z.object({
   endDate: recordDate.nullable().default(null),
   time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
   endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
-  allDay: z.boolean().default(false),
+  allDay: z.boolean().default(true),
   color: color.default('#4f7cff'),
   eventTypeId: z.string().min(1).nullable().default(null),
   recurrence: recurrence.default('NONE'),
@@ -38,7 +38,6 @@ export const eventInput = z.object({
   notes: z.string().trim().max(2000).default('')
 }).strict()
   .refine(value => !value.endDate || value.endDate >= value.date, 'תאריך הסיום חייב להיות לאחר תאריך ההתחלה.')
-  .refine(value => value.allDay || !!value.time, 'יש לבחור שעת התחלה או לסמן אירוע יום שלם.')
   .refine(value => value.recurrence !== 'CUSTOM' || value.recurrenceDays.length > 0, 'יש לבחור לפחות יום אחד לחזרתיות מותאמת.');
 export const eventTypeInput = z.object({name:z.string().trim().min(1).max(80),color:color.default('#4f7cff')}).strict();
 export const nutritionInput = z.object({
