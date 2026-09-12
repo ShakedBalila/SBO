@@ -21,7 +21,8 @@ const tables = [
   { name: 'VehiclePolicy', key: ['id'] },
   { name: 'VehicleReminder', key: ['id'] },
   { name: 'NutritionEntry', key: ['id'] },
-  { name: 'CalendarEvent', key: ['id'] }
+  { name: 'CalendarEvent', key: ['id'] },
+  { name: 'VehicleExpense', key: ['id'] }
 ];
 
 await source.connect();

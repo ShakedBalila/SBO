@@ -15,8 +15,7 @@ async function mutate(request: Request, context: Context, remove: boolean) {
       const existing = await tx.task.findFirst({ where: { id, userId: user.id } });
       if (!existing) throw new HttpError(404, "המשימה לא נמצאה.");
       if (input) {
-        const { recurrenceUntil: _recurrenceUntil, ...values } = input;
-        await tx.task.update({ where: { id, userId: user.id }, data: { ...values, dueDate: input.dueDate ? new Date(input.dueDate) : null, completedAt: input.status === "DONE" ? existing.completedAt ?? new Date() : null } });
+        await tx.task.update({ where: { id, userId: user.id }, data: { ...input, dueDate: input.dueDate ? new Date(input.dueDate) : null, recurrenceUntil: input.recurrenceUntil ? new Date(input.recurrenceUntil) : null, completedAt: input.status === "DONE" ? existing.completedAt ?? new Date() : null } });
       } else {
         await tx.task.delete({ where: { id, userId: user.id } });
       }

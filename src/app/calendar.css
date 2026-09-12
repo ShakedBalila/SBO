@@ -11,7 +11,7 @@
 .calendar-day.today .day-number { background:#526fe3; color:white; }
 .day-number { display:grid; place-items:center; width:23px; height:23px; border-radius:50%; font-size:10px; margin-bottom:4px; }
 .week-number { background:transparent; color:#91a4ca; border-top:1px solid var(--line); font-size:10px; }
-.calendar-item { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-radius:4px; padding:3px 5px; margin-top:3px; font-size:9px; }
+.calendar-item { display:block; width:100%; text-align:right; border:0; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-radius:4px; padding:3px 5px; margin-top:3px; font:inherit; font-size:9px; }
 .task-item { background:#28385f; color:#b9c8ff; }
 .event-item { background:#304237; color:#a9dfc7; }
 .calendar-day small { font-size:8px; color:var(--muted); }
@@ -20,4 +20,6 @@
 .event-list>div { display:flex; align-items:center; justify-content:space-between; padding:8px 0; }
 .event-list span strong,.event-list span small { display:block; }
 .event-list span strong { font-size:12px; }.event-list span small { color:var(--muted); font-size:10px; margin-top:3px; }
+.event-row-button { width:100%; background:transparent; border:0; color:inherit; text-align:right; cursor:pointer; padding:8px 0; }
+.weekly-events { border-top:1px solid var(--line); padding:18px 20px; }.weekly-events h2{font-size:14px;margin-bottom:12px}.weekly-events article{display:flex;align-items:center;gap:10px;padding:10px;border-radius:9px;background:#21372f;margin-top:7px}.weekly-events strong,.weekly-events small{display:block}.weekly-events strong{font-size:13px}.weekly-events small{font-size:10px;color:var(--muted);margin-top:4px}
 @media(max-width:650px){.calendar-panel{padding:17px 12px}.calendar-heading{align-items:flex-start;flex-direction:column}.calendar-actions{width:100%;flex-wrap:wrap}.calendar-actions strong{flex:1}.calendar-grid{grid-template-columns:28px repeat(7,minmax(42px,1fr));}.calendar-day{min-height:67px;padding:3px}.day-title{font-size:8px}.day-number{width:18px;height:18px}.calendar-item{font-size:0;width:6px;height:6px;padding:0;border-radius:50%;display:inline-block;margin:2px}.week-number{font-size:8px}}

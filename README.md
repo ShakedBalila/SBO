@@ -6,10 +6,11 @@ A local-first personal dashboard built from the approved **SBO Product Specifica
 
 - Personal accounts: register, sign in and sign out; salted scrypt password hashes and revocable, seven-day database sessions.
 - Main Dashboard with four live module cards. New records are added from each module dashboard.
-- Tasks: CRUD, completion, date, priority, daily/weekly recurrence, monthly calendar with ISO week numbers, calendar events and week filtering.
-- Water: persistent daily goal, quick add, editable history and daily totals.
-- Car: vehicles and tank capacity, online Israel 95-octane price, fuel range/actual distance, insurance monthly cost, maintenance/test reminders.
-- Nutrition: persistent calorie/protein goals and editable meal history.
+- Tasks and calendar: CRUD from the list or calendar, optional calendar visibility, date ranges, daily/weekly/monthly/custom-weekday recurrence, reminders and ISO week navigation.
+- Water: persistent daily goal, quick add, editable history, daily totals and a body-shaped visual progress meter.
+- Car: vehicles and tank capacity, online Israel 95-octane price, fuel range/actual distance, insurance, maintenance/test reminders, additional expenses and a six-month cost chart.
+- Nutrition: camera barcode scanning through Open Food Facts, quantity-scaled nutrients, editable food history and automatic BMR/TDEE/calorie/protein recommendations.
+- Installable PWA metadata and same-device browser notifications for reminders. On iPhone/iPad, add SBO to the Home Screen and allow notifications. Reliable delivery while SBO is fully closed will require a future server-side Web Push sender.
 - Data persists in PostgreSQL and is available to the same account on other devices. Tasks refresh on navigation, page reload and window focus; this is not live push sync or offline storage.
 - Every task read and mutation is scoped to the authenticated account on the server. Task activity snapshots are written in the same transaction as changes and retained on task deletion.
 - Empty, loading, validation, connection error and deletion confirmation states.

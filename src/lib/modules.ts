@@ -19,17 +19,43 @@ export const fuelInput = z.object({
 }).strict();
 export const policyInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Mandatory', 'Comprehensive', 'Third party']), provider: z.string().trim().max(100).default(''), annualCost: z.number().min(0).max(1000000), startDate: recordDate, endDate: recordDate }).strict();
 export const reminderInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Test']), title: z.string().trim().min(1).max(150), dueDate: recordDate, cost: z.number().min(0).max(1000000).nullable().default(null), notes: z.string().trim().max(2000).default('') }).strict();
-export const eventInput = z.object({ title: z.string().trim().min(1).max(200), type: z.enum(['Holiday', 'Workout', 'Birthday', 'Appointment', 'Other']), date: recordDate, notes: z.string().trim().max(2000).default('') }).strict();
+const recurrence = z.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY', 'CUSTOM']);
+export const eventInput = z.object({
+  title: z.string().trim().min(1).max(200),
+  type: z.string().trim().min(1).max(30).default('אחר'),
+  date: recordDate,
+  endDate: recordDate.nullable().default(null),
+  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
+  recurrence: recurrence.default('NONE'),
+  recurrenceDays: z.array(z.number().int().min(0).max(6)).max(7).default([]),
+  recurrenceUntil: recordDate.nullable().default(null),
+  reminderMinutes: z.number().int().min(0).max(10080).nullable().default(null),
+  notes: z.string().trim().max(2000).default('')
+}).strict().refine(value => !value.endDate || value.endDate >= value.date, 'תאריך הסיום חייב להיות לאחר תאריך ההתחלה.');
 export const nutritionInput = z.object({
   name: z.string().trim().min(1, 'Enter a food or meal name.').max(200),
-  meal: z.enum(['Breakfast', 'Lunch', 'Dinner', 'Snack']),
+  meal: z.string().trim().max(20).default('Other'),
   calories: z.number().int().min(0).max(100000),
-  proteinG: z.number().min(0).max(10000), date: recordDate
+  proteinG: z.number().min(0).max(10000),
+  carbsG: z.number().min(0).max(10000).default(0),
+  fatG: z.number().min(0).max(10000).default(0),
+  quantity: z.number().positive().max(10000).default(1),
+  unit: z.string().trim().min(1).max(30).default('מנה'),
+  barcode: z.string().trim().max(40).default(''),
+  date: recordDate
 }).strict();
+export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, notes: z.string().trim().max(2000).default('') }).strict();
 export const goalInput = z.object({
   waterGoalMl: z.number().int().min(1).max(20000).nullable().optional(),
   calorieGoal: z.number().int().min(1).max(20000).nullable().optional(),
-  proteinGoalG: z.number().int().min(1).max(2000).nullable().optional()
+  proteinGoalG: z.number().int().min(1).max(2000).nullable().optional(),
+  age: z.number().int().min(13).max(120).nullable().optional(),
+  sex: z.enum(['male', 'female']).nullable().optional(),
+  heightCm: z.number().int().min(100).max(250).nullable().optional(),
+  weightKg: z.number().min(30).max(400).nullable().optional(),
+  activityLevel: z.enum(['sedentary', 'light', 'moderate', 'active', 'very_active']).nullable().optional(),
+  weightGoal: z.enum(['lose', 'maintain', 'gain']).nullable().optional()
 }).strict().refine(input => Object.keys(input).length > 0, 'Enter a goal.');
-export type RecordKind = 'water' | 'vehicles' | 'fuel' | 'nutrition' | 'policies' | 'reminders' | 'events';
-export type ModuleRecord = { id: string; [key: string]: string | number | null };
+export type RecordKind = 'water' | 'vehicles' | 'fuel' | 'nutrition' | 'policies' | 'reminders' | 'expenses' | 'events';
+export type ModuleValue = string | number | boolean | null | number[];
+export type ModuleRecord = { id: string; [key: string]: ModuleValue };

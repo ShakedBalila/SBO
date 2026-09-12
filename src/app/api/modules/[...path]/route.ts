@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { apiError, checkOrigin, HttpError, jsonBody } from '@/lib/http';
-import { waterInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, eventInput } from '@/lib/modules';
+import { waterInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput } from '@/lib/modules';
 type Context = { params: Promise<{ path: string[] }> };
 async function handle(request: Request, context: Context) {
   try {
@@ -73,10 +73,19 @@ async function handle(request: Request, context: Context) {
         else await db.vehicleReminder.create({ data: { ...data, userId: user.id } });
         break;
       }
+      case 'expenses': {
+        if (deleting) { count = (await db.vehicleExpense.deleteMany({ where })).count; break; }
+        const parsed = expenseInput.parse(input);
+        if (!await db.vehicle.findFirst({ where: { id: parsed.vehicleId, userId: user.id } })) throw new HttpError(404, 'הרכב לא נמצא.');
+        const data = { ...parsed, date: new Date(parsed.date) };
+        if (id) count = (await db.vehicleExpense.updateMany({ where, data })).count;
+        else await db.vehicleExpense.create({ data: { ...data, userId: user.id } });
+        break;
+      }
       case 'events': {
         if (deleting) { count = (await db.calendarEvent.deleteMany({ where })).count; break; }
         const parsed = eventInput.parse(input);
-        const data = { ...parsed, date: new Date(parsed.date) };
+        const data = { ...parsed, date: new Date(parsed.date), endDate: parsed.endDate ? new Date(parsed.endDate) : null, recurrenceUntil: parsed.recurrenceUntil ? new Date(parsed.recurrenceUntil) : null };
         if (id) count = (await db.calendarEvent.updateMany({ where, data })).count;
         else await db.calendarEvent.create({ data: { ...data, userId: user.id } });
         break;

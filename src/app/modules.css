@@ -27,6 +27,18 @@
 .live-card-body p { color:var(--muted); font-size:12px; }
 .card-meter { height:7px; border-radius:20px; background:#2b374e; overflow:hidden; margin-top:8px; }
 .card-meter span { height:100%; display:block; background:var(--accent); border-radius:20px; }
+.water-visual,.scanner-panel,.cost-chart { background:#182030; border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:24px; }
+.water-visual { display:flex; align-items:center; justify-content:center; gap:42px; min-height:320px; }
+.human-meter { width:130px; filter:drop-shadow(0 15px 30px #1c79d644); }
+.water-visual>div:last-child { max-width:290px; }
+.water-visual strong { display:block; font-size:58px; margin:8px 0; color:#7cdcff; }
+.water-visual p,.scanner-panel p,.cost-chart p { color:var(--muted); font-size:12px; line-height:1.7; }
+.scanner-panel { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.scanner-panel>div { display:flex; align-items:center; gap:14px; }.scanner-panel h2 { font-size:16px; margin-bottom:5px; }
+.barcode-video { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:12px; margin:12px 0; background:#0c111d; }.barcode-video.hidden { display:none; }.full-button { width:100%; justify-content:center; margin:12px 0; }
+.metabolism-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:18px; }.metabolism-cards>div { background:#111826; border:1px solid var(--line); border-radius:12px; padding:16px; }.metabolism-cards small,.metabolism-cards span { color:var(--muted); font-size:11px; display:block; }.metabolism-cards strong { font-size:28px; display:block; margin:5px 0; }.goal-actions { display:flex; gap:10px; align-items:center; }
+.chart-legend { display:flex; flex-wrap:wrap; gap:14px; color:var(--muted); font-size:11px; margin:14px 0 25px; }.chart-legend span:before { content:""; display:inline-block; width:8px; height:8px; border-radius:2px; margin-left:5px; }.fuel:before,.bar .fuel{background:#5b8cff}.insurance:before,.bar .insurance{background:#9a73ea}.maintenance:before,.bar .maintenance{background:#f0a84b}.other:before,.bar .other{background:#61c59a}
+.bars { display:flex; align-items:flex-end; gap:12px; height:235px; direction:ltr; }.bar-column { flex:1; min-width:0; text-align:center; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-end; height:100%; }.bar-column small { font-size:9px; color:var(--muted); height:20px; white-space:nowrap; }.bar-column strong { color:var(--muted); font-size:10px; margin-top:8px; }.bar { border-radius:7px 7px 3px 3px; overflow:hidden; min-height:4px; display:flex; flex-direction:column-reverse; background:#26334b; }.bar span { display:block; width:100%; }
 @media(max-width:650px) {
   .module-stats { gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
   .module-stats>div { padding:18px 14px; }
@@ -37,4 +49,5 @@
   .goals-panel form { display:block; }
   .goals-panel label { display:block; margin-bottom:16px; }
   .live-card-body { min-height:170px; }
+  .water-visual { min-height:260px; gap:25px; padding:18px; }.human-meter{width:95px}.water-visual strong{font-size:42px}.scanner-panel{align-items:flex-start;flex-direction:column}.scanner-panel .button{width:100%;justify-content:center}.goal-actions{align-items:stretch;flex-direction:column}.goal-actions .button{width:100%;justify-content:center}.bars{gap:5px}.bar-column small{font-size:7px}.cost-chart{padding:18px 12px}
 }
