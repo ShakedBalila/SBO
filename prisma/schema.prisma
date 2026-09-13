@@ -55,6 +55,10 @@ model UserSettings {
   timezone String @default("Asia/Jerusalem")
   enabledModules String[] @default(["tasks", "water", "car", "nutrition"])
   waterGoalMl Int?
+  waterReminderEnabled Boolean @default(false)
+  waterReminderStart String @default("08:00") @db.VarChar(5)
+  waterReminderEnd String @default("16:00") @db.VarChar(5)
+  waterReminderIntervalMinutes Int @default(60)
   calorieGoal Int?
   proteinGoalG Int?
   age Int?

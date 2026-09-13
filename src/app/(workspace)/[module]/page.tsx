@@ -10,7 +10,7 @@ export default async function ModulePage({ params }: { params: Promise<{ module:
   const user = await requireUser();
   const summary = await moduleData(user.id, user.settings?.timezone ?? 'Asia/Jerusalem');
   const [water, vehicles, fuel, nutrition, policies, reminders, expenses, fuelPrice] = await Promise.all([
-    module === 'water' ? db.waterEntry.findMany({ where: { userId: user.id }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }], take: 200 }) : [],
+    module === 'water' ? db.waterEntry.findMany({ where: { userId: user.id }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }], take: 2000 }) : [],
     module === 'car' ? db.vehicle.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'asc' } }) : [],
     module === 'car' ? db.fuelEntry.findMany({ where: { userId: user.id }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }], take: 200 }) : [],
     module === 'nutrition' ? db.nutritionEntry.findMany({ where: { userId: user.id }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }], take: 200 }) : [],
@@ -23,7 +23,8 @@ export default async function ModulePage({ params }: { params: Promise<{ module:
     calories: summary.calories, proteinG: summary.proteinG, fuelCost: summary.fuelCost,
     waterGoalMl: summary.settings?.waterGoalMl ?? null, calorieGoal: summary.settings?.calorieGoal ?? null,
     proteinGoalG: summary.settings?.proteinGoalG ?? null, currency: summary.settings?.currency ?? 'ILS',
-    age:summary.settings?.age??null,sex:summary.settings?.sex??null,heightCm:summary.settings?.heightCm??null,weightKg:Number(summary.settings?.weightKg??0)||null,activityLevel:summary.settings?.activityLevel??null,weightGoal:summary.settings?.weightGoal??null }}
+    age:summary.settings?.age??null,sex:summary.settings?.sex??null,heightCm:summary.settings?.heightCm??null,weightKg:Number(summary.settings?.weightKg??0)||null,activityLevel:summary.settings?.activityLevel??null,weightGoal:summary.settings?.weightGoal??null,
+    waterReminderEnabled:summary.settings?.waterReminderEnabled??false,waterReminderStart:summary.settings?.waterReminderStart??'08:00',waterReminderEnd:summary.settings?.waterReminderEnd??'16:00',waterReminderIntervalMinutes:summary.settings?.waterReminderIntervalMinutes??60 }}
     water={water.map(row => ({ id: row.id, date: row.date.toISOString().slice(0, 10), amountMl: row.amountMl }))}
     vehicles={vehicles.map(row => ({ id: row.id, name: row.name, licensePlate: row.licensePlate, year: row.year, odometerKm: row.odometerKm, fuelTankLiters: Number(row.fuelTankLiters ?? 0) || null }))}
     fuel={fuel.map(row => ({ id: row.id, vehicleId: row.vehicleId, date: row.date.toISOString().slice(0, 10), estimatedRangeKm: row.estimatedRangeKm, actualDistanceKm: row.actualDistanceKm, liters: Number(row.liters), pricePerLiter: Number(row.pricePerLiter) }))}

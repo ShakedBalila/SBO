@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { apiError, checkOrigin, HttpError, jsonBody } from '@/lib/http';
-import { waterInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
+import { waterInput, waterReminderInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
 type Context = { params: Promise<{ path: string[] }> };
 async function handle(request: Request, context: Context) {
   try {
@@ -18,6 +18,12 @@ async function handle(request: Request, context: Context) {
       const data = goalInput.parse(input);
       await db.userSettings.upsert({ where: { userId: user.id }, create: { userId: user.id, ...data }, update: data });
       return NextResponse.json({ ok: true });
+    }
+    if(kind==='water-reminders'&&request.method==='POST'){
+      const parsed=waterReminderInput.parse(input);
+      const data={waterReminderEnabled:parsed.enabled,waterReminderStart:parsed.startTime,waterReminderEnd:parsed.endTime,waterReminderIntervalMinutes:parsed.intervalMinutes};
+      await db.userSettings.upsert({where:{userId:user.id},create:{userId:user.id,...data},update:data});
+      return NextResponse.json({ok:true});
     }
     const where = { id, userId: user.id };
     // Every branch scopes record access and mutation to the signed-in owner.

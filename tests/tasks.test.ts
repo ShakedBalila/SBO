@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { taskInput, todayIn } from '../src/lib/tasks.ts';
 import { hashPassword, verifyPassword } from '../src/lib/password.ts';
+import { waterReminderDue } from '../src/lib/water-reminders.ts';
 test('task validation rejects bad dates, blank titles and owner injection', () => {
   assert.equal(taskInput.safeParse({ title: '   ' }).success, false);
   assert.equal(taskInput.safeParse({ title: 'Hello', startDate: '2026-02-30' }).success, false);
@@ -28,4 +29,11 @@ test('passwords are salted and verified without storing plaintext', async () => 
   assert.notEqual(a, b);
   assert.equal(await verifyPassword('a long testing password', a), true);
   assert.equal(await verifyPassword('wrong password', a), false);
+});
+test('water reminders run only on the chosen interval and inside the daily window', () => {
+  assert.equal(waterReminderDue(8, 0, '08:00', '16:00', 60), true);
+  assert.equal(waterReminderDue(10, 0, '08:00', '16:00', 120), true);
+  assert.equal(waterReminderDue(9, 0, '08:00', '16:00', 120), false);
+  assert.equal(waterReminderDue(16, 0, '08:00', '16:00', 60), true);
+  assert.equal(waterReminderDue(16, 1, '08:00', '16:00', 60), false);
 });

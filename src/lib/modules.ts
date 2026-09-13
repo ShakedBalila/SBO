@@ -4,6 +4,8 @@ export const recordDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value =
   return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
 }, 'Choose a valid date.');
 export const waterInput = z.object({ amountMl: z.number().int().min(1).max(10000), date: recordDate }).strict();
+const clockTime=z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/,'יש לבחור שעה תקינה.');
+export const waterReminderInput=z.object({enabled:z.boolean(),startTime:clockTime,endTime:clockTime,intervalMinutes:z.number().int().min(15).max(720)}).strict().refine(value=>value.endTime>value.startTime,'שעת הסיום חייבת להיות מאוחרת משעת ההתחלה.');
 export const vehicleInput = z.object({
   name: z.string().trim().min(1, 'Enter a vehicle name.').max(100),
   licensePlate: z.string().trim().max(30).default(''),

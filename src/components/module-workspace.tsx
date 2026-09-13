@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Trash2, X, CarFront, Utensils } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, CarFront, Utensils, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ModuleRecord, RecordKind } from '@/lib/modules';
 import { NutritionScanner } from '@/components/nutrition-scanner';
 import { WaterBottleIcon } from '@/components/water-bottle-icon';
 
 type Field = { key: string; label: string; type?: 'text' | 'number' | 'date'; min?: number; max?: number; step?: string; optional?: boolean; hidden?: boolean; options?: { value: string; label: string }[] };
-type Summary = { today: string; waterMl: number; calories: number; proteinG: number; fuelCost: number; waterGoalMl: number | null; calorieGoal: number | null; proteinGoalG: number | null; currency: string; age:number|null;sex:string|null;heightCm:number|null;weightKg:number|null;activityLevel:string|null;weightGoal:string|null };
+type Summary = { today: string; waterMl: number; calories: number; proteinG: number; fuelCost: number; waterGoalMl: number | null; calorieGoal: number | null; proteinGoalG: number | null; currency: string; age:number|null;sex:string|null;heightCm:number|null;weightKg:number|null;activityLevel:string|null;weightGoal:string|null;waterReminderEnabled:boolean;waterReminderStart:string;waterReminderEnd:string;waterReminderIntervalMinutes:number };
 const dateField: Field = { key: 'date', label: 'תאריך', type: 'date' };
 const numberField = (key: string, label: string, max: number, min = 0, step = '1'): Field => ({ key, label, type: 'number', min, max, step });
 const prettyDate = (value: unknown) => new Intl.DateTimeFormat('he-IL', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(String(value)));
@@ -20,11 +20,12 @@ async function save(kind: string, data?: object, id?: string, remove = false) {
   if (!result.ok) throw new Error(body.error ?? 'לא ניתן לשמור. נסה שוב.');
 }
 
-function RecordPanel({ kind, title, action, fields, records, defaults, describe, disabled = false, externalDraft, onDraftConsumed }: {
+function RecordPanel({ kind, title, action, fields, records, defaults, describe, disabled = false, externalDraft, onDraftConsumed, confirmDeletion = true }: {
   kind: RecordKind; title: string; action: string; fields: Field[]; records: ModuleRecord[];
   defaults: Record<string, string | number | null>; describe: (record: ModuleRecord) => { title: string; detail: string };
   disabled?: boolean;
   externalDraft?: Record<string,string|number|null> | null; onDraftConsumed?:()=>void;
+  confirmDeletion?: boolean;
 }) {
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -36,6 +37,7 @@ function RecordPanel({ kind, title, action, fields, records, defaults, describe,
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [removedIds,setRemovedIds]=useState<Set<string>>(new Set());
   useEffect(() => setReady(true), []);
   useEffect(()=>{if(externalDraft){setEditing(null);setValues(externalDraft);setError('');dialog.current?.showModal();onDraftConsumed?.();}},[externalDraft,onDraftConsumed]);
   function edit(record: ModuleRecord | null) {
@@ -53,18 +55,25 @@ function RecordPanel({ kind, title, action, fields, records, defaults, describe,
     catch (e) { setError(e instanceof Error ? e.message : 'לא ניתן להתחבר. נסה שוב.'); }
     finally { setBusy(false); }
   }
+  async function removeRecord(record:ModuleRecord){
+    setBusy(true);setError('');setRemovedIds(current=>new Set(current).add(record.id));
+    try{await save(kind,undefined,record.id,true);setMessage('נמחק.');router.refresh();}
+    catch(e){setRemovedIds(current=>{const next=new Set(current);next.delete(record.id);return next;});setError(e instanceof Error?e.message:'לא ניתן למחוק.');}
+    finally{setBusy(false);}
+  }
+  const visibleRecords=records.filter(record=>!removedIds.has(record.id));
   return <section className="journal-panel">
     <div className="section-heading"><div><h2>{title}</h2><p>{kind === 'vehicles' ? 'הרכבים שלך' : 'רשומות אחרונות · עד 200 מוצגות'}</p></div>
       <button className="button primary" disabled={disabled || !ready || busy} onClick={() => edit(null)}><Plus size={17}/>{action}</button>
     </div>
     <p className="feedback" role="status">{message}</p>
     {disabled && <p className="module-hint">יש להוסיף רכב כדי להתחיל לתעד תדלוקים.</p>}
-    {records.length === 0 ? <div className="journal-empty">עדיין אין רשומות. {disabled ? 'היסטוריית התדלוקים תופיע כאן.' : `אפשר לבחור „${action}” כדי להתחיל.`}</div> :
-      <div className="journal-list">{records.map(record => {
+    {visibleRecords.length === 0 ? <div className="journal-empty">עדיין אין רשומות. {disabled ? 'היסטוריית התדלוקים תופיע כאן.' : `אפשר לבחור „${action}” כדי להתחיל.`}</div> :
+      <div className="journal-list">{visibleRecords.map(record => {
         const text = describe(record);
         return <article key={record.id} className="journal-row"><div><h3>{text.title}</h3><p>{text.detail}</p></div><div className="row-actions">
           <button className="icon-button" disabled={!ready || busy} aria-label={`עריכת ${text.title}`} onClick={() => edit(record)}><Pencil size={17}/></button>
-          <button className="icon-button" disabled={!ready || busy} aria-label={`מחיקת ${text.title}`} onClick={() => { setRemoving(record); setError(''); deletion.current?.showModal(); }}><Trash2 size={17}/></button>
+          <button className="icon-button" disabled={!ready || busy} aria-label={`מחיקת ${text.title}`} onClick={() => {if(confirmDeletion){setRemoving(record);setError('');deletion.current?.showModal();}else void removeRecord(record);}}><Trash2 size={17}/></button>
         </div></article>;
       })}</div>}
     <dialog className="modal" ref={dialog} onCancel={event => { if (busy) event.preventDefault(); }}><form onSubmit={submit}>
@@ -79,7 +88,7 @@ function RecordPanel({ kind, title, action, fields, records, defaults, describe,
     <dialog className="modal small-modal" ref={deletion} onCancel={event => { if (busy) event.preventDefault(); }}>
       <h2>למחוק את {kind === 'vehicles' ? 'הרכב' : 'הרשומה'}?</h2><p>{kind === 'vehicles' ? 'הרכב וכל התדלוקים שלו יימחקו לצמיתות.' : 'הרשומה תימחק לצמיתות.'}</p>
       {error && <p className="error-text" role="alert">{error}</p>}
-      <div className="modal-actions"><button className="button secondary" disabled={busy} onClick={() => deletion.current?.close()}>שמירה</button><button className="button danger" disabled={busy} onClick={async () => {
+      <div className="modal-actions"><button className="button secondary" disabled={busy} onClick={() => deletion.current?.close()}>ביטול</button><button className="button danger" disabled={busy} onClick={async () => {
         if (!removing) return; setBusy(true); setError('');
         try { await save(kind, undefined, removing.id, true); deletion.current?.close(); setMessage('נמחק.'); router.refresh(); }
         catch (e) { setError(e instanceof Error ? e.message : 'לא ניתן למחוק.'); } finally { setBusy(false); }
@@ -116,17 +125,40 @@ function Goals({ module, summary }: { module: 'water' | 'nutrition'; summary: Su
   </form>{error && <p className="error-text" role="alert">{error}</p>}<p className="feedback" role="status">{message}</p></section>;
 }
 
+function sundayWeek(value:Date){const start=new Date(Date.UTC(value.getUTCFullYear(),0,1));start.setUTCDate(start.getUTCDate()-start.getUTCDay());return Math.floor((value.getTime()-start.getTime())/(7*86400000))+1;}
+
 function WaterDashboard({amount,goal,records,today}:{amount:number;goal:number|null;records:ModuleRecord[];today:string}){
+  const [weekOffset,setWeekOffset]=useState(0);
   const percent=goal?Math.round(amount/goal*100):0,fill=Math.min(100,Math.max(0,percent));
   const todayDate=new Date(`${today}T00:00:00Z`);
-  const days=Array.from({length:7},(_,index)=>{const date=new Date(todayDate);date.setUTCDate(date.getUTCDate()-6+index);const key=date.toISOString().slice(0,10),total=records.filter(record=>String(record.date)===key).reduce((sum,record)=>sum+Number(record.amountMl),0);return {key,total,label:new Intl.DateTimeFormat('he-IL',{weekday:'narrow',timeZone:'UTC'}).format(date)};});
+  const weekStart=new Date(todayDate);weekStart.setUTCDate(weekStart.getUTCDate()-weekStart.getUTCDay()+weekOffset*7);
+  const days=Array.from({length:7},(_,index)=>{const date=new Date(weekStart);date.setUTCDate(date.getUTCDate()+index);const key=date.toISOString().slice(0,10),total=records.filter(record=>String(record.date)===key).reduce((sum,record)=>sum+Number(record.amountMl),0);return {key,total,label:new Intl.DateTimeFormat('he-IL',{weekday:'narrow',timeZone:'UTC'}).format(date)};});
+  const weekNumber=sundayWeek(weekStart),weekTotal=days.reduce((sum,day)=>sum+day.total,0);
   return <section className="water-dashboard-card">
     <div className="hydration-vessel" role="progressbar" aria-label="התקדמות בצריכת המים היומית" aria-valuemin={0} aria-valuemax={100} aria-valuenow={fill}>
       <div className="hydration-water" style={{height:`${fill}%`}}><i/><i/><i/></div>
       <div className="hydration-reading"><strong>{amount.toLocaleString('he-IL')}</strong><span>מתוך {goal?.toLocaleString('he-IL')??'—'} מ״ל</span><b>{percent}%</b></div>
     </div>
-    <div className="water-week"><div><span>השבוע האחרון</span><strong>צריכת מים</strong></div><div className="water-week-bars">{days.map(day=>{const dayPercent=goal?Math.min(100,day.total/goal*100):0;return <div className={day.key===today?'today':''} key={day.key}><span><i style={{height:`${dayPercent}%`}}/></span><small>{day.label}</small></div>})}</div></div>
+    <div className="water-week"><div className="water-week-heading"><button type="button" aria-label="השבוע הקודם" onClick={()=>setWeekOffset(value=>value-1)}><ChevronRight/></button><div><span>צריכת מים לשבוע {weekNumber}</span><strong>{weekTotal.toLocaleString('he-IL')} מ״ל</strong></div><button type="button" aria-label="השבוע הבא" disabled={weekOffset===0} onClick={()=>setWeekOffset(value=>Math.min(0,value+1))}><ChevronLeft/></button></div><div className="water-week-bars">{days.map(day=>{const dayPercent=goal?Math.min(100,day.total/goal*100):0;return <div className={day.key===today?'today':''} key={day.key}><span><i style={{height:`${dayPercent}%`}}/></span><small>{day.label}</small></div>})}</div></div>
   </section>;
+}
+
+function WaterServingIcon({amount}:{amount:number}){
+  if(amount===250)return <svg className="water-serving-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M14 8h20l-3 32H17L14 8Z"/><path d="M17 27c5-3 9 3 14 0l-1 11H18l-1-11Z" className="fill"/></svg>;
+  if(amount===750)return <svg className="water-serving-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M17 10h14l2 5-2 25H17l-2-25 2-5Z"/><path d="M16 16h16M19 7h10M20 4h8"/><path d="M18 24h12l-1 14H19l-1-14Z" className="fill"/></svg>;
+  const large=amount===1000;
+  return <svg className={`water-serving-icon ${large?'large':''}`} viewBox="0 0 48 48" aria-hidden="true"><path d="M20 5h8v5l4 5v25H16V15l4-5V5Z"/><path d="M18 25h12v13H18V25Z" className="fill"/><path d="M20 9h8"/></svg>;
+}
+
+function decodeKey(value:string){const padding='='.repeat((4-value.length%4)%4),base64=(value+padding).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base64);return Uint8Array.from([...raw].map(char=>char.charCodeAt(0)));}
+
+function WaterReminders({summary}:{summary:Summary}){
+  const [enabled,setEnabled]=useState(summary.waterReminderEnabled),[start,setStart]=useState(summary.waterReminderStart),[end,setEnd]=useState(summary.waterReminderEnd),[interval,setInterval]=useState(summary.waterReminderIntervalMinutes);
+  const [deviceReady,setDeviceReady]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
+  useEffect(()=>{let active=true;(async()=>{if(!('serviceWorker' in navigator)||!('PushManager' in window))return;const registration=await navigator.serviceWorker.ready;const subscription=await registration.pushManager.getSubscription();if(active)setDeviceReady(Boolean(subscription)&&Notification.permission==='granted');})().catch(()=>{});return()=>{active=false;};},[]);
+  async function enableDevice(){if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window))throw new Error('הדפדפן הזה אינו תומך בהתראות Push.');const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error('לא ניתנה הרשאה להתראות.');const registration=await navigator.serviceWorker.ready,existing=await registration.pushManager.getSubscription(),config=await fetch('/api/push/subscriptions').then(response=>response.json());if(!config.publicKey)throw new Error('שירות ההתראות עדיין לא הוגדר בשרת.');const subscription=existing??await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:decodeKey(config.publicKey)});const response=await fetch('/api/push/subscriptions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(subscription.toJSON())});if(!response.ok)throw new Error('לא ניתן לשמור את המכשיר להתראות.');setDeviceReady(true);}
+  async function submit(event:React.FormEvent){event.preventDefault();setBusy(true);setMessage('');setError('');try{if(enabled&&!deviceReady)await enableDevice();await save('water-reminders',{enabled,startTime:start,endTime:end,intervalMinutes:interval});setMessage(enabled?'תזכורות השתייה נשמרו ויישלחו גם כשהאתר סגור.':'תזכורות השתייה כובו.');}catch(e){setError(e instanceof Error?e.message:'לא ניתן לשמור את התזכורות.');}finally{setBusy(false);}}
+  return <section className="water-reminders"><div className="water-reminder-title"><span><Bell/></span><div><h2>תזכורות שתייה</h2><p>בחירת שעות קבועות שבהן SBO יזכיר לך לשתות.</p></div></div><form onSubmit={submit}><label className="water-reminder-toggle"><span>תזכורות פעילות</span><input type="checkbox" checked={enabled} onChange={event=>setEnabled(event.target.checked)}/><i aria-hidden="true"/></label><div className="water-reminder-grid"><label>שעת התחלה<input type="time" required value={start} onChange={event=>setStart(event.target.value)}/></label><label>שעת סיום<input type="time" required value={end} onChange={event=>setEnd(event.target.value)}/></label><label>תדירות<select value={interval} onChange={event=>setInterval(Number(event.target.value))}><option value={30}>כל חצי שעה</option><option value={60}>כל שעה</option><option value={90}>כל שעה וחצי</option><option value={120}>כל שעתיים</option><option value={180}>כל 3 שעות</option><option value={240}>כל 4 שעות</option></select></label></div><button className="button primary" disabled={busy}>{busy?'שומר…':'שמירת תזכורות'}</button></form>{enabled&&!deviceReady&&<p className="module-hint">בעת השמירה תתבקש לאשר התראות במכשיר הזה. באייפון ובאייפד יש להוסיף את SBO למסך הבית ולפתוח אותו משם פעם אחת.</p>}{message&&<p className="feedback" role="status">{message}</p>}{error&&<p className="error-text" role="alert">{error}</p>}</section>;
 }
 
 function MonthlyCostChart({fuel,policies,reminders,expenses,currency}:{fuel:ModuleRecord[];policies:ModuleRecord[];reminders:ModuleRecord[];expenses:ModuleRecord[];currency:string}){
@@ -172,8 +204,9 @@ export function ModuleWorkspace({ module, summary, water, vehicles, fuel, nutrit
         setBusy(true); setError(''); setMessage(''); setDisplayWaterMl(current=>current+amount);
         try { await save('water', { amountMl: amount, date: summary.today }); setMessage(`נוספו ${amount} מ״ל.`); router.refresh(); }
         catch (e) { setDisplayWaterMl(current=>Math.max(0,current-amount));setError(e instanceof Error ? e.message : 'לא ניתן לשמור.'); } finally { setBusy(false); }
-      }}><Plus size={15}/>{amount} מ״ל</button>)}</div><p role="status" className="feedback">{message}</p>{error && <p role="alert" className="error-text">{error}</p>}</div>
-      <RecordPanel kind="water" title="היסטוריית שתייה" action="הוספת מים" fields={[numberField('amountMl', 'כמות (מ״ל)', 10000, 1), dateField]} records={water} defaults={{ amountMl: 250, date: summary.today }} describe={row => ({ title: `${row.amountMl} מ״ל`, detail: prettyDate(row.date) })}/>
+      }}><WaterServingIcon amount={amount}/><span>{amount} מ״ל</span></button>)}</div><p role="status" className="feedback">{message}</p>{error && <p role="alert" className="error-text">{error}</p>}</div>
+      <WaterReminders summary={summary}/>
+      <RecordPanel kind="water" title="היסטוריית שתייה" action="הוספת מים" fields={[numberField('amountMl', 'כמות (מ״ל)', 10000, 1), dateField]} records={water.slice(0,200)} defaults={{ amountMl: 250, date: summary.today }} confirmDeletion={false} describe={row => ({ title: `${row.amountMl} מ״ל`, detail: prettyDate(row.date) })}/>
       <Goals module="water" summary={summary}/>
     </>}
     {module === 'car' && <>
