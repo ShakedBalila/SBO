@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { apiError, checkOrigin, HttpError, jsonBody } from '@/lib/http';
-import { waterInput, waterReminderInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
+import { waterInput, waterReminderInput, vehicleReminderSettingsInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
 type Context = { params: Promise<{ path: string[] }> };
 async function handle(request: Request, context: Context) {
   try {
@@ -23,6 +23,11 @@ async function handle(request: Request, context: Context) {
       const parsed=waterReminderInput.parse(input);
       const data={waterReminderEnabled:parsed.enabled,waterReminderStart:parsed.startTime,waterReminderEnd:parsed.endTime,waterReminderIntervalMinutes:parsed.intervalMinutes};
       await db.userSettings.upsert({where:{userId:user.id},create:{userId:user.id,...data},update:data});
+      return NextResponse.json({ok:true});
+    }
+    if(kind==='vehicle-reminders'&&request.method==='POST'){
+      const parsed=vehicleReminderSettingsInput.parse(input);
+      await db.userSettings.upsert({where:{userId:user.id},create:{userId:user.id,vehicleReminderEnabled:parsed.enabled},update:{vehicleReminderEnabled:parsed.enabled}});
       return NextResponse.json({ok:true});
     }
     const where = { id, userId: user.id };
@@ -65,6 +70,10 @@ async function handle(request: Request, context: Context) {
         if (deleting) { count = (await db.vehiclePolicy.deleteMany({ where })).count; break; }
         const parsed = policyInput.parse(input);
         if (!await db.vehicle.findFirst({ where: { id: parsed.vehicleId, userId: user.id } })) throw new HttpError(404, 'הרכב לא נמצא.');
+        const existing=await db.vehiclePolicy.findFirst({where:{userId:user.id,vehicleId:parsed.vehicleId,type:parsed.type,...(id?{id:{not:id}}:{})}});
+        if(existing)throw new HttpError(409,'כבר קיים ביטוח מסוג זה לרכב.');
+        const policyCount=await db.vehiclePolicy.count({where:{userId:user.id,vehicleId:parsed.vehicleId,...(id?{id:{not:id}}:{})}});
+        if(policyCount>=3)throw new HttpError(409,'ניתן לשמור עד שלושה ביטוחים לכל רכב.');
         const data = { ...parsed, startDate: new Date(parsed.startDate), endDate: new Date(parsed.endDate) };
         if (id) count = (await db.vehiclePolicy.updateMany({ where, data })).count;
         else await db.vehiclePolicy.create({ data: { ...data, userId: user.id } });
@@ -74,7 +83,7 @@ async function handle(request: Request, context: Context) {
         if (deleting) { count = (await db.vehicleReminder.deleteMany({ where })).count; break; }
         const parsed = reminderInput.parse(input);
         if (!await db.vehicle.findFirst({ where: { id: parsed.vehicleId, userId: user.id } })) throw new HttpError(404, 'הרכב לא נמצא.');
-        const data = { ...parsed, dueDate: new Date(parsed.dueDate) };
+        const data = { ...parsed, dueDate: new Date(parsed.dueDate), expiryDate:new Date(parsed.expiryDate) };
         if (id) count = (await db.vehicleReminder.updateMany({ where, data })).count;
         else await db.vehicleReminder.create({ data: { ...data, userId: user.id } });
         break;

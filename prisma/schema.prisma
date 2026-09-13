@@ -62,6 +62,7 @@ model UserSettings {
   waterReminderStart String @default("08:00") @db.VarChar(5)
   waterReminderEnd String @default("16:00") @db.VarChar(5)
   waterReminderIntervalMinutes Int @default(60)
+  vehicleReminderEnabled Boolean @default(false)
   calorieGoal Int?
   proteinGoalG Int?
   age Int?
@@ -143,6 +144,7 @@ model Vehicle {
   name String @db.VarChar(100)
   licensePlate String @default("") @db.VarChar(30)
   year Int?
+  roadMonth Int?
   odometerKm Int @default(0)
   fuelTankLiters Decimal? @db.Decimal(8, 1)
   createdAt DateTime @default(now())
@@ -178,6 +180,8 @@ model VehiclePolicy {
   annualCost Decimal @db.Decimal(12, 2)
   startDate DateTime @db.Date
   endDate DateTime @db.Date
+  reminderDays Int?
+  reminderTime String @default("09:00") @db.VarChar(5)
   @@index([userId, endDate])
 }
 model VehicleReminder {
@@ -189,7 +193,12 @@ model VehicleReminder {
   type String @db.VarChar(20)
   title String @db.VarChar(150)
   dueDate DateTime @db.Date
+  expiryDate DateTime? @db.Date
   cost Decimal? @db.Decimal(12, 2)
+  licenseFee Decimal? @db.Decimal(12, 2)
+  testFee Decimal? @db.Decimal(12, 2)
+  reminderDays Int?
+  reminderTime String @default("09:00") @db.VarChar(5)
   notes String @default("") @db.VarChar(2000)
   completedAt DateTime?
   @@index([userId, dueDate])
