@@ -20,8 +20,6 @@ body { background:var(--background); }
 .icon-button { color:#a6b4ce; }
 .progress-ring { background:conic-gradient(#859ef5 var(--progress),#2c3850 0); }
 .progress-ring>div { background:#182030; }
-.water-visual { background:#193546; border-color:#325366; color:#77c3e8; }
-.water-visual span { background:#285670; }
 .car-visual { background:#20392f; color:#85c8ae; }
 .plate-visual { border-color:#493824; outline-color:#675037; color:#e1b67f; }
 .avatar { background:#3e352c; color:#efcfaa; }

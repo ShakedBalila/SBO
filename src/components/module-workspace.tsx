@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Pencil, Trash2, X, Droplets, CarFront, Utensils } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, CarFront, Utensils } from 'lucide-react';
 import type { ModuleRecord, RecordKind } from '@/lib/modules';
 import { NutritionScanner } from '@/components/nutrition-scanner';
+import { WaterBottleIcon } from '@/components/water-bottle-icon';
 
 type Field = { key: string; label: string; type?: 'text' | 'number' | 'date'; min?: number; max?: number; step?: string; optional?: boolean; hidden?: boolean; options?: { value: string; label: string }[] };
 type Summary = { today: string; waterMl: number; calories: number; proteinG: number; fuelCost: number; waterGoalMl: number | null; calorieGoal: number | null; proteinGoalG: number | null; currency: string; age:number|null;sex:string|null;heightCm:number|null;weightKg:number|null;activityLevel:string|null;weightGoal:string|null };
@@ -115,9 +116,17 @@ function Goals({ module, summary }: { module: 'water' | 'nutrition'; summary: Su
   </form>{error && <p className="error-text" role="alert">{error}</p>}<p className="feedback" role="status">{message}</p></section>;
 }
 
-function WaterFigure({percent}:{percent:number}){
-  const fill=Math.min(100,Math.max(0,percent));
-  return <section className="water-visual"><div className="human-meter" aria-label={`${fill}% מהיעד`}><svg viewBox="0 0 130 260" role="img"><defs><clipPath id="body-shape"><circle cx="65" cy="31" r="26"/><path d="M41 65 Q25 68 20 91 L6 151 Q3 165 17 168 Q28 169 32 156 L43 111 L43 238 Q43 255 57 255 Q66 255 66 241 L66 161 L68 161 L68 241 Q68 255 81 255 Q95 255 95 238 L95 111 L106 156 Q110 169 122 167 Q134 164 130 150 L115 90 Q109 68 91 65Z"/></clipPath></defs><g clipPath="url(#body-shape)"><rect width="130" height="260" fill="#26334b"/><rect y={260-(260*fill/100)} width="130" height={260*fill/100} fill="url(#water-gradient)"/><path d={`M0 ${260-(260*fill/100)} Q30 ${252-(260*fill/100)} 65 ${260-(260*fill/100)} T130 ${260-(260*fill/100)}`} stroke="#9ce8ff" strokeWidth="4" fill="none"/></g><defs><linearGradient id="water-gradient" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#4fd5ff"/><stop offset="1" stopColor="#3578ff"/></linearGradient></defs></svg></div><div><span className="eyebrow">התקדמות יומית</span><strong>{fill}%</strong><p>הדמות מתמלאת יחד איתך עד להשלמת היעד.</p></div></section>;
+function WaterDashboard({amount,goal,records,today}:{amount:number;goal:number|null;records:ModuleRecord[];today:string}){
+  const percent=goal?Math.round(amount/goal*100):0,fill=Math.min(100,Math.max(0,percent));
+  const todayDate=new Date(`${today}T00:00:00Z`);
+  const days=Array.from({length:7},(_,index)=>{const date=new Date(todayDate);date.setUTCDate(date.getUTCDate()-6+index);const key=date.toISOString().slice(0,10),total=records.filter(record=>String(record.date)===key).reduce((sum,record)=>sum+Number(record.amountMl),0);return {key,total,label:new Intl.DateTimeFormat('he-IL',{weekday:'narrow',timeZone:'UTC'}).format(date)};});
+  return <section className="water-dashboard-card">
+    <div className="hydration-vessel" role="progressbar" aria-label="התקדמות בצריכת המים היומית" aria-valuemin={0} aria-valuemax={100} aria-valuenow={fill}>
+      <div className="hydration-water" style={{height:`${fill}%`}}><i/><i/><i/></div>
+      <div className="hydration-reading"><strong>{amount.toLocaleString('he-IL')}</strong><span>מתוך {goal?.toLocaleString('he-IL')??'—'} מ״ל</span><b>{percent}%</b></div>
+    </div>
+    <div className="water-week"><div><span>השבוע האחרון</span><strong>צריכת מים</strong></div><div className="water-week-bars">{days.map(day=>{const dayPercent=goal?Math.min(100,day.total/goal*100):0;return <div className={day.key===today?'today':''} key={day.key}><span><i style={{height:`${dayPercent}%`}}/></span><small>{day.label}</small></div>})}</div></div>
+  </section>;
 }
 
 function MonthlyCostChart({fuel,policies,reminders,expenses,currency}:{fuel:ModuleRecord[];policies:ModuleRecord[];reminders:ModuleRecord[];expenses:ModuleRecord[];currency:string}){
@@ -137,30 +146,32 @@ export function ModuleWorkspace({ module, summary, water, vehicles, fuel, nutrit
   const [ready, setReady] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [displayWaterMl,setDisplayWaterMl]=useState(summary.waterMl);
   const [nutritionDraft,setNutritionDraft]=useState<Record<string,string|number|null>|null>(null);
   useEffect(() => { setReady(true); const refresh = () => router.refresh(); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh); }, [router]);
-  const title = { water: 'מים', car: 'רכב', nutrition: 'תזונה' }[module];
-  const Icon = { water: Droplets, car: CarFront, nutrition: Utensils }[module];
+  useEffect(()=>setDisplayWaterMl(summary.waterMl),[summary.waterMl]);
+  const title = { water: 'צריכת מים יומית', car: 'רכב', nutrition: 'תזונה' }[module];
+  const Icon = { water: WaterBottleIcon, car: CarFront, nutrition: Utensils }[module];
   const formatMoney = (value: number) => new Intl.NumberFormat('he-IL', { style: 'currency', currency: summary.currency }).format(value);
   const vehicleName = (id: unknown) => String(vehicles.find(vehicle => vehicle.id === id)?.name ?? 'רכב');
   const policyType = (value: unknown) => ({ Mandatory: 'חובה', Comprehensive: 'מקיף', 'Third party': 'צד ג׳' }[String(value)] ?? String(value));
   const reminderType = (value: unknown) => ({ Maintenance: 'טיפול', Test: 'טסט' }[String(value)] ?? String(value));
   const insuranceMonthly = policies.reduce((sum,row)=>sum+Number(row.annualCost)/12,0);
   const upcoming = reminders.filter(row=>String(row.dueDate)>=summary.today&&String(row.dueDate)<=new Date(new Date(`${summary.today}T00:00:00Z`).getTime()+30*86400000).toISOString().slice(0,10));
-  return <>
+  return <div className={`module-workspace ${module}-workspace`}>
     <div className="topline"><span>סביבת עבודה <span className="crumb">/</span><strong>{title}</strong></span><span>{prettyDate(summary.today)}</span></div>
-    <header className="page-heading"><div><span className="eyebrow">היום־יום שלך</span><h1>{title}</h1><p>{module === 'water' ? 'כל כוס נחשבת.' : module === 'car' ? 'הרכבים וההוצאות שלך במקום אחד.' : 'הארוחות והיעדים היומיים מול העיניים.'}</p></div><span className={`module-icon ${module}-card`}><Icon/></span></header>
+    <header className={`page-heading ${module==='water'?'water-page-heading':''}`}><div>{module!=='water'&&<span className="eyebrow">היום־יום שלך</span>}<h1>{title}</h1>{module!=='water'&&<p>{module === 'car' ? 'הרכבים וההוצאות שלך במקום אחד.' : 'הארוחות והיעדים היומיים מול העיניים.'}</p>}</div><span className={`module-icon ${module}-card`}><Icon/></span></header>
     <section className="module-stats" aria-label={`סיכום ${title}`}>
-      {module === 'water' && <><div><small>היום</small><strong>{summary.waterMl.toLocaleString('he-IL')} <span>מ״ל</span></strong></div><div><small>יעד יומי</small><strong>{summary.waterGoalMl?.toLocaleString('he-IL') ?? 'לא הוגדר'} <span>{summary.waterGoalMl ? 'מ״ל' : ''}</span></strong></div><div><small>התקדמות</small><strong>{summary.waterGoalMl ? `${Math.round(summary.waterMl / summary.waterGoalMl * 100)}%` : '—'}</strong></div></>}
+      {module === 'water' && <><div><small>צריכת מים יומית</small><strong>{displayWaterMl.toLocaleString('he-IL')} <span>מ״ל</span></strong></div><div><small>יעד יומי</small><strong>{summary.waterGoalMl?.toLocaleString('he-IL') ?? 'לא הוגדר'} <span>{summary.waterGoalMl ? 'מ״ל' : ''}</span></strong></div><div><small>התקדמות</small><strong>{summary.waterGoalMl ? `${Math.round(displayWaterMl / summary.waterGoalMl * 100)}%` : '—'}</strong></div></>}
       {module === 'car' && <><div><small>בנזין 95 · ישראל</small><strong>{formatMoney(fuelPrice?.price ?? 0)} <span>לליטר</span></strong><small>{fuelPrice?.online?'עודכן מהאינטרנט':'מחיר אחרון שנבדק'} · שירות עצמי</small></div><div><small>דלק החודש</small><strong>{formatMoney(summary.fuelCost)}</strong></div><div><small>ביטוח לחודש</small><strong>{formatMoney(insuranceMonthly)}</strong></div><div><small>התראות קרובות</small><strong>{upcoming.length}</strong></div></>}
       {module === 'nutrition' && <><div><small>קלוריות היום</small><strong>{summary.calories.toLocaleString('he-IL')} <span>קלוריות</span></strong><small>{summary.calorieGoal ? `יעד: ${summary.calorieGoal.toLocaleString('he-IL')}` : 'לא הוגדר יעד'}</small></div><div><small>חלבון היום</small><strong>{summary.proteinG.toLocaleString('he-IL')} <span>גרם</span></strong><small>{summary.proteinGoalG ? `יעד: ${summary.proteinGoalG.toLocaleString('he-IL')} גרם` : 'לא הוגדר יעד'}</small></div></>}
     </section>
     {module === 'water' && <>
-      <WaterFigure percent={summary.waterGoalMl?Math.round(summary.waterMl/summary.waterGoalMl*100):0}/>
-      <div className="quick-water"><h2>הוספה מהירה להיום</h2><div>{[250, 500, 750, 1000].map(amount => <button key={amount} className="button secondary" disabled={busy || !ready} onClick={async () => {
-        setBusy(true); setError(''); setMessage('');
+      <WaterDashboard amount={displayWaterMl} goal={summary.waterGoalMl} records={water} today={summary.today}/>
+      <div className="quick-water"><h2>הוספת שתייה מהירה</h2><div>{[250, 500, 750, 1000].map(amount => <button key={amount} className="button secondary" disabled={busy || !ready} onClick={async () => {
+        setBusy(true); setError(''); setMessage(''); setDisplayWaterMl(current=>current+amount);
         try { await save('water', { amountMl: amount, date: summary.today }); setMessage(`נוספו ${amount} מ״ל.`); router.refresh(); }
-        catch (e) { setError(e instanceof Error ? e.message : 'לא ניתן לשמור.'); } finally { setBusy(false); }
+        catch (e) { setDisplayWaterMl(current=>Math.max(0,current-amount));setError(e instanceof Error ? e.message : 'לא ניתן לשמור.'); } finally { setBusy(false); }
       }}><Plus size={15}/>{amount} מ״ל</button>)}</div><p role="status" className="feedback">{message}</p>{error && <p role="alert" className="error-text">{error}</p>}</div>
       <RecordPanel kind="water" title="היסטוריית שתייה" action="הוספת מים" fields={[numberField('amountMl', 'כמות (מ״ל)', 10000, 1), dateField]} records={water} defaults={{ amountMl: 250, date: summary.today }} describe={row => ({ title: `${row.amountMl} מ״ל`, detail: prettyDate(row.date) })}/>
       <Goals module="water" summary={summary}/>
@@ -180,6 +191,6 @@ export function ModuleWorkspace({ module, summary, water, vehicles, fuel, nutrit
       <RecordPanel kind="nutrition" title="מה אכלתי" action="הוספת מזון או ארוחה" records={nutrition} externalDraft={nutritionDraft} onDraftConsumed={()=>setNutritionDraft(null)} fields={[{ key: 'name', label: 'מה אכלת?', max: 200 }, {key:'meal',label:'',hidden:true}, dateField,numberField('quantity','כמות',10000,0.01,'0.01'),{key:'unit',label:'יחידה',max:30}, numberField('calories', 'קלוריות', 100000), numberField('proteinG', 'חלבון (גרם)', 10000, 0, '0.1'),numberField('carbsG','פחמימות (גרם)',10000,0,'0.1'),numberField('fatG','שומן (גרם)',10000,0,'0.1'),{key:'barcode',label:'',hidden:true}]} defaults={{ name: '', meal: 'Other', date: summary.today,quantity:1,unit:'מנה', calories: '', proteinG: '',carbsG:0,fatG:0,barcode:'' }} describe={row => ({ title: String(row.name), detail: `${prettyDate(row.date)} · ${row.quantity} ${row.unit} · ${row.calories} קלוריות · ${row.proteinG} גרם חלבון · ${row.carbsG} גרם פחמימות · ${row.fatG} גרם שומן` })}/>
       <Goals module="nutrition" summary={summary}/>
     </>}
-  </>;
+  </div>;
 }
 

@@ -1,11 +1,12 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { CarFront, CheckCheck, Droplets, Utensils } from "lucide-react";
+import { CarFront, CheckCheck, Utensils } from "lucide-react";
+import { WaterBottleIcon } from "@/components/water-bottle-icon";
 
 const views={
   tasks:{label:"פותח את ניהול הזמן והמשימות",Icon:CheckCheck},
-  water:{label:"פותח את מעקב המים",Icon:Droplets},
+  water:{label:"פותח את צריכת המים היומית",Icon:WaterBottleIcon},
   car:{label:"פותח את ניהול הרכב",Icon:CarFront},
   nutrition:{label:"פותח את מעקב התזונה",Icon:Utensils}
 };
