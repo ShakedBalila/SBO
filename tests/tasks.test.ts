@@ -46,4 +46,8 @@ test('water pacing uses a separate whole-hour schedule with two or four hour int
   assert.equal(goalInput.safeParse({waterGoalMl:2000,waterDayStart:'08:00',waterDayEnd:'20:00',waterPaceIntervalHours:2}).success,true);
   assert.equal(goalInput.safeParse({waterDayStart:'08:30',waterDayEnd:'20:00',waterPaceIntervalHours:2}).success,false);
   assert.equal(goalInput.safeParse({waterDayStart:'08:00',waterDayEnd:'20:00',waterPaceIntervalHours:3}).success,false);
+  for(const interval of [2,4] as const)for(let start=0;start<23;start++)for(let end=start+1;end<24;end++){
+    const marks=waterTimeMarks(`${String(start).padStart(2,'0')}:00`,`${String(end).padStart(2,'0')}:00`,interval);
+    assert.equal(marks[0],start*60);assert.equal(marks.at(-1),end*60);assert.equal(new Set(marks).size,marks.length);
+  }
 });

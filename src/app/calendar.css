@@ -21,6 +21,9 @@ html:has(dialog[open]),body:has(dialog[open]){overflow:hidden;overscroll-behavio
 .calendar-visibility i{flex:0 0 23px}
 .modern-check input{width:1px!important;height:1px!important;inset:auto!important}
 .restore-button{white-space:nowrap}
+.time-primary-actions>.button,.task-toolbar select,.bulk-actions select,.task-editor-modal select,.task-editor-modal .button,.manager-modal .button{text-align:center;text-align-last:center;justify-content:center}
+.time-primary-actions svg,.push-toggle svg,.task-editor-modal .button svg,.manager-modal .button svg{flex:none}
+.task-editor-modal .form-grid>label,.task-editor-modal .option-field{text-align:center}
 .israeli-date-picker{position:relative;display:flex;align-items:center;justify-content:space-between;width:100%;height:48px;margin-top:7px;padding:0 13px;border:1px solid var(--line);border-radius:9px;background:#111824;color:#8492aa;font-size:16px;font-weight:500;overflow:hidden}
 .israeli-date-picker.has-value{color:var(--ink)}
 .israeli-date-picker>input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;opacity:0;cursor:pointer}
