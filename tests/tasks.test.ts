@@ -3,6 +3,8 @@ import test from 'node:test';
 import { taskInput, todayIn } from '../src/lib/tasks.ts';
 import { hashPassword, verifyPassword } from '../src/lib/password.ts';
 import { waterReminderDue } from '../src/lib/water-reminders.ts';
+import { expectedWaterAt, waterTimeMarks } from '../src/lib/water-pacing.ts';
+import { goalInput } from '../src/lib/modules.ts';
 test('task validation rejects bad dates, blank titles and owner injection', () => {
   assert.equal(taskInput.safeParse({ title: '   ' }).success, false);
   assert.equal(taskInput.safeParse({ title: 'Hello', startDate: '2026-02-30' }).success, false);
@@ -36,4 +38,12 @@ test('water reminders run only on the chosen interval and inside the daily windo
   assert.equal(waterReminderDue(9, 0, '08:00', '16:00', 120), false);
   assert.equal(waterReminderDue(16, 0, '08:00', '16:00', 60), true);
   assert.equal(waterReminderDue(16, 1, '08:00', '16:00', 60), false);
+});
+test('water pacing uses a separate whole-hour schedule with two or four hour intervals', () => {
+  assert.deepEqual(waterTimeMarks('08:00','20:00',4),[480,720,960,1200]);
+  assert.equal(expectedWaterAt(2000,840,'08:00','20:00'),1000);
+  assert.equal(expectedWaterAt(2000,1260,'08:00','20:00'),2000);
+  assert.equal(goalInput.safeParse({waterGoalMl:2000,waterDayStart:'08:00',waterDayEnd:'20:00',waterPaceIntervalHours:2}).success,true);
+  assert.equal(goalInput.safeParse({waterDayStart:'08:30',waterDayEnd:'20:00',waterPaceIntervalHours:2}).success,false);
+  assert.equal(goalInput.safeParse({waterDayStart:'08:00',waterDayEnd:'20:00',waterPaceIntervalHours:3}).success,false);
 });

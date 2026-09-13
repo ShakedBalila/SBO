@@ -5,12 +5,14 @@ import { Plus, Pencil, Trash2, X, CarFront, Utensils, Bell, ChevronLeft, Chevron
 import type { ModuleRecord, RecordKind } from '@/lib/modules';
 import { NutritionScanner } from '@/components/nutrition-scanner';
 import { WaterBottleIcon } from '@/components/water-bottle-icon';
+import { clockMinutes, expectedWaterAt, waterTimeMarks } from '@/lib/water-pacing';
 
 type Field = { key: string; label: string; type?: 'text' | 'number' | 'date'; min?: number; max?: number; step?: string; optional?: boolean; hidden?: boolean; options?: { value: string; label: string }[] };
-type Summary = { today: string; waterMl: number; calories: number; proteinG: number; fuelCost: number; waterGoalMl: number | null; calorieGoal: number | null; proteinGoalG: number | null; currency: string; age:number|null;sex:string|null;heightCm:number|null;weightKg:number|null;activityLevel:string|null;weightGoal:string|null;waterReminderEnabled:boolean;waterReminderStart:string;waterReminderEnd:string;waterReminderIntervalMinutes:number };
+type Summary = { today: string; waterMl: number; calories: number; proteinG: number; fuelCost: number; waterGoalMl: number | null; calorieGoal: number | null; proteinGoalG: number | null; currency: string; age:number|null;sex:string|null;heightCm:number|null;weightKg:number|null;activityLevel:string|null;weightGoal:string|null;timezone:string;waterDayStart:string;waterDayEnd:string;waterPaceIntervalHours:number;waterReminderEnabled:boolean;waterReminderStart:string;waterReminderEnd:string;waterReminderIntervalMinutes:number };
 const dateField: Field = { key: 'date', label: 'תאריך', type: 'date' };
 const numberField = (key: string, label: string, max: number, min = 0, step = '1'): Field => ({ key, label, type: 'number', min, max, step });
 const prettyDate = (value: unknown) => new Intl.DateTimeFormat('he-IL', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(String(value)));
+const wholeHours=Array.from({length:24},(_,hour)=>`${String(hour).padStart(2,'0')}:00`);
 async function save(kind: string, data?: object, id?: string, remove = false) {
   const result = await fetch(`/api/modules/${kind}${id ? `/${id}` : ''}`, {
     method: remove ? 'DELETE' : id ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' },
@@ -20,12 +22,13 @@ async function save(kind: string, data?: object, id?: string, remove = false) {
   if (!result.ok) throw new Error(body.error ?? 'לא ניתן לשמור. נסה שוב.');
 }
 
-function RecordPanel({ kind, title, action, fields, records, defaults, describe, disabled = false, externalDraft, onDraftConsumed, confirmDeletion = true }: {
+function RecordPanel({ kind, title, action, fields, records, defaults, describe, disabled = false, externalDraft, onDraftConsumed, confirmDeletion = true, hideAction = false, openSignal = 0 }: {
   kind: RecordKind; title: string; action: string; fields: Field[]; records: ModuleRecord[];
   defaults: Record<string, string | number | null>; describe: (record: ModuleRecord) => { title: string; detail: string };
   disabled?: boolean;
   externalDraft?: Record<string,string|number|null> | null; onDraftConsumed?:()=>void;
   confirmDeletion?: boolean;
+  hideAction?: boolean; openSignal?: number;
 }) {
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
@@ -40,6 +43,7 @@ function RecordPanel({ kind, title, action, fields, records, defaults, describe,
   const [removedIds,setRemovedIds]=useState<Set<string>>(new Set());
   useEffect(() => setReady(true), []);
   useEffect(()=>{if(externalDraft){setEditing(null);setValues(externalDraft);setError('');dialog.current?.showModal();onDraftConsumed?.();}},[externalDraft,onDraftConsumed]);
+  useEffect(()=>{if(openSignal>0)edit(null);},[openSignal]);
   function edit(record: ModuleRecord | null) {
     const recordValues:Record<string,string|number|null>={...defaults};
     if(record) for(const field of fields){const value=record[field.key];recordValues[field.key]=typeof value==='string'||typeof value==='number'||value===null?value:null;}
@@ -64,7 +68,7 @@ function RecordPanel({ kind, title, action, fields, records, defaults, describe,
   const visibleRecords=records.filter(record=>!removedIds.has(record.id));
   return <section className="journal-panel">
     <div className="section-heading"><div><h2>{title}</h2><p>{kind === 'vehicles' ? 'הרכבים שלך' : 'רשומות אחרונות · עד 200 מוצגות'}</p></div>
-      <button className="button primary" disabled={disabled || !ready || busy} onClick={() => edit(null)}><Plus size={17}/>{action}</button>
+      {!hideAction&&<button className="button primary" disabled={disabled || !ready || busy} onClick={() => edit(null)}><Plus size={17}/>{action}</button>}
     </div>
     <p className="feedback" role="status">{message}</p>
     {disabled && <p className="module-hint">יש להוסיף רכב כדי להתחיל לתעד תדלוקים.</p>}
@@ -114,32 +118,38 @@ function Goals({ module, summary }: { module: 'water' | 'nutrition'; summary: Su
     event.preventDefault(); setBusy(true); setError(''); setMessage('');
     const form = new FormData(event.currentTarget);
     const data:Record<string,string|number|null>=Object.fromEntries(fields.map(field => [field.key, form.get(field.key) ? Number(form.get(field.key)) : null]));
+    if(module==='water'){data.waterDayStart=String(form.get('waterDayStart'));data.waterDayEnd=String(form.get('waterDayEnd'));data.waterPaceIntervalHours=Number(form.get('waterPaceIntervalHours'));}
     if(module==='nutrition'){
       data.age=form.get('age')?Number(form.get('age')):null;data.sex=String(form.get('sex')||'')||null;data.heightCm=form.get('heightCm')?Number(form.get('heightCm')):null;data.weightKg=form.get('weightKg')?Number(form.get('weightKg')):null;data.activityLevel=String(form.get('activityLevel')||'')||null;data.weightGoal=String(form.get('weightGoal')||'')||null;
       if(event.nativeEvent instanceof SubmitEvent && (event.nativeEvent.submitter as HTMLButtonElement)?.value==='calculate'&&data.age&&data.sex&&data.heightCm&&data.weightKg&&data.activityLevel&&data.weightGoal){const base=Math.round(10*Number(data.weightKg)+6.25*Number(data.heightCm)-5*Number(data.age)+(data.sex==='male'?5:-161));const expenditure=Math.round(base*activityFactors[String(data.activityLevel)]);data.calorieGoal=expenditure+(data.weightGoal==='lose'?-500:data.weightGoal==='gain'?300:0);data.proteinGoalG=Math.round(Number(data.weightKg)*(data.weightGoal==='gain'?1.8:1.6));}
     }
     try { await save('goals', data); setMessage('היעדים נשמרו.'); router.refresh(); }
     catch (e) { setError(e instanceof Error ? e.message : 'לא ניתן לשמור.'); } finally { setBusy(false); }
-  }}>{module==='nutrition'&&<><label>גיל<input name="age" type="number" min="13" max="120" defaultValue={summary.age??''}/></label><label>מין לחישוב<select name="sex" defaultValue={summary.sex??''}><option value="">בחירה</option><option value="male">זכר</option><option value="female">נקבה</option></select></label><label>גובה (ס״מ)<input name="heightCm" type="number" min="100" max="250" defaultValue={summary.heightCm??''}/></label><label>משקל (ק״ג)<input name="weightKg" type="number" min="30" max="400" step="0.1" defaultValue={summary.weightKg??''}/></label><label>רמת פעילות<select name="activityLevel" defaultValue={summary.activityLevel??''}><option value="">בחירה</option><option value="sedentary">מעטה</option><option value="light">קלה</option><option value="moderate">בינונית</option><option value="active">גבוהה</option><option value="very_active">גבוהה מאוד</option></select></label><label>מטרה<select name="weightGoal" defaultValue={summary.weightGoal??''}><option value="">בחירה</option><option value="lose">ירידה במשקל</option><option value="maintain">שמירה על המשקל</option><option value="gain">עלייה במשקל / מסה</option></select></label></>}{fields.map(field => <label key={field.key}>{field.label}<input name={field.key} type="number" min={1} max={field.max} step="1" defaultValue={field.value ?? ''}/></label>)}
+  }}>{module==='nutrition'&&<><label>גיל<input name="age" type="number" min="13" max="120" defaultValue={summary.age??''}/></label><label>מין לחישוב<select name="sex" defaultValue={summary.sex??''}><option value="">בחירה</option><option value="male">זכר</option><option value="female">נקבה</option></select></label><label>גובה (ס״מ)<input name="heightCm" type="number" min="100" max="250" defaultValue={summary.heightCm??''}/></label><label>משקל (ק״ג)<input name="weightKg" type="number" min="30" max="400" step="0.1" defaultValue={summary.weightKg??''}/></label><label>רמת פעילות<select name="activityLevel" defaultValue={summary.activityLevel??''}><option value="">בחירה</option><option value="sedentary">מעטה</option><option value="light">קלה</option><option value="moderate">בינונית</option><option value="active">גבוהה</option><option value="very_active">גבוהה מאוד</option></select></label><label>מטרה<select name="weightGoal" defaultValue={summary.weightGoal??''}><option value="">בחירה</option><option value="lose">ירידה במשקל</option><option value="maintain">שמירה על המשקל</option><option value="gain">עלייה במשקל / מסה</option></select></label></>}{fields.map(field => <label key={field.key}>{field.label}<input name={field.key} type="number" min={1} max={field.max} step="1" defaultValue={field.value ?? ''}/></label>)}{module==='water'&&<div className="water-goal-schedule"><label>שעת התחלה<select name="waterDayStart" defaultValue={summary.waterDayStart}>{wholeHours.slice(0,-1).map(time=><option key={time}>{time}</option>)}</select></label><label>שעת סיום<select name="waterDayEnd" defaultValue={summary.waterDayEnd}>{wholeHours.slice(1).map(time=><option key={time}>{time}</option>)}</select></label><label>מרווח שעות<select name="waterPaceIntervalHours" defaultValue={summary.waterPaceIntervalHours}><option value="2">כל שעתיים</option><option value="4">כל ארבע שעות</option></select></label></div>}
     <div className="goal-actions">{module==='nutrition'&&<button className="button primary" name="action" value="calculate" disabled={busy||!ready}>חישוב ועדכון יעדים</button>}<button className="button secondary" disabled={busy || !ready}>{busy ? 'שומר…' : 'שמירה ידנית'}</button></div>
   </form>{error && <p className="error-text" role="alert">{error}</p>}<p className="feedback" role="status">{message}</p></section>;
 }
 
 function sundayWeek(value:Date){const start=new Date(Date.UTC(value.getUTCFullYear(),0,1));start.setUTCDate(start.getUTCDate()-start.getUTCDay());return Math.floor((value.getTime()-start.getTime())/(7*86400000))+1;}
 
-function WaterDashboard({amount,goal,records,today}:{amount:number;goal:number|null;records:ModuleRecord[];today:string}){
+function WaterDashboard({amount,goal,records,today,startTime,endTime,intervalHours,timeZone}:{amount:number;goal:number|null;records:ModuleRecord[];today:string;startTime:string;endTime:string;intervalHours:number;timeZone:string}){
   const [weekOffset,setWeekOffset]=useState(0);
+  const [clock,setClock]=useState<Date|null>(null);
+  useEffect(()=>{setClock(new Date());const timer=window.setInterval(()=>setClock(new Date()),60000);return()=>window.clearInterval(timer);},[]);
   const percent=goal?Math.round(amount/goal*100):0,fill=Math.min(100,Math.max(0,percent));
   const todayDate=new Date(`${today}T00:00:00Z`);
   const weekStart=new Date(todayDate);weekStart.setUTCDate(weekStart.getUTCDate()-weekStart.getUTCDay()+weekOffset*7);
-  const days=Array.from({length:7},(_,index)=>{const date=new Date(weekStart);date.setUTCDate(date.getUTCDate()+index);const key=date.toISOString().slice(0,10),total=records.filter(record=>String(record.date)===key).reduce((sum,record)=>sum+Number(record.amountMl),0);return {key,total,label:new Intl.DateTimeFormat('he-IL',{weekday:'narrow',timeZone:'UTC'}).format(date)};});
+  const days=Array.from({length:7},(_,index)=>{const date=new Date(weekStart);date.setUTCDate(date.getUTCDate()+index);const key=date.toISOString().slice(0,10),recorded=records.filter(record=>String(record.date)===key).reduce((sum,record)=>sum+Number(record.amountMl),0),total=key===today?amount:recorded;return {key,total,label:new Intl.DateTimeFormat('he-IL',{weekday:'narrow',timeZone:'UTC'}).format(date)};});
   const weekNumber=sundayWeek(weekStart),weekTotal=days.reduce((sum,day)=>sum+day.total,0);
+  const startMinute=clockMinutes(startTime),endMinute=clockMinutes(endTime),timeMarks=waterTimeMarks(startTime,endTime,intervalHours===4?4:2);
+  let currentMinute:number|null=null;if(clock){const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(clock).filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));currentMinute=Number(parts.hour)*60+Number(parts.minute);}
+  const expectedNow=goal&&currentMinute!==null?expectedWaterAt(goal,currentMinute,startTime,endTime):0;
   return <section className="water-dashboard-card">
     <div className="hydration-vessel" role="progressbar" aria-label="התקדמות בצריכת המים היומית" aria-valuemin={0} aria-valuemax={100} aria-valuenow={fill}>
       <div className="hydration-water" style={{height:`${fill}%`}}><i/><i/><i/></div>
       <div className="hydration-reading"><strong>{amount.toLocaleString('he-IL')}</strong><span>מתוך {goal?.toLocaleString('he-IL')??'—'} מ״ל</span><b>{percent}%</b></div>
     </div>
-    <div className="water-week"><div className="water-week-heading"><button type="button" aria-label="השבוע הקודם" onClick={()=>setWeekOffset(value=>value-1)}><ChevronRight/></button><div><span>צריכת מים לשבוע {weekNumber}</span><strong>{weekTotal.toLocaleString('he-IL')} מ״ל</strong></div><button type="button" aria-label="השבוע הבא" disabled={weekOffset===0} onClick={()=>setWeekOffset(value=>Math.min(0,value+1))}><ChevronLeft/></button></div><div className="water-week-bars">{days.map(day=>{const dayPercent=goal?Math.min(100,day.total/goal*100):0;return <div className={day.key===today?'today':''} key={day.key}><span><i style={{height:`${dayPercent}%`}}/></span><small>{day.label}</small></div>})}</div></div>
+    <div className="water-week"><div className="water-week-heading"><button type="button" aria-label="השבוע הקודם" onClick={()=>setWeekOffset(value=>value-1)}><ChevronRight/></button><div><span>צריכת מים לשבוע {weekNumber}</span><strong>{weekTotal.toLocaleString('he-IL')} מ״ל</strong></div><button type="button" aria-label="השבוע הבא" disabled={weekOffset===0} onClick={()=>setWeekOffset(value=>Math.min(0,value+1))}><ChevronLeft/></button></div><div className="water-week-bars">{days.map(day=>{const dayPercent=goal?Math.min(100,day.total/goal*100):0,isToday=day.key===today,isLate=isToday&&weekOffset===0&&Boolean(expectedNow&&day.total<expectedNow);return <div className={`${isToday?'today':''} ${isLate?'late':''}`} key={day.key}><span className="water-day-pill"><i style={{height:`${dayPercent}%`}}/><span className="water-time-scale">{timeMarks.map(minute=><b key={minute} style={{bottom:`${(minute-startMinute)/(endMinute-startMinute)*100}%`}}>{String(Math.floor(minute/60)).padStart(2,'0')}</b>)}</span></span><small>{day.label}</small><b className="water-day-total">{day.total>=1000?`${(day.total/1000).toFixed(1)}ל׳`:`${day.total}מ״ל`}</b></div>})}</div></div>
   </section>;
 }
 
@@ -155,10 +165,13 @@ function decodeKey(value:string){const padding='='.repeat((4-value.length%4)%4),
 function WaterReminders({summary}:{summary:Summary}){
   const [enabled,setEnabled]=useState(summary.waterReminderEnabled),[start,setStart]=useState(summary.waterReminderStart),[end,setEnd]=useState(summary.waterReminderEnd),[interval,setInterval]=useState(summary.waterReminderIntervalMinutes);
   const [deviceReady,setDeviceReady]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
+  useEffect(()=>{setEnabled(summary.waterReminderEnabled);setStart(summary.waterReminderStart);setEnd(summary.waterReminderEnd);setInterval(summary.waterReminderIntervalMinutes);},[summary.waterReminderEnabled,summary.waterReminderStart,summary.waterReminderEnd,summary.waterReminderIntervalMinutes]);
   useEffect(()=>{let active=true;(async()=>{if(!('serviceWorker' in navigator)||!('PushManager' in window))return;const registration=await navigator.serviceWorker.ready;const subscription=await registration.pushManager.getSubscription();if(active)setDeviceReady(Boolean(subscription)&&Notification.permission==='granted');})().catch(()=>{});return()=>{active=false;};},[]);
   async function enableDevice(){if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window))throw new Error('הדפדפן הזה אינו תומך בהתראות Push.');const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error('לא ניתנה הרשאה להתראות.');const registration=await navigator.serviceWorker.ready,existing=await registration.pushManager.getSubscription(),config=await fetch('/api/push/subscriptions').then(response=>response.json());if(!config.publicKey)throw new Error('שירות ההתראות עדיין לא הוגדר בשרת.');const subscription=existing??await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:decodeKey(config.publicKey)});const response=await fetch('/api/push/subscriptions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(subscription.toJSON())});if(!response.ok)throw new Error('לא ניתן לשמור את המכשיר להתראות.');setDeviceReady(true);}
   async function submit(event:React.FormEvent){event.preventDefault();setBusy(true);setMessage('');setError('');try{if(enabled&&!deviceReady)await enableDevice();await save('water-reminders',{enabled,startTime:start,endTime:end,intervalMinutes:interval});setMessage(enabled?'תזכורות השתייה נשמרו ויישלחו גם כשהאתר סגור.':'תזכורות השתייה כובו.');}catch(e){setError(e instanceof Error?e.message:'לא ניתן לשמור את התזכורות.');}finally{setBusy(false);}}
-  return <section className="water-reminders"><div className="water-reminder-title"><span><Bell/></span><div><h2>תזכורות שתייה</h2><p>בחירת שעות קבועות שבהן SBO יזכיר לך לשתות.</p></div></div><form onSubmit={submit}><label className="water-reminder-toggle"><span>תזכורות פעילות</span><input type="checkbox" checked={enabled} onChange={event=>setEnabled(event.target.checked)}/><i aria-hidden="true"/></label><div className="water-reminder-grid"><label>שעת התחלה<input type="time" required value={start} onChange={event=>setStart(event.target.value)}/></label><label>שעת סיום<input type="time" required value={end} onChange={event=>setEnd(event.target.value)}/></label><label>תדירות<select value={interval} onChange={event=>setInterval(Number(event.target.value))}><option value={30}>כל חצי שעה</option><option value={60}>כל שעה</option><option value={90}>כל שעה וחצי</option><option value={120}>כל שעתיים</option><option value={180}>כל 3 שעות</option><option value={240}>כל 4 שעות</option></select></label></div><button className="button primary" disabled={busy}>{busy?'שומר…':'שמירת תזכורות'}</button></form>{enabled&&!deviceReady&&<p className="module-hint">בעת השמירה תתבקש לאשר התראות במכשיר הזה. באייפון ובאייפד יש להוסיף את SBO למסך הבית ולפתוח אותו משם פעם אחת.</p>}{message&&<p className="feedback" role="status">{message}</p>}{error&&<p className="error-text" role="alert">{error}</p>}</section>;
+  async function toggle(next:boolean){setEnabled(next);setBusy(true);setMessage('');setError('');try{if(next&&!deviceReady)await enableDevice();await save('water-reminders',{enabled:next,startTime:start,endTime:end,intervalMinutes:interval});setMessage(next?'התזכורות הופעלו ונשמרו.':'התזכורות כובו.');}catch(e){setEnabled(!next);setError(e instanceof Error?e.message:'לא ניתן לשנות את ההתראות.');}finally{setBusy(false);}}
+  async function activateDevice(){setBusy(true);setMessage('');setError('');try{await enableDevice();setMessage('המכשיר מחובר להתראות.');}catch(e){setError(e instanceof Error?e.message:'לא ניתן להפעיל התראות במכשיר הזה.');}finally{setBusy(false);}}
+  return <section className="water-reminders"><div className="water-reminder-title"><span><Bell/></span><div><h2>תזכורות שתייה</h2><p>בחירת שעות קבועות שבהן SBO יזכיר לך לשתות.</p></div></div><form onSubmit={submit}><label className="water-reminder-toggle"><span>תזכורות פעילות</span><input type="checkbox" checked={enabled} disabled={busy} onChange={event=>void toggle(event.target.checked)}/><i aria-hidden="true"/></label><div className="water-reminder-grid"><label>שעת התחלה<input type="time" required value={start} onChange={event=>setStart(event.target.value)}/></label><label>שעת סיום<input type="time" required value={end} onChange={event=>setEnd(event.target.value)}/></label><label>תדירות<select value={interval} onChange={event=>setInterval(Number(event.target.value))}><option value={30}>כל חצי שעה</option><option value={60}>כל שעה</option><option value={90}>כל שעה וחצי</option><option value={120}>כל שעתיים</option><option value={180}>כל 3 שעות</option><option value={240}>כל 4 שעות</option></select></label></div><button className="button primary" disabled={busy}>{busy?'שומר…':'שמירת שעות'}</button></form>{enabled&&!deviceReady&&<div className="water-device-setup"><p className="module-hint">באייפון ובאייפד יש להוסיף את SBO למסך הבית ולפתוח אותו משם פעם אחת.</p><button type="button" className="button secondary" disabled={busy} onClick={()=>void activateDevice()}>הפעלת התראות במכשיר הזה</button></div>}{message&&<p className="feedback" role="status">{message}</p>}{error&&<p className="error-text" role="alert">{error}</p>}</section>;
 }
 
 function MonthlyCostChart({fuel,policies,reminders,expenses,currency}:{fuel:ModuleRecord[];policies:ModuleRecord[];reminders:ModuleRecord[];expenses:ModuleRecord[];currency:string}){
@@ -179,6 +192,7 @@ export function ModuleWorkspace({ module, summary, water, vehicles, fuel, nutrit
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [displayWaterMl,setDisplayWaterMl]=useState(summary.waterMl);
+  const [manualWaterSignal,setManualWaterSignal]=useState(0);
   const [nutritionDraft,setNutritionDraft]=useState<Record<string,string|number|null>|null>(null);
   useEffect(() => { setReady(true); const refresh = () => router.refresh(); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh); }, [router]);
   useEffect(()=>setDisplayWaterMl(summary.waterMl),[summary.waterMl]);
@@ -199,14 +213,14 @@ export function ModuleWorkspace({ module, summary, water, vehicles, fuel, nutrit
       {module === 'nutrition' && <><div><small>קלוריות היום</small><strong>{summary.calories.toLocaleString('he-IL')} <span>קלוריות</span></strong><small>{summary.calorieGoal ? `יעד: ${summary.calorieGoal.toLocaleString('he-IL')}` : 'לא הוגדר יעד'}</small></div><div><small>חלבון היום</small><strong>{summary.proteinG.toLocaleString('he-IL')} <span>גרם</span></strong><small>{summary.proteinGoalG ? `יעד: ${summary.proteinGoalG.toLocaleString('he-IL')} גרם` : 'לא הוגדר יעד'}</small></div></>}
     </section>
     {module === 'water' && <>
-      <WaterDashboard amount={displayWaterMl} goal={summary.waterGoalMl} records={water} today={summary.today}/>
-      <div className="quick-water"><h2>הוספת שתייה מהירה</h2><div>{[250, 500, 750, 1000].map(amount => <button key={amount} className="button secondary" disabled={busy || !ready} onClick={async () => {
+      <WaterDashboard amount={displayWaterMl} goal={summary.waterGoalMl} records={water} today={summary.today} startTime={summary.waterDayStart} endTime={summary.waterDayEnd} intervalHours={summary.waterPaceIntervalHours} timeZone={summary.timezone}/>
+      <div className="quick-water"><h2>הוספת שתייה מהירה</h2><div>{[250, 500, 750, 1000].map(amount => <button key={amount} className="button secondary water-quick-button" disabled={busy || !ready} onClick={async () => {
         setBusy(true); setError(''); setMessage(''); setDisplayWaterMl(current=>current+amount);
         try { await save('water', { amountMl: amount, date: summary.today }); setMessage(`נוספו ${amount} מ״ל.`); router.refresh(); }
         catch (e) { setDisplayWaterMl(current=>Math.max(0,current-amount));setError(e instanceof Error ? e.message : 'לא ניתן לשמור.'); } finally { setBusy(false); }
-      }}><WaterServingIcon amount={amount}/><span>{amount} מ״ל</span></button>)}</div><p role="status" className="feedback">{message}</p>{error && <p role="alert" className="error-text">{error}</p>}</div>
+      }}><WaterServingIcon amount={amount}/><span>{amount} מ״ל</span></button>)}<button className="button secondary manual-water-button" onClick={()=>setManualWaterSignal(value=>value+1)}><Plus/><span>הוספת שתייה ידנית</span></button></div><p role="status" className="feedback">{message}</p>{error && <p role="alert" className="error-text">{error}</p>}</div>
       <WaterReminders summary={summary}/>
-      <RecordPanel kind="water" title="היסטוריית שתייה" action="הוספת מים" fields={[numberField('amountMl', 'כמות (מ״ל)', 10000, 1), dateField]} records={water.slice(0,200)} defaults={{ amountMl: 250, date: summary.today }} confirmDeletion={false} describe={row => ({ title: `${row.amountMl} מ״ל`, detail: prettyDate(row.date) })}/>
+      <RecordPanel kind="water" title="היסטוריית שתייה" action="הוספת מים" fields={[numberField('amountMl', 'כמות (מ״ל)', 10000, 1), dateField]} records={water.slice(0,200)} defaults={{ amountMl: 250, date: summary.today }} confirmDeletion={false} hideAction openSignal={manualWaterSignal} describe={row => ({ title: `${row.amountMl} מ״ל`, detail: prettyDate(row.date) })}/>
       <Goals module="water" summary={summary}/>
     </>}
     {module === 'car' && <>

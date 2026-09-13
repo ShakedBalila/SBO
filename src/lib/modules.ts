@@ -5,6 +5,7 @@ export const recordDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value =
 }, 'Choose a valid date.');
 export const waterInput = z.object({ amountMl: z.number().int().min(1).max(10000), date: recordDate }).strict();
 const clockTime=z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/,'יש לבחור שעה תקינה.');
+const wholeHour=z.string().regex(/^([01]\d|2[0-3]):00$/,'יש לבחור שעה עגולה.');
 export const waterReminderInput=z.object({enabled:z.boolean(),startTime:clockTime,endTime:clockTime,intervalMinutes:z.number().int().min(15).max(720)}).strict().refine(value=>value.endTime>value.startTime,'שעת הסיום חייבת להיות מאוחרת משעת ההתחלה.');
 export const vehicleInput = z.object({
   name: z.string().trim().min(1, 'Enter a vehicle name.').max(100),
@@ -57,6 +58,9 @@ export const nutritionInput = z.object({
 export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, notes: z.string().trim().max(2000).default('') }).strict();
 export const goalInput = z.object({
   waterGoalMl: z.number().int().min(1).max(20000).nullable().optional(),
+  waterDayStart: wholeHour.optional(),
+  waterDayEnd: wholeHour.optional(),
+  waterPaceIntervalHours: z.union([z.literal(2), z.literal(4)]).optional(),
   calorieGoal: z.number().int().min(1).max(20000).nullable().optional(),
   proteinGoalG: z.number().int().min(1).max(2000).nullable().optional(),
   age: z.number().int().min(13).max(120).nullable().optional(),
@@ -65,7 +69,7 @@ export const goalInput = z.object({
   weightKg: z.number().min(30).max(400).nullable().optional(),
   activityLevel: z.enum(['sedentary', 'light', 'moderate', 'active', 'very_active']).nullable().optional(),
   weightGoal: z.enum(['lose', 'maintain', 'gain']).nullable().optional()
-}).strict().refine(input => Object.keys(input).length > 0, 'Enter a goal.');
+}).strict().refine(input => Object.keys(input).length > 0, 'Enter a goal.').refine(input => !input.waterDayStart || !input.waterDayEnd || input.waterDayEnd > input.waterDayStart, 'שעת הסיום חייבת להיות מאוחרת משעת ההתחלה.');
 export type RecordKind = 'water' | 'vehicles' | 'fuel' | 'nutrition' | 'policies' | 'reminders' | 'expenses' | 'events' | 'event-types';
 export type ModuleValue = string | number | boolean | null | number[];
 export type ModuleRecord = { id: string; [key: string]: ModuleValue };
