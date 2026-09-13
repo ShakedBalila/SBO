@@ -5,6 +5,7 @@ import { hashPassword, verifyPassword } from '../src/lib/password.ts';
 import { waterReminderDue } from '../src/lib/water-reminders.ts';
 import { expectedWaterAt, waterTimeMarks } from '../src/lib/water-pacing.ts';
 import { goalInput, vehicleInput, policyInput, reminderInput } from '../src/lib/modules.ts';
+import { parseSelfService95Price } from '../src/lib/fuel-price.ts';
 test('task validation rejects bad dates, blank titles and owner injection', () => {
   assert.equal(taskInput.safeParse({ title: '   ' }).success, false);
   assert.equal(taskInput.safeParse({ title: 'Hello', startDate: '2026-02-30' }).success, false);
@@ -60,4 +61,9 @@ test('vehicle road date controls the Israeli license plate structure',()=>{
 test('insurance and test reminders validate their expiry data',()=>{
   assert.equal(policyInput.safeParse({vehicleId:'v1',type:'Mandatory',provider:'',annualCost:2400,startDate:'2026-01-01',endDate:'2026-12-31',reminderDays:'30',reminderTime:'09:00'}).success,true);
   assert.equal(reminderInput.safeParse({vehicleId:'v1',type:'Test',title:'טסט',dueDate:'2026-01-01',expiryDate:'2027-01-01',cost:null,licenseFee:120,testFee:100,reminderDays:'7',reminderTime:'09:00',notes:''}).success,true);
+});
+test('official fuel price parser handles HTML and plain-text price lists',()=>{
+  assert.equal(parseSelfService95Price('<td>בנזין 95 בשירות עצמי</td><td>7.75</td>'),7.75);
+  assert.equal(parseSelfService95Price('בנזין 95 - שירות עצמי מחיר לצרכן ₪ 7,75'),7.75);
+  assert.equal(parseSelfService95Price('בנזין 98 בשירות עצמי 10.24'),null);
 });
