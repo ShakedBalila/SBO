@@ -1,5 +1,13 @@
 # Foundation validation
 
+## Car feedback validation — 2026-09-14
+
+- Production build, TypeScript and all ten unit tests passed.
+- `tests/e2e/car-feedback.spec.ts` verifies actual test-form submission, rejecting fuel above tank capacity (including the exact boundary), license-plate replacement/deletion with the caret at the left edge, backdrop dismissal, and persisted service-reminder settings.
+- The browser test checks all five main pages at widths 320, 375, 430, 507, 650, 768, 834, 900, 1024 and 1440; navigation remains at the visual viewport bottom after scrolling at widths up to 900. Insurance fields have equal widths. Screenshots at 430, 507, 834 and 1440 were inspected.
+- The service-reminder migration was applied to local PostgreSQL and production Supabase. Production has two enabled push subscriptions and one notification dispatch cron job.
+- Reminder timing and the server dispatch path are covered, including treatments, policies and tests. Physical iPad Safari / Split View and receipt of a real push on the user's devices still require live device verification.
+
 Tested on Windows with Node 24, Next.js 16.3.4, Prisma 7.10 and real PostgreSQL 18.4.
 
 - Prisma generation and initial migration applied successfully.

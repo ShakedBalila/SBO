@@ -6,6 +6,7 @@ import { waterReminderDue } from '../src/lib/water-reminders.ts';
 import { expectedWaterAt, waterTimeMarks } from '../src/lib/water-pacing.ts';
 import { goalInput, vehicleInput, policyInput, reminderInput } from '../src/lib/modules.ts';
 import { parseSelfService95Price } from '../src/lib/fuel-price.ts';
+import { vehicleReminderDue } from '../src/lib/vehicle-reminders.ts';
 test('task validation rejects bad dates, blank titles and owner injection', () => {
   assert.equal(taskInput.safeParse({ title: '   ' }).success, false);
   assert.equal(taskInput.safeParse({ title: 'Hello', startDate: '2026-02-30' }).success, false);
@@ -66,4 +67,11 @@ test('official fuel price parser handles HTML and plain-text price lists',()=>{
   assert.equal(parseSelfService95Price('<td>בנזין 95 בשירות עצמי</td><td>7.75</td>'),7.75);
   assert.equal(parseSelfService95Price('בנזין 95 - שירות עצמי מחיר לצרכן ₪ 7,75'),7.75);
   assert.equal(parseSelfService95Price('בנזין 98 בשירות עצמי 10.24'),null);
+});
+test('vehicle reminders fire once at the configured Israel time',()=>{
+  const expiry='2026-09-22',zone='Asia/Jerusalem';
+  assert.equal(vehicleReminderDue(new Date('2026-09-15T05:59:59Z'),expiry,7,'09:00',zone),false);
+  assert.equal(vehicleReminderDue(new Date('2026-09-15T06:00:00Z'),expiry,7,'09:00',zone),true);
+  assert.equal(vehicleReminderDue(new Date('2026-09-15T06:01:59Z'),expiry,7,'09:00',zone),true);
+  assert.equal(vehicleReminderDue(new Date('2026-09-15T06:02:00Z'),expiry,7,'09:00',zone),false);
 });

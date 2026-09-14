@@ -255,3 +255,21 @@ input::placeholder,textarea::placeholder { color:#a2aaba; }
   .module-loading { min-height:calc(100dvh - 145px); }
   .loading-scene { width:96px; height:96px; border-radius:25px; }
 }
+
+/* Keep the page constrained to the active window, including iPad split view. */
+html,body { width:100%; min-width:0; overflow-x:clip; }
+.workspace,main,.module-grid>* { min-width:0; }
+input,select,textarea { min-width:0; max-width:100%; }
+.section-heading,.page-heading,.task-toolbar { flex-wrap:wrap; }
+.section-heading>div,.journal-row>div { min-width:0; }
+.journal-row p { overflow-wrap:anywhere; }
+@media(max-width:900px) {
+ .bottom-nav { bottom:var(--viewport-bottom,0px)!important; }
+ .bottom-nav a { min-width:0; flex:1; text-align:center; }
+ .bottom-nav span { overflow-wrap:anywhere; }
+}
+@media(max-width:480px) {
+ .modal { width:calc(100% - 20px); padding:16px; }
+ .form-grid,.task-schedule-grid { grid-template-columns:minmax(0,1fr); }
+ .task-toolbar .search-field { flex-basis:100%; min-width:0; }
+}

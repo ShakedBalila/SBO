@@ -30,7 +30,7 @@ export function NutritionScanner({ today, onProduct }: { today:string; onProduct
     }catch(e){stop();setError(e instanceof Error?e.message:'לא ניתן לפתוח את המצלמה.');}
   }
   return <section className="scanner-panel"><div><Camera size={24}/><div><h2>סריקת מוצר</h2><p>סריקת ברקוד ומשיכת ערכים תזונתיים מ־Open Food Facts.</p></div></div><button className="button secondary" onClick={()=>dialog.current?.showModal()}><Camera size={17}/>פתיחת סורק</button>
-    <dialog className="modal scanner-modal" ref={dialog} onClose={stop}><div className="modal-heading"><h2>סריקת ברקוד</h2><button className="icon-button" aria-label="סגירה" onClick={()=>dialog.current?.close()}><X size={20}/></button></div>
+    <dialog className="modal scanner-modal" ref={dialog} onClick={event=>{const box=event.currentTarget.getBoundingClientRect();if(event.target===event.currentTarget&&(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom))event.currentTarget.close();}} onClose={stop}><div className="modal-heading"><h2>סריקת ברקוד</h2><button className="icon-button" aria-label="סגירה" onClick={()=>dialog.current?.close()}><X size={20}/></button></div>
       <p className="module-hint">יש לאפשר גישה למצלמה. אפשר גם להקליד את המספר שמתחת לברקוד.</p>
       <video ref={video} className={`barcode-video ${camera?'':'hidden'}`} playsInline muted/><button className="button secondary full-button" type="button" onClick={startCamera} disabled={busy}><Camera size={17}/>סריקה באמצעות המצלמה</button>
       <label>מספר ברקוד<input inputMode="numeric" pattern="[0-9]{8,14}" value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,''))}/></label>

@@ -58,7 +58,7 @@ export const nutritionInput = z.object({
   barcode: z.string().trim().max(40).default(''),
   date: recordDate
 }).strict();
-export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, notes: z.string().trim().max(2000).default('') }).strict();
+export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, nextServiceDate:recordDate.nullable().default(null),reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00'), notes: z.string().trim().max(2000).default('') }).strict().refine(value=>value.reminderDays===null||value.nextServiceDate!==null,'יש להזין מועד לטיפול הבא כדי להפעיל התראה.');
 export const goalInput = z.object({
   waterGoalMl: z.number().int().min(1).max(20000).nullable().optional(),
   waterDayStart: wholeHour.optional(),

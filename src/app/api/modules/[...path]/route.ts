@@ -52,7 +52,9 @@ async function handle(request: Request, context: Context) {
       case 'fuel': {
         if (deleting) { count = (await db.fuelEntry.deleteMany({ where })).count; break; }
         const parsed = fuelInput.parse(input);
-        if (!await db.vehicle.findFirst({ where: { id: parsed.vehicleId, userId: user.id } })) throw new HttpError(404, 'הרכב לא נמצא.');
+        const vehicle=await db.vehicle.findFirst({where:{id:parsed.vehicleId,userId:user.id}});
+        if(!vehicle)throw new HttpError(404,'הרכב לא נמצא.');
+        if(vehicle.fuelTankLiters!==null&&parsed.liters>Number(vehicle.fuelTankLiters))throw new HttpError(400,'כמות התדלוק אינה יכולה לעלות על נפח מכל הדלק של הרכב.');
         const data = { ...parsed, date: new Date(parsed.date) };
         if (id) count = (await db.fuelEntry.updateMany({ where, data })).count;
         else await db.fuelEntry.create({ data: { ...data, userId: user.id } });
@@ -92,7 +94,7 @@ async function handle(request: Request, context: Context) {
         if (deleting) { count = (await db.vehicleExpense.deleteMany({ where })).count; break; }
         const parsed = expenseInput.parse(input);
         if (!await db.vehicle.findFirst({ where: { id: parsed.vehicleId, userId: user.id } })) throw new HttpError(404, 'הרכב לא נמצא.');
-        const data = { ...parsed, date: new Date(parsed.date) };
+        const data = { ...parsed, date: new Date(parsed.date),nextServiceDate:parsed.nextServiceDate?new Date(parsed.nextServiceDate):null };
         if (id) count = (await db.vehicleExpense.updateMany({ where, data })).count;
         else await db.vehicleExpense.create({ data: { ...data, userId: user.id } });
         break;

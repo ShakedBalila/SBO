@@ -204,6 +204,9 @@ model VehicleReminder {
   @@index([userId, dueDate])
 }
 model VehicleExpense {
+  nextServiceDate DateTime? @db.Date
+  reminderDays Int?
+  reminderTime String @default("09:00") @db.VarChar(5)
   id String @id @default(cuid())
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
