@@ -232,7 +232,7 @@ export function ModuleWorkspace({ module, summary, water, vehicles, fuel, nutrit
   useEffect(() => { setReady(true); const refresh = () => router.refresh(); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh); }, [router]);
   useEffect(()=>setDisplayWaterMl(summary.waterMl),[summary.waterMl]);
   useEffect(()=>setWaterHistoryDate(summary.today),[summary.today]);
-  const title = { water: 'צריכת מים יומית', car: 'רכב', nutrition: 'תזונה' }[module];
+  const title = { water: 'צריכת מים יומית', car: 'תחזוקת רכב חודשית', nutrition: 'תזונה' }[module];
   const Icon = { water: WaterBottleIcon, car: CarFront, nutrition: Utensils }[module];
   const formatMoney = (value: number) => new Intl.NumberFormat('he-IL', { style: 'currency', currency: summary.currency }).format(value);
   const vehicleName = (id: unknown) => String(vehicles.find(vehicle => vehicle.id === id)?.name ?? 'רכב');
