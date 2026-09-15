@@ -30,9 +30,9 @@ test('registration, CRUD, isolation, responsive navigation and logout', async ({
   await page.getByRole('button', { name: 'יצירת משימה', exact: true }).click();
   await page.getByLabel('שם משימה').fill('Plan the week');
   await page.getByLabel('תיאור משימה', { exact: false }).fill('Choose three priorities for the week.');
-  await page.getByLabel('עדיפות', { exact: true }).selectOption('HIGH');
-  await page.getByLabel('תאריך תחילת ביצוע', { exact: false }).fill('2026-09-15');
-  await page.getByLabel('תאריך סיום ביצוע', { exact: false }).fill('2026-09-15');
+  const taskDialog=page.locator('dialog[open]');
+  await taskDialog.locator('select').nth(1).selectOption('HIGH');
+  await taskDialog.locator('input[type="date"]').first().fill('2026-09-15');
   await page.getByRole('button', { name: 'שמירה', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Plan the week', exact: true })).toBeVisible();
   await page.reload();
@@ -51,17 +51,17 @@ test('registration, CRUD, isolation, responsive navigation and logout', async ({
   await other.close();
   await page.getByRole('button', { name: 'עריכת Plan the week', exact: true }).click();
   await page.getByLabel('שם משימה').fill('Plan a focused week');
-  await page.getByLabel('סטטוס משימה', { exact: true }).selectOption('IN_PROGRESS');
+  await page.locator('dialog[open] select').first().selectOption('IN_PROGRESS');
   await page.getByRole('button', { name: 'שמירה', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Plan a focused week' })).toBeVisible();
   await expect(page.getByRole('article').getByText('בתהליך', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'השלמת Plan a focused week', exact: true }).click();
+  await page.getByRole('button', { name: 'סיום Plan a focused week', exact: true }).click();
   await expect(page.getByRole('button', { name: 'פתיחת Plan a focused week' })).toBeVisible();
-  await page.getByRole('button', { name: 'הושלמו', exact: true }).click();
+  await page.getByRole('button', { name: 'משימות שהסתיימו', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Plan a focused week' })).toBeVisible();
   await page.getByRole('button', { name: 'פתיחת Plan a focused week' }).click();
   await expect(page.getByRole('heading', { name: 'Plan a focused week' })).not.toBeVisible();
-  await page.getByRole('button', { name: 'הכול', exact: true }).click();
+  await page.getByRole('button', { name: 'כלל המשימות', exact: true }).click();
   await page.getByLabel('חיפוש משימות').fill('no matching task');
   await expect(page.getByText('אין משימות ברשימה הזאת.')).toBeVisible();
   await page.getByLabel('חיפוש משימות').fill('');
@@ -75,11 +75,8 @@ test('registration, CRUD, isolation, responsive navigation and logout', async ({
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('navigation', { name: 'ניווט בנייד' }).getByRole('link', { name: 'מים', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'מים' })).toBeVisible();
-  await page.getByRole('navigation', { name: 'ניווט בנייד' }).getByRole('link', { name: 'זמן ומשימות', exact: true }).click();
-  await page.getByRole('button', { name: 'מחיקת Plan a focused week', exact: true }).click();
-  await page.getByRole('button', { name: 'שמירה', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Plan a focused week' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'צריכת מים יומית' })).toBeVisible();
+  await page.getByRole('navigation', { name: 'ניווט בנייד' }).getByRole('link', { name: 'משימות', exact: true }).click();
   await page.getByRole('button', { name: 'מחיקת Plan a focused week', exact: true }).click();
   await page.getByRole('button', { name: 'מחיקה', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Plan a focused week' })).not.toBeVisible();

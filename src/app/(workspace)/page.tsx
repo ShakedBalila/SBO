@@ -20,7 +20,7 @@ export default async function Dashboard(){
   const percent=tasks.length?Math.round(done/tasks.length*100):0;
   const now=new Date();
   const civilDate=new Intl.DateTimeFormat("he-IL",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:timezone}).format(now);
-  const hebrewDate=new Intl.DateTimeFormat("he-IL-u-ca-hebrew",{day:"numeric",month:"long",year:"numeric",timeZone:timezone}).format(now);
+  const hebrewDate=new Intl.DateTimeFormat("he-IL-u-ca-hebrew",{day:"numeric",month:"long",timeZone:timezone}).format(now);
   return <div className="dashboard-home">
     <section className="dashboard-date" aria-label="התאריך היום"><CalendarDays/><div><strong>{civilDate}</strong><span>{hebrewDate}</span></div></section>
     <header className="page-heading dashboard-heading"><h1>שלום, {user.name.split(" ")[0]}</h1></header>

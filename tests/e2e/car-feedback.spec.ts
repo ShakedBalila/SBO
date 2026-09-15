@@ -66,7 +66,7 @@ test('car forms, tank limit and split-screen navigation', async ({ page }) => {
     await expect(page.locator('dialog[open]')).toHaveCount(1);
     await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);
     await page.getByRole('button',{name:'הוספת תדלוק',exact:true}).click();
-    await expect(page.getByText('מרחק בפועל (ק״מ)',{exact:true})).toBeVisible();
+    await expect(page.locator('dialog[open]').getByText('מרחק בפועל (ק״מ)',{exact:true})).toBeVisible();
     await expect(page.getByText('מרחק בפועל (ק״מ) (לא חובה)',{exact:true})).toHaveCount(0);
     await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);
     for(const label of ['הוספת טסט','הוספת ביטוח','הוספת טיפול']){await page.getByRole('button',{name:label,exact:true}).click();await expect(page.locator('dialog[open]')).toHaveCount(1);await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);}

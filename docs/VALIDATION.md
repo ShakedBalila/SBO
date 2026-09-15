@@ -1,5 +1,12 @@
 # Foundation validation
 
+## General responsive and module refinement — 2026-09-15
+
+- TypeScript, all ten unit tests, the production build and all four browser suites passed.
+- The browser matrix covers 320, 430, 507, 600, 834, 1024, 1440 and 1920 pixel widths across the home, tasks, water, car and nutrition routes. It checks horizontal overflow and bottom-navigation anchoring after scrolling at widths up to 900 pixels.
+- The new coverage verifies the seven-day water-history selector, the weekly water summary on the home screen, vehicle-brand artwork fallback, food-bank lookup and gram-based meal form.
+- Screenshots for iPhone 15 Pro Max, iPad Split View, iPad full width and desktop were inspected. Physical Safari behavior still needs confirmation on the user's iPhone and iPad after deployment.
+
 ## Car feedback validation — 2026-09-14
 
 - Production build, TypeScript and all ten unit tests passed.

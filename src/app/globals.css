@@ -257,16 +257,34 @@ input::placeholder,textarea::placeholder { color:#a2aaba; }
 }
 
 /* Keep the page constrained to the active window, including iPad split view. */
-html,body { width:100%; min-width:0; overflow-x:clip; }
+html { width:100%; min-width:0; overflow-x:hidden; }
+body { width:100%; min-width:0; max-width:100vw; }
 .workspace,main,.module-grid>* { min-width:0; }
 input,select,textarea { min-width:0; max-width:100%; }
 .section-heading,.page-heading,.task-toolbar { flex-wrap:wrap; }
 .section-heading>div,.journal-row>div { min-width:0; }
 .journal-row p { overflow-wrap:anywhere; }
 @media(max-width:900px) {
- .bottom-nav { bottom:var(--viewport-bottom,0px)!important; }
+ .bottom-nav { position:fixed!important; inset:auto 0 0!important; bottom:0!important; transform:translate3d(0,0,0)!important; backface-visibility:hidden; }
  .bottom-nav a { min-width:0; flex:1; text-align:center; }
  .bottom-nav span { overflow-wrap:anywhere; }
+}
+
+/* Fluid shell: the available screen is always used, from split view to wide desktop. */
+.sidebar { height:100dvh; min-height:100dvh; }
+.workspace { max-width:none; width:auto; }
+.dashboard-home,.module-workspace { width:100%; max-width:none; }
+.module-workspace .page-heading,.module-workspace .section-heading { text-align:center; }
+.module-workspace .section-heading>div { flex:1; }
+.module-workspace .section-heading h2 { justify-content:center; }
+.module-workspace .journal-row>div:first-child { text-align:center; }
+.module-workspace .record-form-grid>label { text-align:center; }
+.module-workspace .record-form-grid input,.module-workspace .record-form-grid select,.module-workspace .record-form-grid textarea { text-align:center; text-align-last:center; }
+@media(max-width:900px){
+  .workspace { width:100%; max-width:100vw; }
+  .bottom-nav { height:calc(68px + env(safe-area-inset-bottom)); padding-block:8px max(8px,env(safe-area-inset-bottom)); }
+  .bottom-nav a { justify-content:center; overflow:hidden; }
+  .bottom-nav span { white-space:nowrap; font-size:9px; }
 }
 @media(max-width:480px) {
  .modal { width:calc(100% - 20px); padding:16px; }

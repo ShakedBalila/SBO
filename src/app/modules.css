@@ -230,3 +230,90 @@
  .journal-row { flex-wrap:wrap; }
  .water-reminder-grid,.water-goal-schedule { grid-template-columns:minmax(0,1fr); }
 }
+
+/* Shared centered, fluid module layout. */
+.module-workspace { padding-bottom:24px; }
+.module-workspace .module-stats>div,.module-workspace .fuel-price-card { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.car-vehicle-stat .vehicle-logo { margin-bottom:8px; }
+.vehicle-logo { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; padding:8px; border:1px solid #3b4962; border-radius:14px; background:#111a29; }
+.vehicle-logo { position:relative; }
+.vehicle-logo img,.vehicle-logo svg { display:block; width:100%; height:100%; object-fit:contain; }
+.vehicle-logo img { position:absolute; inset:8px; width:calc(100% - 16px); height:calc(100% - 16px); opacity:0; }
+.vehicle-logo img.loaded { opacity:1; }
+.vehicle-logo:not(.fallback) svg,.vehicle-logo:not(.fallback) .vehicle-logo-word { display:none; }
+.vehicle-logo-word { max-width:100%; overflow:hidden; color:#a9d8c5; font-size:8px; font-weight:800; letter-spacing:-.03em; text-overflow:ellipsis; }
+.vehicle-logo.fallback { color:#81d1b4; }
+.overview-vehicle { display:flex; align-items:center; gap:13px; padding-inline:0 18px; border-inline-start:0; border-inline-end:1px solid var(--line); text-align:right; }
+.overview-vehicle>div { min-width:0; }
+.home-water-week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; height:88px; align-items:end; direction:rtl; }
+.home-water-week>span { position:relative; height:72px; overflow:hidden; border-radius:999px; background:#26384b; }
+.home-water-week i { position:absolute; inset-inline:0; bottom:0; min-height:3px; background:linear-gradient(#4bd9d7,#1b50b9); }
+.home-water-week b { position:absolute; inset-inline:0; bottom:7px; z-index:1; color:#e7f8ff; font-size:9px; text-align:center; }
+.home-water-week .today { outline:2px solid #54d5d2; outline-offset:2px; }
+.water-overview-body { display:grid; grid-template-columns:minmax(0,.9fr) minmax(160px,1.1fr); align-items:center; gap:18px; }
+.water-secondary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch; gap:24px; margin-bottom:24px; }
+.water-secondary-grid>.water-reminders,.water-secondary-grid>.water-journal { width:auto; height:100%; margin:0; }
+.water-history-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:7px; margin:4px 0 16px; direction:rtl; }
+.water-history-days button { aspect-ratio:1; min-width:0; max-width:44px; width:100%; margin-inline:auto; border:1px solid #3a4b63; border-radius:10px; background:#111a29; color:#b7c3d8; font-weight:700; }
+.water-history-days button.selected { border-color:#55d9d4; color:#eaffff; background:#153d48; border-radius:50%; box-shadow:0 0 0 3px #55d9d426,0 0 18px #45d0ca55; }
+.water-journal .journal-list { max-height:350px; }
+.water-journal .journal-row { min-height:70px; }
+.record-detail-grid { display:grid; grid-template-columns:repeat(4,minmax(125px,1fr)); gap:10px; margin-top:14px; }
+.record-detail-grid>span { min-width:0; padding:11px; border:1px solid #303d53; border-radius:10px; background:#111a29; text-align:center; }
+.record-detail-grid small,.record-detail-grid strong { display:block; overflow-wrap:anywhere; }
+.record-detail-grid small { color:var(--muted); font-size:10px; }
+.record-detail-grid strong { margin-top:5px; font-size:12px; }
+.vehicles-panel .journal-row { align-items:flex-start; padding:16px; border:1px solid var(--line); border-radius:13px; background:#151d2b; }
+.vehicles-panel .journal-row>div:first-child { flex:1; }
+.fuel-journal .journal-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; min-height:68px; padding:11px 4px; }
+.fuel-journal .journal-row h3 { font-size:14px; }
+.fuel-journal .journal-row p { margin-top:4px; line-height:1.45; }
+.fuel-journal .record-status { min-width:54px; text-align:center; }
+.policies-panel .insurance-requirement { margin:0 0 16px; padding:12px; border:1px solid #4c465c; border-radius:10px; background:#262234; }
+.nutrition-goals form { display:grid; grid-template-columns:repeat(4,minmax(120px,1fr)); align-items:end; gap:14px; }
+.nutrition-goals form>label { min-width:0; margin:0; text-align:center; }
+.nutrition-goals input,.nutrition-goals select { min-height:44px; text-align:center; text-align-last:center; }
+.nutrition-goals .metabolism-cards { max-width:520px; margin-inline:auto; }
+.nutrition-goals .goal-actions { grid-column:1/-1; justify-content:center; }
+.food-bank { margin-bottom:24px; padding:24px; border:1px solid var(--line); border-radius:14px; background:#182030; text-align:center; }
+.food-bank form { display:grid; grid-template-columns:minmax(240px,1fr) 150px auto; align-items:end; gap:12px; }
+.food-search { position:relative; display:flex; align-items:center; }
+.food-search svg { position:absolute; right:13px; width:18px; color:var(--muted); }
+.food-search input { padding-inline-start:12px; padding-inline-end:42px; text-align:center; }
+.food-grams { display:flex; flex-direction:column; gap:7px; color:var(--muted); font-size:12px; }
+.food-grams input { text-align:center; }
+.food-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:16px; }
+.food-results article { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px; border:1px solid var(--line); border-radius:11px; background:#111824; text-align:right; }
+.food-results strong,.food-results small,.food-results span { display:block; }
+.food-results small,.food-results span { margin-top:4px; color:var(--muted); font-size:10px; }
+@media(min-width:1200px){
+  .module-workspace>.journal-panel,.module-workspace>.cost-chart,.module-workspace>.scanner-panel,.module-workspace>.food-bank,.module-workspace>.goals-panel { width:100%; }
+  .journal-row h3 { font-size:15px; }
+}
+@media(max-width:900px){
+  .water-secondary-grid { grid-template-columns:1fr; gap:0; }
+  .water-secondary-grid>.water-reminders,.water-secondary-grid>.water-journal { margin-bottom:24px; }
+  .nutrition-goals form { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .record-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .food-bank form { grid-template-columns:minmax(0,1fr) 120px; }
+  .food-bank form>.button { grid-column:1/-1; }
+}
+@media(max-width:650px){
+  .water-overview-body { display:block; }
+  .home-water-week { height:72px; margin-top:10px; }
+  .home-water-week>span { height:58px; }
+  .overview-vehicle { border:0; padding:0; text-align:right; }
+  .record-detail-grid { gap:7px; }
+  .record-detail-grid>span { padding:9px 6px; }
+  .fuel-journal .journal-row { grid-template-columns:minmax(0,1fr) auto; }
+  .fuel-journal .record-status { grid-column:2; grid-row:1; }
+  .fuel-journal .row-actions { grid-column:2; }
+  .food-bank { padding:18px 14px; }
+  .food-results { grid-template-columns:1fr; }
+}
+@media(max-width:430px){
+  .nutrition-goals form { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+  .nutrition-goals form>label { font-size:11px; }
+  .food-bank form { grid-template-columns:1fr; }
+  .food-bank form>.button { grid-column:auto; }
+}

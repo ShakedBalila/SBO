@@ -2,23 +2,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, CheckCheck, CarFront, Utensils, LogOut, ArrowUpRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { WaterBottleIcon } from "@/components/water-bottle-icon";
 const links = [
   { href: "/", label: "סקירה", mobileLabel:"ראשי", Icon: LayoutGrid },
   { href: "/tasks", label: "זמן ומשימות", mobileLabel:"משימות", Icon: CheckCheck },
-  { href: "/water", label: "צריכת מים יומית", mobileLabel:"צריכת מים יומית", Icon: WaterBottleIcon },
+  { href: "/water", label: "צריכת מים יומית", mobileLabel:"מים", Icon: WaterBottleIcon },
   { href: "/car", label: "רכב", mobileLabel:"רכב", Icon: CarFront },
   { href: "/nutrition", label: "תזונה", mobileLabel:"תזונה", Icon: Utensils }
 ];
 export function Navigation({ name }: { name: string }) {
-  const navigation=useRef<HTMLElement>(null);
-  useEffect(()=>{
-    const viewport=window.visualViewport;
-    const update=()=>{if(navigation.current){const offset=viewport&&viewport.scale===1?Math.max(0,window.innerHeight-viewport.height-viewport.offsetTop):0;navigation.current.style.setProperty('--viewport-bottom',offset+'px');}};
-    update();viewport?.addEventListener('resize',update);viewport?.addEventListener('scroll',update);window.addEventListener('resize',update);
-    return()=>{viewport?.removeEventListener('resize',update);viewport?.removeEventListener('scroll',update);window.removeEventListener('resize',update);};
-  },[]);
   const pathname = usePathname();
   const router = useRouter();
   const [error, setError] = useState("");
@@ -39,6 +32,6 @@ export function Navigation({ name }: { name: string }) {
       <div className="sidebar-bottom"><div className="local-note"><span className="online-dot"/>SBO מחובר<ArrowUpRight size={15}/></div><div className="profile"><div className="avatar">{name.slice(0, 1).toUpperCase()}</div><div><strong>{name}</strong><small>חשבון אישי</small></div><button className="icon-button" aria-label="התנתקות" disabled={busy} onClick={logout}><LogOut size={18}/></button></div>{error && <p role="alert" className="error-text">{error}</p>}</div>
     </aside>
     <header className="mobile-header"><Link href="/" className="brand"><span className="brand-mark">s</span>SBO.</Link><button className="icon-button" aria-label="התנתקות" disabled={busy} onClick={logout}><LogOut size={20}/></button>{error && <p role="alert">{error}</p>}</header>
-    <nav ref={navigation} className="bottom-nav" aria-label="ניווט בנייד">{links.map(({ href, mobileLabel, Icon }) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} className={pathname === href ? "active" : ""}><Icon width={21} height={21}/><span>{mobileLabel}</span></Link>)}</nav>
+    <nav className="bottom-nav" aria-label="ניווט בנייד">{links.map(({ href, mobileLabel, Icon }) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} className={pathname === href ? "active" : ""}><Icon width={21} height={21}/><span>{mobileLabel}</span></Link>)}</nav>
   </>;
 }

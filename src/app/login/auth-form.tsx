@@ -4,9 +4,7 @@ import { ArrowRight } from "lucide-react";
 // Native forms work before JavaScript loads, including on slow LAN connections.
 export function AuthForm({ register, error }: { register: boolean; error?: string }) {
   return <div className="auth-form">
-    <span className="eyebrow">סביבת העבודה האישית שלך</span>
-    <h2>{register ? "מתחילים מחדש." : "טוב שחזרת."}</h2>
-    <p>{register ? "צור חשבון והפוך את SBO לשלך." : "התחבר והמשך בדיוק מהמקום שבו עצרת."}</p>
+    <h2>{register ? "יצירת חשבון" : "התחברות"}</h2>
     <form action={`/api/auth/${register ? "register" : "login"}`} method="post">
       {register && <label>שם<input name="name" autoComplete="name" required maxLength={80}/></label>}
       <label>כתובת אימייל<input name="email" type="email" autoComplete="email" autoCapitalize="none" required maxLength={254}/></label>
