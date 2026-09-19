@@ -1,5 +1,15 @@
 # Foundation validation
 
+## Midnight and Gold theme, calendar ranges, nutrition — 2026-09-19
+
+- Applied the supplied visual reference through shared theme tokens: navy surfaces, blue borders, gold actions, module accents and progress rings. Existing modules retain their behavior; the reference image is not embedded as a screenshot UI.
+- TypeScript, 13 unit tests and the production build passed. All five browser suites passed; the focused calendar/theme suite was rerun after fixing dialog height and the two-visible-items calendar limit.
+- Tested 430×932 (iPhone 15 Pro Max), 834×1194 and 1194×834 (iPad Pro 11), split widths 507/600, 320px minimum and desktop 1440/1920. Navigation anchoring is checked after scrolling and resizing; task/event forms are checked for horizontal overflow and aligned fields. Task dialogs now have a regression check for excessive empty space.
+- Event end dates are optional, persist across editing, and render continuous weekly segments with separate lanes for overlapping ranges. Unit tests include week-boundary clipping and recurrence.
+- Nutrition goals are derived server-side from the personal profile, including existing profiles on dashboard reads. Manual target inputs are removed; profile changes update persisted/displayed goals. Tests verify persistence, completed task badges and gram-scaled food import.
+- Open Food Facts live search for shawarma returned product/macronutrient data. Built-in results appear immediately; online results follow. Missing nutrient data is filtered, network lookup has an 8-second timeout, and sources/fallback messages are visible.
+- Automated device dimensions use Edge/Chromium. Physical iPhone/iPad Safari and actual iPad Split View remain unverified; the viewport tests do not substitute for those devices.
+
 ## General responsive and module refinement — 2026-09-15
 
 - TypeScript, all ten unit tests, the production build and all four browser suites passed.

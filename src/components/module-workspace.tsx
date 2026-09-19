@@ -9,6 +9,7 @@ import { expectedWaterAt, waterTimeMarks } from '@/lib/water-pacing';
 import { IsraeliDatePicker } from '@/components/israeli-date-picker';
 import { VehicleBrandLogo } from '@/components/vehicle-brand-logo';
 import { FoodBank } from '@/components/food-bank';
+import { nutritionTargets } from '@/lib/nutrition-targets';
 
 type Field = { key: string; label: string; type?: 'text' | 'number' | 'date' | 'license'; min?: number; max?: number; step?: string; optional?: boolean; hideOptional?: boolean; maxByVehicle?: Record<string,number>; hidden?: boolean; compact?:boolean; options?: { value: string; label: string }[] };
 type Summary = { today: string; waterMl: number; calories: number; proteinG: number; fuelCost: number; waterGoalMl: number | null; calorieGoal: number | null; proteinGoalG: number | null; currency: string; age:number|null;sex:string|null;heightCm:number|null;weightKg:number|null;activityLevel:string|null;weightGoal:string|null;timezone:string;waterDayStart:string;waterDayEnd:string;waterPaceIntervalHours:number;waterReminderEnabled:boolean;waterReminderStart:string;waterReminderEnd:string;waterReminderIntervalMinutes:number;vehicleReminderEnabled:boolean };
@@ -124,27 +125,21 @@ function Goals({ module, summary }: { module: 'water' | 'nutrition'; summary: Su
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   useEffect(() => setReady(true), []);
-  const activityFactors:Record<string,number>={sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9};
-  const canCalculate=summary.age&&summary.sex&&summary.heightCm&&summary.weightKg&&summary.activityLevel&&summary.weightGoal;
-  const bmr=canCalculate?Math.round(10*summary.weightKg!+6.25*summary.heightCm!-5*summary.age!+(summary.sex==='male'?5:-161)):null;
-  const tdee=bmr?Math.round(bmr*activityFactors[summary.activityLevel!]):null;
-  const recommendedCalories=tdee?tdee+(summary.weightGoal==='lose'?-500:summary.weightGoal==='gain'?300:0):null;
-  const recommendedProtein=summary.weightKg?Math.round(summary.weightKg*(summary.weightGoal==='gain'?1.8:1.6)):null;
-  const fields = module === 'water' ? [{ key: 'waterGoalMl', label: 'יעד מים יומי (מ״ל)', value: summary.waterGoalMl, max: 20000 }] :
-    [{ key: 'calorieGoal', label: 'יעד קלוריות יומי', value: summary.calorieGoal??recommendedCalories, max: 20000 }, { key: 'proteinGoalG', label: 'יעד חלבון יומי (גרם)', value: summary.proteinGoalG??recommendedProtein, max: 2000 }];
-  return <section className={`goals-panel ${module==='nutrition'?'nutrition-goals':''}`}><h2>{module==='water'?'היעד היומי שלך':'יעדי תזונה'}</h2>{module==='nutrition'&&<div className="metabolism-cards"><div><small>BMR</small><strong>{bmr?.toLocaleString('he-IL')??'—'}</strong><span>קלוריות במנוחה</span></div><div><small>TDEE</small><strong>{tdee?.toLocaleString('he-IL')??'—'}</strong><span>הוצאה יומית משוערת</span></div></div>}<form onSubmit={async event => {
+  const targets=nutritionTargets(summary),bmr=targets?.bmr,tdee=targets?.tdee;
+  const fields = module === 'water' ? [{ key: 'waterGoalMl', label: 'יעד מים יומי (מ״ל)', value: summary.waterGoalMl, max: 20000 }] : [];
+  return <section className={`goals-panel ${module==='nutrition'?'nutrition-goals':''}`}><h2>{module==='water'?'היעד היומי שלך':'יעדי תזונה'}</h2>{module==='nutrition'&&<p className="module-hint">היעדים מחושבים אוטומטית לפי הפרטים האישיים. הערכים הם אומדן יומי.</p>}{module==='nutrition'&&<div className="metabolism-cards"><div><small>BMR</small><strong>{bmr?.toLocaleString('he-IL')??'—'}</strong><span>קלוריות במנוחה</span></div><div><small>TDEE</small><strong>{tdee?.toLocaleString('he-IL')??'—'}</strong><span>הוצאה יומית משוערת</span></div></div>}<form onSubmit={async event => {
     event.preventDefault(); setBusy(true); setError(''); setMessage('');
     const form = new FormData(event.currentTarget);
     const data:Record<string,string|number|null>=Object.fromEntries(fields.map(field => [field.key, form.get(field.key) ? Number(form.get(field.key)) : null]));
     if(module==='water'){data.waterDayStart=String(form.get('waterDayStart'));data.waterDayEnd=String(form.get('waterDayEnd'));data.waterPaceIntervalHours=Number(form.get('waterPaceIntervalHours'));}
     if(module==='nutrition'){
       data.age=form.get('age')?Number(form.get('age')):null;data.sex=String(form.get('sex')||'')||null;data.heightCm=form.get('heightCm')?Number(form.get('heightCm')):null;data.weightKg=form.get('weightKg')?Number(form.get('weightKg')):null;data.activityLevel=String(form.get('activityLevel')||'')||null;data.weightGoal=String(form.get('weightGoal')||'')||null;
-      if(event.nativeEvent instanceof SubmitEvent && (event.nativeEvent.submitter as HTMLButtonElement)?.value==='calculate'&&data.age&&data.sex&&data.heightCm&&data.weightKg&&data.activityLevel&&data.weightGoal){const base=Math.round(10*Number(data.weightKg)+6.25*Number(data.heightCm)-5*Number(data.age)+(data.sex==='male'?5:-161));const expenditure=Math.round(base*activityFactors[String(data.activityLevel)]);data.calorieGoal=expenditure+(data.weightGoal==='lose'?-500:data.weightGoal==='gain'?300:0);data.proteinGoalG=Math.round(Number(data.weightKg)*(data.weightGoal==='gain'?1.8:1.6));}
+
     }
     try { await save('goals', data); setMessage('היעדים נשמרו.'); router.refresh(); }
     catch (e) { setError(e instanceof Error ? e.message : 'לא ניתן לשמור.'); } finally { setBusy(false); }
   }}>{module==='nutrition'&&<><label>גיל<input name="age" type="number" min="13" max="120" defaultValue={summary.age??''}/></label><label>מין לחישוב<select name="sex" defaultValue={summary.sex??''}><option value="">בחירה</option><option value="male">זכר</option><option value="female">נקבה</option></select></label><label>גובה (ס״מ)<input name="heightCm" type="number" min="100" max="250" defaultValue={summary.heightCm??''}/></label><label>משקל (ק״ג)<input name="weightKg" type="number" min="30" max="400" step="0.1" defaultValue={summary.weightKg??''}/></label><label>רמת פעילות<select name="activityLevel" defaultValue={summary.activityLevel??''}><option value="">בחירה</option><option value="sedentary">מעטה</option><option value="light">קלה</option><option value="moderate">בינונית</option><option value="active">גבוהה</option><option value="very_active">גבוהה מאוד</option></select></label><label>מטרה<select name="weightGoal" defaultValue={summary.weightGoal??''}><option value="">בחירה</option><option value="lose">ירידה במשקל</option><option value="maintain">שמירה על המשקל</option><option value="gain">עלייה במשקל / מסה</option></select></label></>}{fields.map(field => <label key={field.key}>{field.label}<input name={field.key} type="number" min={1} max={field.max} step="1" defaultValue={field.value ?? ''}/></label>)}{module==='water'&&<div className="water-goal-schedule"><label>שעת התחלה<select name="waterDayStart" defaultValue={summary.waterDayStart}>{wholeHours.slice(0,-1).map(time=><option key={time}>{time}</option>)}</select></label><label>שעת סיום<select name="waterDayEnd" defaultValue={summary.waterDayEnd}>{wholeHours.slice(1).map(time=><option key={time}>{time}</option>)}</select></label><label>מרווח שעות<select name="waterPaceIntervalHours" defaultValue={summary.waterPaceIntervalHours}><option value="2">כל שעתיים</option><option value="4">כל ארבע שעות</option></select></label></div>}
-    <div className="goal-actions">{module==='nutrition'&&<button className="button primary" name="action" value="calculate" disabled={busy||!ready}>חישוב אוטומטי ושמירה</button>}<button className="button secondary" disabled={busy || !ready}>{busy ? 'שומר…' : 'שמירת שינויים ידנית'}</button></div>
+    <div className="goal-actions">{module==='nutrition'&&<button className="button primary" name="action" value="calculate" disabled={busy||!ready}>חישוב אוטומטי ושמירה</button>}{module==='water'&&<button className="button secondary" disabled={busy || !ready}>{busy ? 'שומר…' : 'שמירת היעד'}</button>}</div>
   </form>{error && <p className="error-text" role="alert">{error}</p>}<p className="feedback" role="status">{message}</p></section>;
 }
 

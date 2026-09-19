@@ -31,7 +31,7 @@ export function Navigation({ name }: { name: string }) {
       <nav aria-label="ניווט ראשי">{links.map(({ href, label, Icon }) => <Link href={href} key={href} className={`nav-link ${pathname === href ? "active" : ""}`} aria-current={pathname === href ? "page" : undefined}><Icon size={20}/>{label}{pathname === href && <span className="nav-dot"/>}</Link>)}</nav>
       <div className="sidebar-bottom"><div className="local-note"><span className="online-dot"/>SBO מחובר<ArrowUpRight size={15}/></div><div className="profile"><div className="avatar">{name.slice(0, 1).toUpperCase()}</div><div><strong>{name}</strong><small>חשבון אישי</small></div><button className="icon-button" aria-label="התנתקות" disabled={busy} onClick={logout}><LogOut size={18}/></button></div>{error && <p role="alert" className="error-text">{error}</p>}</div>
     </aside>
-    <header className="mobile-header"><Link href="/" className="brand"><span className="brand-mark">s</span>SBO.</Link><button className="icon-button" aria-label="התנתקות" disabled={busy} onClick={logout}><LogOut size={20}/></button>{error && <p role="alert">{error}</p>}</header>
+    <header className="mobile-header"><Link href="/" className="brand"><span className="brand-mark">s</span>SBO</Link><button className="icon-button" aria-label="התנתקות" disabled={busy} onClick={logout}><LogOut size={20}/></button>{error && <p role="alert">{error}</p>}</header>
     <nav className="bottom-nav" aria-label="ניווט בנייד">{links.map(({ href, mobileLabel, Icon }) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} className={pathname === href ? "active" : ""}><Icon width={21} height={21}/><span>{mobileLabel}</span></Link>)}</nav>
   </>;
 }

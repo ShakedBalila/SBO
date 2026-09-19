@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { nutritionTargets } from '@/lib/nutrition-targets';
 import { apiError, checkOrigin, HttpError, jsonBody } from '@/lib/http';
 import { waterInput, waterReminderInput, vehicleReminderSettingsInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
 type Context = { params: Promise<{ path: string[] }> };
@@ -16,6 +17,9 @@ async function handle(request: Request, context: Context) {
     const input = deleting ? null : await jsonBody(request);
     if (kind === 'goals' && request.method === 'POST') {
       const data = goalInput.parse(input);
+      const profile=await db.userSettings.findUnique({where:{userId:user.id}});
+      const targets=nutritionTargets({...profile,...data});
+      data.calorieGoal=targets?.calorieGoal??null;data.proteinGoalG=targets?.proteinGoalG??null;
       await db.userSettings.upsert({ where: { userId: user.id }, create: { userId: user.id, ...data }, update: data });
       return NextResponse.json({ ok: true });
     }
