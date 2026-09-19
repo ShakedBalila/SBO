@@ -36,3 +36,115 @@ input,select,textarea,.search-field,.israeli-date-picker{background:#09283c;colo
 @media(max-width:650px){.metric-ring,.dashboard-home .live-card-body .metric-ring{width:92px;height:92px;min-width:92px;font-size:23px}.calendar-day{height:calc(108px + var(--range-lanes,0)*30px)}}
 .water-secondary-grid{gap:20px}.water-secondary-grid>.water-reminders,.water-secondary-grid>.water-journal{margin:0;width:100%;min-width:0}.module-workspace .module-stats>div,.water-dashboard-card{background:linear-gradient(145deg,#0a283b,#041927);border-color:var(--line)}.quick-water>h2,.goals-panel>h2,.scanner-panel h2,.scanner-panel p,.alerts-panel h2{text-align:center}.water-reminder-toggle{background:#09283c;border-color:var(--line)}.water-week-bars i{background:linear-gradient(#23ceff,#0870ba)}.water-reminder-grid{gap:8px}.vehicle-logo-word{overflow:visible;max-width:none;font-size:9px}
 .task-editor-modal,.event-editor-modal{height:fit-content;min-height:0}
+
+/* Consistent sizing system: equal siblings, aligned controls and balanced action rows. */
+:root{--control-height:46px;--action-radius:10px;--panel-gap:16px;--panel-padding:20px}
+.button{min-height:var(--control-height);padding:10px 16px;border-radius:var(--action-radius);line-height:1.25;text-align:center}
+.icon-button{width:44px;min-width:44px;height:44px;min-height:44px;padding:0}
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select{height:var(--control-height);min-height:var(--control-height)}
+.search-field,.israeli-date-picker,.water-reminder-toggle{min-height:var(--control-height)}
+
+.module-grid{align-items:stretch;grid-auto-rows:1fr}
+.module-card{display:flex;flex-direction:column;height:100%;min-width:0}
+.module-card .card-top{min-height:50px}
+.module-card .task-card-body,.module-card .live-card-body{flex:1}
+.module-card .card-footer{min-height:48px;margin-top:auto}
+.module-card .card-metrics{min-height:65px;align-items:center}
+
+.module-stats,.task-stats,.metabolism-cards{align-items:stretch;grid-auto-rows:1fr}
+.module-stats>*,.task-stats>*,.metabolism-cards>*{height:100%;min-width:0}
+.module-stats>div,.module-stats>button{min-height:126px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.task-stats>div{min-height:92px;align-items:center}
+.metabolism-cards>div{min-height:116px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+
+.journal-panel,.goals-panel,.quick-water,.water-reminders,.food-bank,.scanner-panel,.cost-chart,.alerts-panel{padding:var(--panel-padding);margin-block:var(--panel-gap)}
+.section-heading{position:relative;min-height:48px;align-items:center;justify-content:center}
+.section-heading>div{display:flex;flex:0 1 auto;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.section-heading>.button{position:absolute;inset-inline-end:0;min-width:150px}
+.journal-row{align-items:center}
+.journal-row>div:first-child{flex:1;min-width:0;text-align:center}
+.row-actions{display:flex;align-items:center;justify-content:center;gap:6px}
+
+.time-primary-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:10px}
+.time-primary-actions>*{width:100%;height:100%;min-height:48px;margin:0}
+.time-primary-actions>.push-toggle{justify-content:space-between}
+.task-toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,240px);align-items:stretch;gap:12px}
+.task-toolbar>.search-field,.task-toolbar>select{width:100%;height:var(--control-height);margin:0}
+.bulk-actions{display:grid;grid-template-columns:minmax(140px,1fr) repeat(3,minmax(130px,auto));align-items:center}
+.bulk-actions strong{width:auto;margin:0;text-align:center}
+.bulk-actions .button,.bulk-actions select{width:100%;min-width:0}
+
+.modal form{width:100%}
+.modal-heading{min-height:48px;align-items:center}
+.modal-actions{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(120px,1fr);align-items:stretch;width:min(100%,520px);margin-inline:auto;gap:10px}
+.modal-actions .button{width:100%;height:100%;margin:0}
+.record-form-grid{align-items:end;gap:14px 16px}
+.record-form-grid>label,.modal .form-grid>label,.nutrition-goals form>label,.water-reminder-grid>label,.water-goal-schedule>label{display:flex;flex-direction:column;justify-content:flex-end;gap:8px;min-width:0;margin:0;text-align:center}
+.record-form-grid input,.record-form-grid select,.record-form-grid .israeli-date-picker,.modal .form-grid input,.modal .form-grid select,.modal .form-grid .israeli-date-picker{width:100%;margin:0}
+.event-date-range>label{height:100%}
+
+.quick-water>div{align-items:stretch}
+.quick-water .button{height:100%;width:100%}
+.water-secondary-grid{align-items:stretch}
+.water-secondary-grid>section{display:flex;flex-direction:column;height:100%}
+.water-reminder-grid,.water-goal-schedule{align-items:end}
+.water-reminder-grid>label>input,.water-reminder-grid>label>select,.water-goal-schedule>label>select{width:100%;margin-top:0}
+.water-history-days{align-items:center}
+.water-history-days button{width:100%;max-width:44px}
+
+.nutrition-goals form{align-items:end}
+.nutrition-goals input,.nutrition-goals select{width:100%;margin-top:0}
+.food-bank form{align-items:end}
+.food-search,.food-search input,.food-grams input,.food-bank form>.button{width:100%}
+.food-results{align-items:stretch}
+.food-results article{height:100%}
+.scanner-panel{min-height:104px}
+
+.car-workspace .module-stats{align-items:stretch}
+.car-workspace .module-stats>*{height:100%;min-height:150px}
+.module-stats .car-notifications{justify-content:center}
+.station-prices a{min-height:58px}
+.record-detail-grid{align-items:stretch}
+.record-detail-grid>span{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+@media(max-width:1194px){
+  .time-primary-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .time-primary-actions>.push-toggle{grid-column:1/-1}
+  .section-heading>.button{min-width:140px}
+}
+@media(max-width:650px){
+  :root{--panel-padding:14px;--panel-gap:12px}
+  .module-grid{grid-auto-rows:auto}
+  .module-card{height:auto}
+  .module-stats>div,.module-stats>button{min-height:104px}
+  .task-stats>div{min-height:82px}
+  .time-primary-actions{gap:8px}
+  .time-primary-actions>.button{min-height:50px;white-space:normal}
+  .task-toolbar{grid-template-columns:1fr}
+  .bulk-actions{grid-template-columns:1fr 1fr;margin-inline:8px}
+  .bulk-actions strong{grid-column:1/-1}
+  .modal-actions{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-columns:auto;width:100%}
+  .modal-actions .button:only-child{grid-column:1/-1}
+  .section-heading{flex-direction:column;justify-content:center;text-align:center}
+  .section-heading>.button{position:static;width:100%;min-width:0}
+  .journal-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+  .journal-row>div:first-child{grid-column:1;text-align:center}
+  .journal-row>.record-status{grid-column:2;grid-row:1}
+  .journal-row>.row-actions{grid-column:1/-1;width:100%}
+  .record-form-grid{gap:12px 10px}
+  .food-results article{min-height:104px}
+  .scanner-panel{min-height:0}
+  .car-workspace .module-stats>*{min-height:112px}
+}
+@media(min-width:391px) and (max-width:650px){
+  .time-primary-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .time-primary-actions>.push-toggle{grid-column:1/-1}
+}
+@media(max-width:390px){
+  .button{padding-inline:10px;font-size:11px}
+  .time-primary-actions{grid-template-columns:1fr}
+  .time-primary-actions>.push-toggle{grid-column:auto}
+  .bulk-actions{grid-template-columns:1fr}
+  .bulk-actions strong{grid-column:auto}
+  .modal-actions{grid-template-columns:1fr}
+}
