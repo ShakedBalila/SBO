@@ -2,5 +2,5 @@
 export const copy = {
   home: "סקירה", tasks: "ניהול זמן ומשימות", water: "צריכת מים יומית", car: "רכב", nutrition: "תזונה",
   status: { TODO: "בתהליך", IN_PROGRESS: "בתהליך", DONE: "הסתיימה", POSTPONED: "נדחתה", CANCELLED: "בוטלה" },
-  priority: { LOW: "נמוכה", MEDIUM: "בינונית", HIGH: "גבוהה", URGENT: "דחופה" }
+  priority: { LOW: "נמוכה", MEDIUM: "בינונית", HIGH: "גבוהה", URGENT: "משימה עתידית" }
 };

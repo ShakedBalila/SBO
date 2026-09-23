@@ -137,6 +137,8 @@ docs/                      V3 reference and development decisions
 
 Push notifications use a per-device Web Push subscription, so the browser tab does not need to stay open. Set `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `DISPATCH_SECRET` in the production environment. Call `POST /api/notifications/dispatch` every minute with `Authorization: Bearer <DISPATCH_SECRET>`; the production setup uses Supabase Cron with `pg_net`. On iPhone and iPad, install SBO to the Home Screen before enabling notifications. Each device must enable the notification toggle once.
 
+Nutrition search combines SBO's built-in foods, Open Food Facts and USDA FoodData Central. Set `USDA_FDC_API_KEY` in production for normal USDA rate limits; without it SBO uses USDA's limited `DEMO_KEY` and continues to work with the other sources if that limit is reached.
+
 ## Checks
 
 With dependencies generated:

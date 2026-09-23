@@ -148,3 +148,34 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select{heig
   .bulk-actions strong{grid-column:auto}
   .modal-actions{grid-template-columns:1fr}
 }
+
+/* Compact daily agenda on the overview card. */
+.home-day-agenda{margin:10px 0 4px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#061d2b;text-align:center}
+.home-day-agenda>strong{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px}
+.home-day-agenda>div{display:grid;gap:5px;margin-top:8px}
+.home-day-agenda>div>span{display:grid;grid-template-columns:54px minmax(0,1fr) 38px;align-items:center;gap:7px;min-height:28px;padding:4px 7px;border-radius:8px;background:#0a2b3f}
+.home-day-agenda i,.home-day-agenda small{color:var(--muted);font-size:9px;font-style:normal}
+.home-day-agenda b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.home-day-agenda .home-day-empty{display:block;min-height:30px;background:#082638}
+.overdue-badge,.task-row.is-overdue .task-meta>span:first-child{background:#5a2028;color:#ff9ca8;border-color:#a84754}
+
+/* Seven balanced water actions on wide screens, six balanced actions on phones. */
+.quick-water>div{grid-template-columns:repeat(7,minmax(0,1fr))}
+.quick-water .manual-water-button{grid-column:span 2}
+.car-workspace .module-stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+.efficiency-chart .bar.efficiency{background:linear-gradient(#59e0b0,#128d70)}
+.saved-foods{margin:4px 0 18px;text-align:center}
+.saved-foods>strong{display:block;margin-bottom:9px;font-size:13px}
+.saved-foods>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.saved-foods button{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:3px 8px;min-height:58px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#08283a;color:var(--ink);text-align:right}
+.saved-foods button svg{grid-row:1/3;color:#56d4ff}
+.saved-foods button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:700}
+.saved-foods button small{color:var(--muted);font-size:9px}
+@media(max-width:1194px){.car-workspace .module-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.car-workspace .module-stats>*:last-child{grid-column:1/-1}}
+@media(max-width:650px){
+  .home-day-agenda{padding:8px;margin-top:6px}.home-day-agenda>div>span{grid-template-columns:48px minmax(0,1fr) 34px}
+  .quick-water>div{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:82px}.quick-water .manual-water-button{grid-column:span 1}
+  .saved-foods>div{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .car-workspace .module-stats>*:last-child{grid-column:1/-1}
+}
+@media(max-width:390px){.quick-water>div{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-water .manual-water-button{grid-column:span 1}.saved-foods>div{grid-template-columns:1fr}}
