@@ -1,0 +1,61 @@
+/* Reference-led dashboard and shared iPhone layout. */
+.dashboard-redesign{max-width:860px;margin-inline:auto;padding:22px 0 12px}
+.dashboard-masthead{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:22px;text-align:right}
+.dashboard-wordmark,.sbo-loading-logo{display:block;font-family:Arial,sans-serif;font-weight:900;letter-spacing:-.06em;background:linear-gradient(#fff0c5 5%,#eec077 40%,#a66b29 70%,#f8d18b);background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 1px #5b3717)}
+.dashboard-wordmark{font-size:60px;line-height:1.05;width:fit-content}
+.dashboard-masthead h1{font-size:23px;color:#f3d68b;margin:8px 0 4px}.dashboard-masthead p{font-size:13px;color:#e5e8ed;line-height:1.5}
+.dashboard-header-actions{display:flex;gap:10px}.dashboard-header-actions .icon-button{border:1px solid #a87b42;border-radius:12px;background:linear-gradient(145deg,#392a16,#060c12);color:#ffe2a4;width:46px;height:46px}
+.dashboard-stack{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.overview-card{--card-accent:#efc16e;position:relative;isolation:isolate;display:block;min-width:0;min-height:190px;border:1px solid var(--card-accent);border-radius:17px;overflow:hidden;color:#fff;background:#030b10;box-shadow:inset 0 0 12px color-mix(in srgb,var(--card-accent) 22%,transparent),0 6px 18px #0006;text-decoration:none}
+.overview-water{--card-accent:#25c5ff}.overview-nutrition{--card-accent:#56d977}.overview-car{--card-accent:#f0655d}
+.dashboard-art{position:absolute;inset:0 auto 0 0;width:53%;z-index:-1;overflow:hidden;mask-image:linear-gradient(to right,#000 65%,transparent)}
+.dashboard-art svg{height:100%;width:100%;display:block}
+.overview-content{margin-left:43%;padding:16px 15px 16px 0;min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;min-width:0}
+.overview-content h2{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:clamp(16px,3vw,24px);width:100%;margin:0 0 2px;font-weight:750;line-height:1.3}.overview-content h2 svg{width:24px;flex:none;color:var(--card-accent)}
+.overview-content p{font-size:13px;line-height:1.4;margin:0;overflow-wrap:anywhere}
+.dashboard-ring{--fill:0%;width:82px;height:82px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(closest-side,#051017 78%,transparent 80%),conic-gradient(var(--card-accent) var(--fill),#253c48 0);gap:2px}
+.dashboard-ring strong{font-size:24px;line-height:1.1}.dashboard-ring>span{font-size:12px}.dashboard-gauge{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}.dashboard-gauge>span{font-size:12px;font-variant-numeric:tabular-nums}.dashboard-gauge small{font-size:11px}.nutrition-overview-gauges{display:flex;justify-content:center;gap:14px;width:100%}.nutrition-overview-gauges .dashboard-gauge:first-child{--card-accent:#efc16e}.nutrition-overview-gauges .dashboard-gauge:last-child{--card-accent:#22e4a1}
+.water-overview-percent{font-size:36px;line-height:1.15}.overview-water-meter{height:12px;width:100%;background:#213947;border-radius:20px;overflow:hidden;margin-top:5px;direction:ltr}.overview-water-meter i{display:block;height:100%;background:linear-gradient(90deg,#007aaa,#35d6ff);border-radius:inherit}
+.overview-car-name{font-size:17px}.overview-car-cost{font-size:28px}.dashboard-settings-links{display:grid;gap:10px;margin-top:18px}.dashboard-settings-links a{padding:14px;border:1px solid var(--line);border-radius:10px}.dashboard-settings-modal p{line-height:1.7}
+.bottom-nav a.active,.nav-link.active{color:#f8d68d!important}.bottom-nav .active svg{filter:drop-shadow(0 0 5px #d2a45988)}.bottom-nav .active:after{content:'';position:absolute;bottom:0;width:30px;height:3px;background:#f2ce85;border-radius:3px}.bottom-nav a{position:relative}.bottom-nav{border-top-color:#8e6b3c!important;background:#050e16f5!important}
+/* One viewport-anchored loading scene across every route. */
+.sbo-loading{position:fixed;inset:0;z-index:1400;display:grid;place-items:center;background:radial-gradient(ellipse at center,#0a2535,#02090f 65%);animation:sbo-loader-enter .16s .18s both;pointer-events:none}
+.sbo-loading-scene{position:relative;width:min(330px,85vw);height:210px;perspective:650px;isolation:isolate}
+.sbo-loading-logo{position:absolute;inset:65px 0 auto;text-align:center;font-size:88px;line-height:1;z-index:2}
+.sbo-orbit-track{position:absolute;inset:42px 0;border:1px solid #dcb16b55;border-radius:50%;transform:rotate(-14deg);box-shadow:0 0 15px #e5b85a15}
+.sbo-orbit-hero{position:absolute;left:50%;top:50%;width:65px;height:30px;margin:-15px 0 0 -32px;animation:sbo-hero-flight 1.4s linear infinite;filter:drop-shadow(0 0 5px #ffd786)}
+.sbo-orbit-hero svg{width:100%;height:100%;fill:#f2c878;stroke:#ffe8b1;stroke-width:1}.hero-trail{fill:none!important;stroke-width:4!important;opacity:.55}.hero-cape{fill:#b8893e!important}
+@keyframes sbo-loader-enter{from{opacity:0}to{opacity:1}}
+@keyframes sbo-hero-flight{0%{transform:translate(-135px,20px) rotate(-35deg) scale(.8);z-index:1}25%{transform:translate(-15px,-66px) rotate(5deg) scale(.65);z-index:1}49%{z-index:1}50%{transform:translate(135px,-20px) rotate(70deg) scale(.8);z-index:3}75%{transform:translate(15px,66px) rotate(170deg) scale(1);z-index:3}99%{z-index:3}100%{transform:translate(-135px,20px) rotate(325deg) scale(.8);z-index:1}}
+/* Native iOS date/time inputs must be constrained by their grid tracks. */
+.modal,.modal form,.modal fieldset,.modal label,.modal .form-grid>*{min-width:0;box-sizing:border-box}
+.modal{width:min(680px,calc(100% - 24px));max-width:calc(100% - 24px);max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);padding:20px;scroll-padding:20px}
+.modal input:not([type=checkbox]):not([type=radio]),.modal select,.modal .israeli-date-picker{box-sizing:border-box;width:100%;min-width:0;max-width:100%;height:48px;min-height:48px;font-size:16px;margin-top:8px}
+.modal textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;font-size:16px;resize:vertical}
+.modal input[type=time],.modal input[type=date]{appearance:none;-webkit-appearance:none;display:block;inline-size:100%;min-inline-size:0;max-inline-size:100%;padding:10px 8px}
+.modal input::-webkit-date-and-time-value{text-align:center;min-width:0;margin:0}.modal input::-webkit-datetime-edit{display:inline-flex;min-width:0;padding:0}
+.modal .israeli-date-picker{position:relative;flex:none}.modal .israeli-date-picker input{position:absolute;inset:0;margin:0!important;height:100%;width:100%;opacity:0}
+.modal .form-grid,.modal .record-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:end;gap:16px 12px}
+.modal .form-grid>label,.modal .record-form-grid>label{align-self:stretch;display:flex;flex-direction:column;justify-content:flex-end;gap:4px}.modal .form-grid .optional{display:block;line-height:1.35;min-height:18px}
+.modal .form-grid>label>input,.modal .form-grid>label>select,.modal .form-grid>label>.israeli-date-picker{margin-top:8px!important;flex-shrink:0}
+.modal .modal-actions{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none;width:100%;gap:10px;align-items:stretch;margin-top:20px}
+.modal .modal-actions .button{min-width:0;width:100%;min-height:48px;height:auto;padding:12px 8px;font-size:14px;line-height:1.4;white-space:normal;overflow-wrap:anywhere}
+.modal .modal-heading>.icon-button{width:44px;height:44px;min-width:44px;flex:none;border-radius:10px}
+@media(max-width:1194px){.workspace:has(.dashboard-redesign){inset-block-start:env(safe-area-inset-top);height:calc(100dvh - 68px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}body:has(.dashboard-redesign) .mobile-header{display:none}.dashboard-redesign{padding-top:20px}.dashboard-masthead{margin-bottom:18px}}
+@media(max-width:430px){.dashboard-masthead{gap:8px}.dashboard-wordmark{font-size:48px}.dashboard-masthead h1{font-size:20px}.dashboard-masthead p{font-size:11px}.dashboard-header-actions{gap:8px}.overview-card,.overview-content{min-height:164px}.overview-content{padding:12px 10px 12px 0;margin-left:42%}.overview-content h2{font-size:17px}.dashboard-ring{width:66px;height:66px}.dashboard-ring strong{font-size:21px}.nutrition-overview-gauges{gap:8px}.dashboard-gauge>span{font-size:11px}.dashboard-gauge small{font-size:10px}.dashboard-stack{gap:12px}.modal{padding:16px 12px}.modal .form-grid,.modal .record-form-grid{gap:12px 8px}.modal .modal-actions:has(>:nth-child(3)){grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr))}.modal .modal-actions:has(>:nth-child(3))>:first-child{grid-column:1/-1}}
+@media(max-width:350px){.overview-content h2{font-size:15px}.dashboard-ring{width:57px;height:57px}.dashboard-header-actions{gap:4px}.dashboard-masthead h1{font-size:18px}.modal .form-grid,.modal .record-form-grid{grid-template-columns:minmax(0,1fr)!important}}
+@media(prefers-reduced-motion:reduce){.sbo-orbit-hero{animation:none;transform:translate(100px,-50px)}.sbo-loading{animation:none}.sbo-orbit-track{box-shadow:none}}
+@supports(offset-path:ellipse(42% 30% at 50% 50%)){
+ .sbo-orbit-hero{left:0;top:0;margin:0;offset-path:ellipse(42% 30% at 50% 50%);offset-rotate:auto;offset-anchor:center;animation:sbo-ellipse-flight 1.4s linear infinite}
+ @keyframes sbo-ellipse-flight{0%{offset-distance:0%;z-index:3}49.99%{z-index:3}50%{z-index:1}100%{offset-distance:100%;z-index:1}}
+ @media(prefers-reduced-motion:reduce){.sbo-orbit-hero{animation:none;offset-distance:70%;transform:none}}
+}
+.modal .record-form-grid:has(#vehicles-name)>label:has(#vehicles-name){grid-column:1/-1}
+@media(max-width:1194px){.workspace:has(.dashboard-redesign){top:env(safe-area-inset-top,0px)!important}.dashboard-masthead{min-height:0}}
+@media(max-width:1194px){.workspace:has(.dashboard-redesign){bottom:calc(68px + env(safe-area-inset-bottom,0px))!important;height:auto!important}}
+@media(max-width:430px){.overview-card,.overview-content{min-height:140px}.overview-content{gap:5px;padding-block:10px}.overview-car-cost{font-size:24px}}
+.sbo-loading{animation:none;opacity:0;transition:opacity .14s ease}.sbo-loading.is-visible{opacity:1}
+@media(prefers-reduced-motion:reduce){.sbo-loading{transition:none}}
+/* Avoid native WebKit select painting clipping the label inside fixed-height controls. */
+.modal select{appearance:none;-webkit-appearance:none;background:#09283c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='m3 5 4 4 4-4' fill='none' stroke='%23a0bfd1' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat 10px center;padding:0 12px 0 30px;line-height:normal}
+.sbo-orbit-track{inset:42px 26px;transform:none}

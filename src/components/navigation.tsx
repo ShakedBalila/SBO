@@ -1,12 +1,12 @@
 "use client";
-import Link from "next/link";
+import {TransitionLink as Link} from "@/components/transition-link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid, CheckCheck, CarFront, Utensils, LogOut, ArrowUpRight } from "lucide-react";
+import { LayoutGrid, CalendarDays, CarFront, Utensils, LogOut, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 import { WaterBottleIcon } from "@/components/water-bottle-icon";
 const links = [
   { href: "/", label: "סקירה", mobileLabel:"ראשי", Icon: LayoutGrid },
-  { href: "/tasks", label: "זמן ומשימות", mobileLabel:"משימות", Icon: CheckCheck },
+  { href: "/tasks", label: "זמן ומשימות", mobileLabel:"משימות", Icon: CalendarDays },
   { href: "/water", label: "צריכת מים יומית", mobileLabel:"מים", Icon: WaterBottleIcon },
   { href: "/car", label: "רכב", mobileLabel:"רכב", Icon: CarFront },
   { href: "/nutrition", label: "תזונה", mobileLabel:"תזונה", Icon: Utensils }
