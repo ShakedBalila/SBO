@@ -2,7 +2,7 @@
 import {TransitionLink as Link} from "@/components/transition-link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, CalendarDays, CarFront, Utensils, LogOut, ArrowUpRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { WaterBottleIcon } from "@/components/water-bottle-icon";
 const links = [
   { href: "/", label: "סקירה", mobileLabel:"ראשי", Icon: LayoutGrid },
@@ -14,6 +14,12 @@ const links = [
 export function Navigation({ name }: { name: string }) {
   const pathname = usePathname();
   const router = useRouter();
+  useEffect(()=>{
+    const viewport=window.visualViewport;
+    const update=()=>document.documentElement.style.setProperty('--sbo-viewport-bottom',String(viewport?viewport.offsetTop+viewport.height:window.innerHeight)+'px');
+    update();viewport?.addEventListener('resize',update);viewport?.addEventListener('scroll',update);window.addEventListener('resize',update);
+    return ()=>{viewport?.removeEventListener('resize',update);viewport?.removeEventListener('scroll',update);window.removeEventListener('resize',update);document.documentElement.style.removeProperty('--sbo-viewport-bottom');};
+  },[]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function logout() {

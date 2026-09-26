@@ -59,3 +59,24 @@
 /* Avoid native WebKit select painting clipping the label inside fixed-height controls. */
 .modal select{appearance:none;-webkit-appearance:none;background:#09283c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='m3 5 4 4 4-4' fill='none' stroke='%23a0bfd1' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat 10px center;padding:0 12px 0 30px;line-height:normal}
 .sbo-orbit-track{inset:42px 26px;transform:none}
+
+/* Holidays precede multi-day ranges and individual entries. */
+.calendar-holidays{height:calc(var(--holiday-lanes,0)*34px);overflow:hidden}
+.calendar-holidays .holiday-item{height:31px;margin-top:3px;cursor:default}
+.calendar-day{height:calc(118px + var(--range-lanes,0)*30px + var(--holiday-lanes,0)*34px)}
+.car-workspace .module-stats{align-items:start;gap:10px}
+.car-workspace .module-stats>div,.car-workspace .module-stats>section{min-height:0;padding:12px;align-self:stretch}
+.car-workspace .module-stats strong{font-size:clamp(18px,2.3vw,26px)}
+.car-workspace .module-stats .car-notifications strong{font-size:14px}
+.car-workspace .module-stats .car-notifications{gap:6px}
+.car-workspace .journal-row{padding-block:12px;min-height:0}
+@media(max-width:1194px){
+ body .bottom-nav{top:calc(var(--sbo-viewport-bottom,100dvh) - 68px - env(safe-area-inset-bottom,0px))!important;bottom:auto!important;margin:0!important;border-radius:0!important}
+ .car-workspace .module-stats{grid-template-columns:repeat(6,minmax(0,1fr))}
+ .car-workspace .module-stats>*{grid-column:span 2}
+ .car-workspace .module-stats>.car-vehicle-stat,.car-workspace .module-stats>.car-notifications:last-child{grid-column:span 3}
+ .car-workspace .module-stats strong{font-size:18px;overflow-wrap:anywhere}
+ .car-workspace .module-stats small{font-size:11px}
+ .car-workspace .module-stats .car-notifications>div{flex-direction:row}
+ .car-workspace .module-stats .car-notifications>div>svg{display:none}
+}
