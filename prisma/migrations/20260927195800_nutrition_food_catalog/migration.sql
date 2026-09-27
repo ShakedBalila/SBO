@@ -1,14 +1,14 @@
 ALTER TABLE "UserSettings"
-  ADD COLUMN "nutritionGoalMode" VARCHAR(10) NOT NULL DEFAULT 'auto';
+  ADD COLUMN IF NOT EXISTS "nutritionGoalMode" VARCHAR(10) NOT NULL DEFAULT 'auto';
 
 ALTER TABLE "NutritionEntry"
-  ADD COLUMN "foodKey" VARCHAR(160),
-  ADD COLUMN "source" VARCHAR(30) NOT NULL DEFAULT 'manual';
+  ADD COLUMN IF NOT EXISTS "foodKey" VARCHAR(160),
+  ADD COLUMN IF NOT EXISTS "source" VARCHAR(30) NOT NULL DEFAULT 'manual';
 
-CREATE INDEX "NutritionEntry_userId_foodKey_idx"
+CREATE INDEX IF NOT EXISTS "NutritionEntry_userId_foodKey_idx"
   ON "NutritionEntry"("userId", "foodKey");
 
-CREATE TABLE "UserFood" (
+CREATE TABLE IF NOT EXISTS "UserFood" (
   "id" TEXT NOT NULL,
   "userId" TEXT NOT NULL,
   "name" VARCHAR(200) NOT NULL,
@@ -25,10 +25,10 @@ CREATE TABLE "UserFood" (
   CONSTRAINT "UserFood_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX "UserFood_userId_name_idx" ON "UserFood"("userId", "name");
-CREATE INDEX "UserFood_userId_barcode_idx" ON "UserFood"("userId", "barcode");
+CREATE INDEX IF NOT EXISTS "UserFood_userId_name_idx" ON "UserFood"("userId", "name");
+CREATE INDEX IF NOT EXISTS "UserFood_userId_barcode_idx" ON "UserFood"("userId", "barcode");
 
-CREATE TABLE "FoodPreference" (
+CREATE TABLE IF NOT EXISTS "FoodPreference" (
   "id" TEXT NOT NULL,
   "userId" TEXT NOT NULL,
   "foodKey" VARCHAR(160) NOT NULL,
@@ -41,8 +41,8 @@ CREATE TABLE "FoodPreference" (
   CONSTRAINT "FoodPreference_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE UNIQUE INDEX "FoodPreference_userId_foodKey_key" ON "FoodPreference"("userId", "foodKey");
-CREATE INDEX "FoodPreference_userId_favorite_lastUsedAt_idx" ON "FoodPreference"("userId", "favorite", "lastUsedAt");
+CREATE UNIQUE INDEX IF NOT EXISTS "FoodPreference_userId_foodKey_key" ON "FoodPreference"("userId", "foodKey");
+CREATE INDEX IF NOT EXISTS "FoodPreference_userId_favorite_lastUsedAt_idx" ON "FoodPreference"("userId", "favorite", "lastUsedAt");
 
 -- These tables are accessed only by SBO's authenticated server connection.
 ALTER TABLE "UserFood" ENABLE ROW LEVEL SECURITY;
