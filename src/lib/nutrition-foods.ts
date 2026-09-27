@@ -13,6 +13,10 @@ export type NutritionFood = {
   useCount?: number;
   lastUsedAt?: string | null;
   barcode?: string;
+  servingName?: string;
+  servingGrams?: number;
+  lastQuantity?: number | null;
+  lastUnit?: 'grams' | 'servings' | null;
 };
 
 type MinistryFood = Omit<NutritionFood,'source'> & { aliases?: string[] };

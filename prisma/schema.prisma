@@ -65,6 +65,8 @@ model UserSettings {
   waterReminderEnd String @default("16:00") @db.VarChar(5)
   waterReminderIntervalMinutes Int @default(60)
   vehicleReminderEnabled Boolean @default(false)
+  creatineReminderEnabled Boolean @default(false)
+  creatineReminderTime String @default("09:00") @db.VarChar(5)
   calorieGoal Int?
   proteinGoalG Int?
   nutritionGoalMode String @default("auto") @db.VarChar(10)
@@ -73,6 +75,7 @@ model UserSettings {
   heightCm Int?
   weightKg Decimal? @db.Decimal(6, 2)
   activityLevel String? @db.VarChar(20)
+  weeklyWorkouts Int?
   weightGoal String? @db.VarChar(20)
   currency String @default("ILS")
 }
@@ -255,6 +258,8 @@ model UserFood {
   carbsPer100G Decimal @db.Decimal(8, 1)
   fatPer100G Decimal @db.Decimal(8, 1)
   barcode String @default("") @db.VarChar(40)
+  servingName String @default("מנה") @db.VarChar(40)
+  servingGrams Decimal @default(100) @db.Decimal(8, 2)
   aliases String[] @default([])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -270,6 +275,10 @@ model FoodPreference {
   favorite Boolean @default(false)
   useCount Int @default(0)
   lastUsedAt DateTime?
+  lastQuantity Decimal? @db.Decimal(10, 2)
+  lastUnit String? @db.VarChar(20)
+  lastServingGrams Decimal? @db.Decimal(8, 2)
+  lastServingName String? @db.VarChar(40)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@unique([userId, foodKey])

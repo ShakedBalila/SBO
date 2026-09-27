@@ -12,6 +12,8 @@ const foodInput = z.object({
   carbsPer100G: z.number().min(0).max(1000),
   fatPer100G: z.number().min(0).max(1000),
   barcode: z.string().trim().regex(/^$|^\d{8,14}$/, 'הברקוד אינו תקין.').default('')
+  ,servingName:z.string().trim().min(1).max(40).default('מנה')
+  ,servingGrams:z.number().positive().max(10000).default(100)
 }).strict();
 
 export async function POST(request: Request) {
@@ -21,6 +23,6 @@ export async function POST(request: Request) {
     if (!user) throw new HttpError(401, 'יש להתחבר מחדש.');
     const data = foodInput.parse(await jsonBody(request));
     const food = await db.userFood.create({ data: { ...data, userId: user.id } });
-    return NextResponse.json({ food: { id: `user:${food.id}`, name: food.name, brand: food.brand, calories: food.caloriesPer100, proteinG: Number(food.proteinPer100G), carbsG: Number(food.carbsPer100G), fatG: Number(food.fatPer100G), barcode: food.barcode, source: 'המאגר האישי שלי' } }, { status: 201 });
+    return NextResponse.json({ food: { id: `user:${food.id}`, name: food.name, brand: food.brand, calories: food.caloriesPer100, proteinG: Number(food.proteinPer100G), carbsG: Number(food.carbsPer100G), fatG: Number(food.fatPer100G), barcode: food.barcode, servingName:food.servingName,servingGrams:Number(food.servingGrams),source: 'המאגר האישי שלי' } }, { status: 201 });
   } catch (error) { return apiError(error); }
 }

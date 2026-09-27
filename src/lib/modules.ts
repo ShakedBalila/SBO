@@ -9,6 +9,7 @@ const wholeHour=z.string().regex(/^([01]\d|2[0-3]):00$/,'יש לבחור שעה 
 const optionalReminderDays=z.preprocess(value=>value===''||value===null?null:Number(value),z.number().int().min(0).max(365).nullable());
 export const waterReminderInput=z.object({enabled:z.boolean(),startTime:clockTime,endTime:clockTime,intervalMinutes:z.number().int().min(15).max(720)}).strict().refine(value=>value.endTime>value.startTime,'שעת הסיום חייבת להיות מאוחרת משעת ההתחלה.');
 export const vehicleReminderSettingsInput=z.object({enabled:z.boolean()}).strict();
+export const creatineReminderInput=z.object({enabled:z.boolean(),time:clockTime}).strict();
 export const vehicleInput = z.object({
   name: z.string().trim().min(1, 'יש להזין סוג רכב.').max(100),
   licensePlate: z.string().trim().regex(/^\d{2}-\d{3}-\d{2}$|^\d{3}-\d{2}-\d{3}$/,'מבנה מספר לוחית הרישוי אינו מתאים לתאריך העלייה לכביש.'),
@@ -58,6 +59,10 @@ export const nutritionInput = z.object({
   barcode: z.string().trim().max(40).default(''),
   foodKey: z.string().trim().max(160).nullable().default(null),
   source: z.string().trim().max(30).default('manual'),
+  preferenceQuantity: z.number().positive().max(10000).nullable().default(null),
+  preferenceUnit: z.enum(['grams','servings']).nullable().default(null),
+  preferenceServingGrams: z.number().positive().max(10000).nullable().default(null),
+  preferenceServingName: z.string().trim().max(40).nullable().default(null),
   date: recordDate
 }).strict();
 export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, nextServiceDate:recordDate.nullable().default(null),reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00'), notes: z.string().trim().max(2000).default('') }).strict().refine(value=>value.reminderDays===null||value.nextServiceDate!==null,'יש להזין מועד לטיפול הבא כדי להפעיל התראה.');
@@ -74,6 +79,7 @@ export const goalInput = z.object({
   heightCm: z.number().int().min(100).max(250).nullable().optional(),
   weightKg: z.number().min(30).max(400).nullable().optional(),
   activityLevel: z.enum(['sedentary', 'light', 'moderate', 'active', 'very_active']).nullable().optional(),
+  weeklyWorkouts: z.number().int().min(0).max(5).nullable().optional(),
   weightGoal: z.enum(['lose', 'maintain', 'gain']).nullable().optional()
 }).strict().refine(input => Object.keys(input).length > 0, 'Enter a goal.').refine(input => !input.waterDayStart || !input.waterDayEnd || input.waterDayEnd > input.waterDayStart, 'שעת הסיום חייבת להיות מאוחרת משעת ההתחלה.');
 export type RecordKind = 'water' | 'vehicles' | 'fuel' | 'nutrition' | 'policies' | 'reminders' | 'expenses' | 'events' | 'event-types';

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { weekEventSegments, calendarOccurrence } from '../src/lib/calendar-occurrence.ts';
 import { nutritionTargets } from '../src/lib/nutrition-targets.ts';
-import { eventInput } from '../src/lib/modules.ts';
+import { eventInput, goalInput } from '../src/lib/modules.ts';
 
 test('event ranges persist optional dates and reject reversed dates',()=>{
   assert.equal(eventInput.parse({title:'Trip',date:'2026-09-18',endDate:'2026-09-22'}).endDate,'2026-09-22');
@@ -16,11 +16,14 @@ test('multi-day events form a single weekly bar and overlapping events use separ
   assert.equal(calendarOccurrence(events[0],'2026-09-16').occurs,false);
   assert.equal(calendarOccurrence({...events[0],recurrence:'WEEKLY'},'2026-09-20').occurs,true);
 });
-test('automatic targets require a complete profile and respond to activity, weight and goal changes',()=>{
+test('automatic targets require a complete profile and respond to weekly workouts, weight and goal changes',()=>{
   assert.equal(nutritionTargets({age:30}),null);
-  const profile={age:30,sex:'male',heightCm:180,weightKg:80,activityLevel:'moderate',weightGoal:'maintain'};
-  assert.deepEqual(nutritionTargets(profile),{bmr:1780,tdee:2759,calorieGoal:2759,proteinGoalG:128});
-  assert.equal(nutritionTargets({...profile,weightGoal:'lose'})?.calorieGoal,2259);
+  const profile={age:30,sex:'male',heightCm:180,weightKg:80,weeklyWorkouts:3,weightGoal:'maintain'};
+  assert.deepEqual(nutritionTargets(profile),{bmr:1780,tdee:2670,calorieGoal:2670,proteinGoalG:128});
+  assert.equal(nutritionTargets({...profile,weightGoal:'lose'})?.calorieGoal,2170);
   assert.equal(nutritionTargets({...profile,weightGoal:'gain'})?.proteinGoalG,144);
-  assert.notEqual(nutritionTargets({...profile,weightKg:85})?.calorieGoal,2759);
+  assert.notEqual(nutritionTargets({...profile,weightKg:85})?.calorieGoal,2670);
+  assert.notEqual(nutritionTargets({...profile,weeklyWorkouts:5})?.calorieGoal,2670);
+  assert.equal(goalInput.safeParse({weeklyWorkouts:0}).success,true);
+  assert.equal(goalInput.safeParse({weeklyWorkouts:6}).success,false);
 });

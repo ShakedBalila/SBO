@@ -3,7 +3,7 @@ import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { nutritionTargets } from '@/lib/nutrition-targets';
 import { apiError, checkOrigin, HttpError, jsonBody } from '@/lib/http';
-import { waterInput, waterReminderInput, vehicleReminderSettingsInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
+import { waterInput, waterReminderInput, vehicleReminderSettingsInput, creatineReminderInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
 type Context = { params: Promise<{ path: string[] }> };
 async function handle(request: Request, context: Context) {
   try {
@@ -32,6 +32,12 @@ async function handle(request: Request, context: Context) {
     if(kind==='vehicle-reminders'&&request.method==='POST'){
       const parsed=vehicleReminderSettingsInput.parse(input);
       await db.userSettings.upsert({where:{userId:user.id},create:{userId:user.id,vehicleReminderEnabled:parsed.enabled},update:{vehicleReminderEnabled:parsed.enabled}});
+      return NextResponse.json({ok:true});
+    }
+    if(kind==='creatine-reminders'&&request.method==='POST'){
+      const parsed=creatineReminderInput.parse(input);
+      const data={creatineReminderEnabled:parsed.enabled,creatineReminderTime:parsed.time};
+      await db.userSettings.upsert({where:{userId:user.id},create:{userId:user.id,...data},update:data});
       return NextResponse.json({ok:true});
     }
     const where = { id, userId: user.id };
@@ -67,9 +73,10 @@ async function handle(request: Request, context: Context) {
       case 'nutrition': {
         if (deleting) { count = (await db.nutritionEntry.deleteMany({ where })).count; break; }
         const parsed = nutritionInput.parse(input);
-        const data = { ...parsed, date: new Date(parsed.date) };
+        const {preferenceQuantity,preferenceUnit,preferenceServingGrams,preferenceServingName,...entry}=parsed;
+        const data = { ...entry, date: new Date(entry.date) };
         if (id) count = (await db.nutritionEntry.updateMany({ where, data })).count;
-        else { await db.nutritionEntry.create({ data: { ...data, userId: user.id } }); if(parsed.foodKey)await db.foodPreference.upsert({where:{userId_foodKey:{userId:user.id,foodKey:parsed.foodKey}},create:{userId:user.id,foodKey:parsed.foodKey,useCount:1,lastUsedAt:new Date()},update:{useCount:{increment:1},lastUsedAt:new Date()}}); }
+        else { await db.nutritionEntry.create({ data: { ...data, userId: user.id } }); if(entry.foodKey)await db.foodPreference.upsert({where:{userId_foodKey:{userId:user.id,foodKey:entry.foodKey}},create:{userId:user.id,foodKey:entry.foodKey,useCount:1,lastUsedAt:new Date(),lastQuantity:preferenceQuantity,lastUnit:preferenceUnit,lastServingGrams:preferenceServingGrams,lastServingName:preferenceServingName},update:{useCount:{increment:1},lastUsedAt:new Date(),lastQuantity:preferenceQuantity,lastUnit:preferenceUnit,lastServingGrams:preferenceServingGrams,lastServingName:preferenceServingName}}); }
         break;
       }
       case 'policies': {
