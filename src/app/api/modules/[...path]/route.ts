@@ -19,7 +19,7 @@ async function handle(request: Request, context: Context) {
       const data = goalInput.parse(input);
       const profile=await db.userSettings.findUnique({where:{userId:user.id}});
       const targets=nutritionTargets({...profile,...data});
-      data.calorieGoal=targets?.calorieGoal??null;data.proteinGoalG=targets?.proteinGoalG??null;
+      if(data.nutritionGoalMode!=='manual'){data.nutritionGoalMode='auto';data.calorieGoal=targets?.calorieGoal??null;data.proteinGoalG=targets?.proteinGoalG??null;}
       await db.userSettings.upsert({ where: { userId: user.id }, create: { userId: user.id, ...data }, update: data });
       return NextResponse.json({ ok: true });
     }
@@ -69,7 +69,7 @@ async function handle(request: Request, context: Context) {
         const parsed = nutritionInput.parse(input);
         const data = { ...parsed, date: new Date(parsed.date) };
         if (id) count = (await db.nutritionEntry.updateMany({ where, data })).count;
-        else await db.nutritionEntry.create({ data: { ...data, userId: user.id } });
+        else { await db.nutritionEntry.create({ data: { ...data, userId: user.id } }); if(parsed.foodKey)await db.foodPreference.upsert({where:{userId_foodKey:{userId:user.id,foodKey:parsed.foodKey}},create:{userId:user.id,foodKey:parsed.foodKey,useCount:1,lastUsedAt:new Date()},update:{useCount:{increment:1},lastUsedAt:new Date()}}); }
         break;
       }
       case 'policies': {

@@ -41,6 +41,8 @@ model User {
   vehicles Vehicle[]
   fuelEntries FuelEntry[]
   nutritionEntries NutritionEntry[]
+  userFoods UserFood[]
+  foodPreferences FoodPreference[]
   calendarEvents CalendarEvent[]
   eventTypes EventType[]
   vehiclePolicies VehiclePolicy[]
@@ -65,6 +67,7 @@ model UserSettings {
   vehicleReminderEnabled Boolean @default(false)
   calorieGoal Int?
   proteinGoalG Int?
+  nutritionGoalMode String @default("auto") @db.VarChar(10)
   age Int?
   sex String? @db.VarChar(10)
   heightCm Int?
@@ -233,9 +236,44 @@ model NutritionEntry {
   quantity Decimal @default(1) @db.Decimal(10, 2)
   unit String @default("מנה") @db.VarChar(30)
   barcode String @default("") @db.VarChar(40)
+  foodKey String? @db.VarChar(160)
+  source String @default("manual") @db.VarChar(30)
   date DateTime @db.Date
   createdAt DateTime @default(now())
   @@index([userId, date])
+  @@index([userId, foodKey])
+}
+
+model UserFood {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name String @db.VarChar(200)
+  brand String @default("") @db.VarChar(120)
+  caloriesPer100 Int
+  proteinPer100G Decimal @db.Decimal(8, 1)
+  carbsPer100G Decimal @db.Decimal(8, 1)
+  fatPer100G Decimal @db.Decimal(8, 1)
+  barcode String @default("") @db.VarChar(40)
+  aliases String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, name])
+  @@index([userId, barcode])
+}
+
+model FoodPreference {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodKey String @db.VarChar(160)
+  favorite Boolean @default(false)
+  useCount Int @default(0)
+  lastUsedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([userId, foodKey])
+  @@index([userId, favorite, lastUsedAt])
 }
 model CalendarEvent {
   id String @id @default(cuid())

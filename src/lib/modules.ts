@@ -56,6 +56,8 @@ export const nutritionInput = z.object({
   quantity: z.number().positive().max(10000).default(1),
   unit: z.string().trim().min(1).max(30).default('מנה'),
   barcode: z.string().trim().max(40).default(''),
+  foodKey: z.string().trim().max(160).nullable().default(null),
+  source: z.string().trim().max(30).default('manual'),
   date: recordDate
 }).strict();
 export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, nextServiceDate:recordDate.nullable().default(null),reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00'), notes: z.string().trim().max(2000).default('') }).strict().refine(value=>value.reminderDays===null||value.nextServiceDate!==null,'יש להזין מועד לטיפול הבא כדי להפעיל התראה.');
@@ -66,6 +68,7 @@ export const goalInput = z.object({
   waterPaceIntervalHours: z.union([z.literal(2), z.literal(4)]).optional(),
   calorieGoal: z.number().int().min(1).max(20000).nullable().optional(),
   proteinGoalG: z.number().int().min(1).max(2000).nullable().optional(),
+  nutritionGoalMode: z.enum(['auto','manual']).optional(),
   age: z.number().int().min(13).max(120).nullable().optional(),
   sex: z.enum(['male', 'female']).nullable().optional(),
   heightCm: z.number().int().min(100).max(250).nullable().optional(),
