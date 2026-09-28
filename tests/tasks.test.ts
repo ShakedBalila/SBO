@@ -4,7 +4,7 @@ import { taskInput, todayIn } from '../src/lib/tasks.ts';
 import { hashPassword, verifyPassword } from '../src/lib/password.ts';
 import { waterReminderDue } from '../src/lib/water-reminders.ts';
 import { expectedWaterAt, waterTimeMarks } from '../src/lib/water-pacing.ts';
-import { goalInput, vehicleInput, policyInput, reminderInput } from '../src/lib/modules.ts';
+import { goalInput, vehicleInput, policyInput, reminderInput, fuelInput } from '../src/lib/modules.ts';
 import { parseSelfService95Price } from '../src/lib/fuel-price.ts';
 import { vehicleReminderDue } from '../src/lib/vehicle-reminders.ts';
 test('task validation rejects bad dates, blank titles and owner injection', () => {
@@ -58,6 +58,13 @@ test('vehicle road date controls the Israeli license plate structure',()=>{
   assert.equal(vehicleInput.safeParse({...base,year:2017,roadMonth:6,licensePlate:'12-345-67'}).success,true);
   assert.equal(vehicleInput.safeParse({...base,year:2017,roadMonth:7,licensePlate:'123-45-678'}).success,true);
   assert.equal(vehicleInput.safeParse({...base,year:2017,roadMonth:7,licensePlate:'12-345-67'}).success,false);
+});
+test('fuel supports optional current odometer and notes',()=>{
+  const base={vehicleId:'vehicle-1',date:'2026-09-28',estimatedRangeKm:600,actualDistanceKm:null,liters:35,pricePerLiter:7.2};
+  assert.equal(fuelInput.parse(base).currentOdometerKm,null);
+  const detailed=fuelInput.parse({...base,currentOdometerKm:123456,notes:'תחנה קבועה'});
+  assert.equal(detailed.currentOdometerKm,123456);
+  assert.equal(detailed.notes,'תחנה קבועה');
 });
 test('insurance and test reminders validate their expiry data',()=>{
   assert.equal(policyInput.safeParse({vehicleId:'v1',type:'Mandatory',provider:'',annualCost:2400,startDate:'2026-01-01',endDate:'2026-12-31',reminderDays:'30',reminderTime:'09:00'}).success,true);

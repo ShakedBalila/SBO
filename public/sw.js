@@ -1,4 +1,5 @@
-self.addEventListener('install',()=>self.skipWaiting());
+self.addEventListener('install',event=>event.waitUntil(caches.open('sbo-static-v3').then(cache=>cache.addAll(['/offline','/sbo-icon-192.png'])).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',event=>{if(event.request.mode==='navigate')event.respondWith(fetch(event.request).catch(()=>caches.match('/offline')));});
 self.addEventListener('push',event=>{let data={title:'SBO',body:'',url:'/tasks'};try{data={...data,...event.data.json()};}catch{}event.waitUntil(self.registration.showNotification(data.title,{...(data.body?{body:data.body}:{}),icon:'/sbo-icon-192.png',badge:'/sbo-icon-192.png',tag:data.tag||data.title,data:{url:data.url}}));});
 self.addEventListener('notificationclick',event=>{event.notification.close();const url=event.notification.data?.url||'/tasks';event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(clients=>{const existing=clients.find(client=>'focus' in client);return existing?existing.focus().then(()=>existing.navigate(url)):self.clients.openWindow(url);}));});

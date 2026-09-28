@@ -22,7 +22,9 @@ export const fuelInput = z.object({
   vehicleId: z.string().min(1), date: recordDate,
   estimatedRangeKm: z.number().int().min(1).max(100000),
   actualDistanceKm: z.number().int().min(0).max(100000).nullable().default(null),
-  liters: z.number().positive().max(10000), pricePerLiter: z.number().min(0).max(10000)
+  currentOdometerKm: z.number().int().min(0).max(10000000).nullable().default(null),
+  liters: z.number().positive().max(10000), pricePerLiter: z.number().min(0).max(10000),
+  notes: z.string().trim().max(1000).default('')
 }).strict();
 export const policyInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Mandatory', 'Comprehensive', 'Third party']), provider: z.string().trim().max(100).default(''), annualCost: z.number().min(0).max(1000000), startDate: recordDate, endDate: recordDate, reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00') }).strict().refine(value=>value.endDate>=value.startDate,'תאריך סיום הביטוח חייב להיות לאחר תאריך ההתחלה.');
 export const reminderInput = z.object({ vehicleId: z.string().min(1), type: z.literal('Test'), title: z.string().trim().min(1).max(150).default('טסט'), dueDate: recordDate, expiryDate:recordDate, cost: z.number().min(0).max(1000000).nullable().default(null), licenseFee:z.number().min(0).max(1000000),testFee:z.number().min(0).max(1000000),reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00'), notes: z.string().trim().max(2000).default('') }).strict().refine(value=>value.expiryDate>=value.dueDate,'תאריך גמר הטסט חייב להיות לאחר תאריך הביצוע.');

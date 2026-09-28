@@ -13,7 +13,7 @@ export async function moduleData(userId: string, timezone: string) {
     db.waterEntry.findMany({where:{userId,date:{gte:weekStart,lte:weekEnd}},select:{date:true,amountMl:true}}),
     db.nutritionEntry.aggregate({ where: { userId, date }, _sum: { calories: true, proteinG: true, carbsG:true, fatG:true } }),
     db.fuelEntry.findMany({ where: { userId, date: { gte: month, lte: date } }, select: { liters: true, pricePerLiter: true } }),
-    db.vehicle.findMany({where:{userId},orderBy:{createdAt:'asc'},select:{name:true,licensePlate:true,year:true,roadMonth:true},take:3}),
+    db.vehicle.findMany({where:{userId},orderBy:{createdAt:'asc'},select:{name:true,licensePlate:true,year:true,roadMonth:true,odometerKm:true},take:3}),
     db.vehicle.count({where:{userId}})
   ]);
   const targets=nutritionTargets(storedSettings);

@@ -65,9 +65,11 @@ async function handle(request: Request, context: Context) {
         const vehicle=await db.vehicle.findFirst({where:{id:parsed.vehicleId,userId:user.id}});
         if(!vehicle)throw new HttpError(404,'הרכב לא נמצא.');
         if(vehicle.fuelTankLiters!==null&&parsed.liters>Number(vehicle.fuelTankLiters))throw new HttpError(400,'כמות התדלוק אינה יכולה לעלות על נפח מכל הדלק של הרכב.');
-        const data = { ...parsed, date: new Date(parsed.date) };
+        if(parsed.currentOdometerKm!==null&&parsed.currentOdometerKm<vehicle.odometerKm)throw new HttpError(400,'הקילומטראז׳ הנוכחי לא יכול להיות נמוך מהקילומטראז׳ השמור ברכב.');
+        const data = { ...parsed, date: new Date(parsed.date), totalCost:Math.round(parsed.liters*parsed.pricePerLiter*100)/100 };
         if (id) count = (await db.fuelEntry.updateMany({ where, data })).count;
         else await db.fuelEntry.create({ data: { ...data, userId: user.id } });
+        if(parsed.currentOdometerKm!==null&&parsed.currentOdometerKm>vehicle.odometerKm)await db.vehicle.update({where:{id:vehicle.id},data:{odometerKm:parsed.currentOdometerKm}});
         break;
       }
       case 'nutrition': {

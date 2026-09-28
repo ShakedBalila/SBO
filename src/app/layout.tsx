@@ -5,6 +5,7 @@ import "./modules.css";
 import "./calendar.css";
 import "./theme.css";
 import "./dashboard.css";
+import "./modern.css";
 import { PwaRegister } from '@/components/pwa-register';
 export const metadata: Metadata = {
   title: "SBO · סביבת העבודה שלך",

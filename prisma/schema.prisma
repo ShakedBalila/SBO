@@ -170,8 +170,11 @@ model FuelEntry {
   date DateTime @db.Date
   estimatedRangeKm Int
   actualDistanceKm Int?
+  currentOdometerKm Int?
   liters Decimal @db.Decimal(10, 2)
   pricePerLiter Decimal @db.Decimal(10, 3)
+  totalCost Decimal? @db.Decimal(12, 2)
+  notes String @default("") @db.VarChar(1000)
   createdAt DateTime @default(now())
   @@index([userId, date])
 }
