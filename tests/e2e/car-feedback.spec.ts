@@ -22,7 +22,7 @@ test('car forms, tank limit and split-screen navigation', async ({ page }) => {
     expect(response.ok(),await response.text()).toBeTruthy();
     const vehicleId=(await db.query('SELECT v.id FROM "Vehicle" v JOIN "User" u ON u.id=v."userId" WHERE u.email=$1',[email])).rows[0].id;
     for(const liters of [50,50.01]){
-      const result=await page.request.post('/api/modules/fuel',{headers:{Origin:'http://localhost:3000'},data:{vehicleId,date:'2026-09-14',estimatedRangeKm:500,actualDistanceKm:null,liters,pricePerLiter:7}});
+      const result=await page.request.post('/api/modules/fuel',{headers:{Origin:'http://localhost:3000'},data:{vehicleId,date:'2026-09-14',estimatedRangeKm:500,actualDistanceKm:null,currentOdometerKm:101,liters,pricePerLiter:7,isFullTank:true}});
       expect(result.status()).toBe(liters===50?201:400);
     }
     await page.goto('/car');
@@ -43,7 +43,7 @@ test('car forms, tank limit and split-screen navigation', async ({ page }) => {
       await page.setViewportSize({width,height:800});
       for(const route of ['/car','/tasks','/water','/nutrition','/']){
         await page.goto(route);
-        if(route==='/car')await page.locator('.car-workspace:visible').waitFor();else await page.locator('main:visible').waitFor();
+        if(route==='/car')await page.locator('.car-workspace:visible').waitFor();else await page.locator('main:visible').first().waitFor();
         expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
       }
       await page.goto('/car');
@@ -59,18 +59,18 @@ test('car forms, tank limit and split-screen navigation', async ({ page }) => {
       const boxes=await controls.evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {x:r.x,width:r.width};}));
       expect(Math.max(...boxes.map(b=>b.width))-Math.min(...boxes.map(b=>b.width))).toBeLessThan(2);
       await page.screenshot({path:`test-results/car-insurance-${width}.png`});
-      await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);
+      await page.locator('dialog[open]').getByRole('button',{name:'סגירת הטופס'}).click();await expect(page.locator('dialog[open]')).toHaveCount(0);
     }
     await page.setViewportSize({width:430,height:932});await page.goto('/car');
     await page.getByRole('button',{name:/מחיר ממוצע לליטר/}).click();
     await expect(page.locator('dialog[open]')).toHaveCount(1);
     await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);
     await page.getByRole('button',{name:'הוספת תדלוק',exact:true}).click();
-    await expect(page.locator('dialog[open]').getByText('מרחק בפועל (ק״מ)',{exact:true})).toBeVisible();
-    await expect(page.getByText('מרחק בפועל (ק״מ) (לא חובה)',{exact:true})).toHaveCount(0);
-    await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);
-    for(const label of ['הוספת טסט','הוספת ביטוח','הוספת טיפול']){await page.getByRole('button',{name:label,exact:true}).click();await expect(page.locator('dialog[open]')).toHaveCount(1);await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);}
-    await page.getByRole('button',{name:'מחיקת Test car',exact:true}).click();await expect(page.locator('dialog[open]')).toHaveCount(1);await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);
+    await expect(page.locator('dialog[open]').getByText('האם המיכל מלא לאחר התדלוק?',{exact:true})).toBeVisible();
+    await expect(page.locator('dialog[open]').getByText(/מחיר לליטר בתחנה/)).toBeVisible();
+    await page.locator('dialog[open]').getByRole('button',{name:'סגירת הטופס'}).click();await expect(page.locator('dialog[open]')).toHaveCount(0);
+    for(const label of ['הוספת טסט','הוספת ביטוח','הוספת טיפול']){await page.getByRole('button',{name:label,exact:true}).click();await expect(page.locator('dialog[open]')).toHaveCount(1);await page.locator('dialog[open]').getByRole('button',{name:'סגירת הטופס'}).click();await expect(page.locator('dialog[open]')).toHaveCount(0);}
+    await page.getByRole('button',{name:'מחיקת Test car',exact:true}).click();await expect(page.locator('dialog[open]')).toHaveCount(1);await page.locator('dialog[open]').getByRole('button',{name:'ביטול'}).click();await expect(page.locator('dialog[open]')).toHaveCount(0);
     const result=await page.request.post('/api/modules/expenses',{headers:{Origin:'http://localhost:3000'},data:{vehicleId,type:'Maintenance',title:'Oil',amount:100,date:'2026-09-14',nextServiceDate:'2027-09-14',reminderDays:7,reminderTime:'09:00',notes:''}});
     expect(result.ok(),await result.text()).toBeTruthy();
     expect((await db.query('SELECT e."reminderDays" FROM "VehicleExpense" e WHERE e."vehicleId"=$1',[vehicleId])).rows[0].reminderDays).toBe(7);

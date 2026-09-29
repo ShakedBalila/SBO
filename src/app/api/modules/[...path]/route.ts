@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { nutritionTargets } from '@/lib/nutrition-targets';
+import { calculateFuelCycles, FuelOdometerError } from '@/lib/fuel-cycles';
 import { apiError, checkOrigin, HttpError, jsonBody } from '@/lib/http';
 import { waterInput, waterReminderInput, vehicleReminderSettingsInput, creatineReminderInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
 type Context = { params: Promise<{ path: string[] }> };
@@ -65,11 +66,21 @@ async function handle(request: Request, context: Context) {
         const vehicle=await db.vehicle.findFirst({where:{id:parsed.vehicleId,userId:user.id}});
         if(!vehicle)throw new HttpError(404,'הרכב לא נמצא.');
         if(vehicle.fuelTankLiters!==null&&parsed.liters>Number(vehicle.fuelTankLiters))throw new HttpError(400,'כמות התדלוק אינה יכולה לעלות על נפח מכל הדלק של הרכב.');
-        if(parsed.currentOdometerKm!==null&&parsed.currentOdometerKm<vehicle.odometerKm)throw new HttpError(400,'הקילומטראז׳ הנוכחי לא יכול להיות נמוך מהקילומטראז׳ השמור ברכב.');
-        const data = { ...parsed, date: new Date(parsed.date), totalCost:Math.round(parsed.liters*parsed.pricePerLiter*100)/100 };
-        if (id) count = (await db.fuelEntry.updateMany({ where, data })).count;
-        else await db.fuelEntry.create({ data: { ...data, userId: user.id } });
-        if(parsed.currentOdometerKm!==null&&parsed.currentOdometerKm>vehicle.odometerKm)await db.vehicle.update({where:{id:vehicle.id},data:{odometerKm:parsed.currentOdometerKm}});
+        const {customPricePerLiter,...fuel}=parsed;
+        const pricePerLiter=customPricePerLiter??fuel.pricePerLiter;
+        const data = { ...fuel, pricePerLiter, date: new Date(fuel.date), totalCost:Math.round(fuel.liters*pricePerLiter*100)/100 };
+        try {
+          await db.$transaction(async transaction=>{
+            if (id) count = (await transaction.fuelEntry.updateMany({ where, data })).count;
+            else await transaction.fuelEntry.create({ data: { ...data, userId: user.id } });
+            const rows=await transaction.fuelEntry.findMany({where:{userId:user.id,vehicleId:parsed.vehicleId},orderBy:[{date:'asc'},{createdAt:'asc'}]});
+            calculateFuelCycles(rows);
+            if(parsed.currentOdometerKm>vehicle.odometerKm)await transaction.vehicle.update({where:{id:vehicle.id},data:{odometerKm:parsed.currentOdometerKm}});
+          });
+        } catch(error) {
+          if(error instanceof FuelOdometerError)throw new HttpError(400,error.message);
+          throw error;
+        }
         break;
       }
       case 'nutrition': {

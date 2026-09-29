@@ -59,10 +59,9 @@ test('vehicle road date controls the Israeli license plate structure',()=>{
   assert.equal(vehicleInput.safeParse({...base,year:2017,roadMonth:7,licensePlate:'123-45-678'}).success,true);
   assert.equal(vehicleInput.safeParse({...base,year:2017,roadMonth:7,licensePlate:'12-345-67'}).success,false);
 });
-test('fuel supports optional current odometer and notes',()=>{
-  const base={vehicleId:'vehicle-1',date:'2026-09-28',estimatedRangeKm:600,actualDistanceKm:null,liters:35,pricePerLiter:7.2};
-  assert.equal(fuelInput.parse(base).currentOdometerKm,null);
-  const detailed=fuelInput.parse({...base,currentOdometerKm:123456,notes:'תחנה קבועה'});
+test('fuel requires an odometer and full or partial classification',()=>{
+  const base={vehicleId:'vehicle-1',date:'2026-09-28',estimatedRangeKm:600,actualDistanceKm:null,currentOdometerKm:123456,liters:35,pricePerLiter:7.2,isFullTank:true};
+  const detailed=fuelInput.parse({...base,notes:'תחנה קבועה'});
   assert.equal(detailed.currentOdometerKm,123456);
   assert.equal(detailed.notes,'תחנה קבועה');
 });

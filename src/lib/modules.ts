@@ -20,10 +20,13 @@ export const vehicleInput = z.object({
 }).strict().superRefine((value,ctx)=>{const modern=value.year>2017||(value.year===2017&&value.roadMonth>6),matches=modern?/^\d{3}-\d{2}-\d{3}$/.test(value.licensePlate):/^\d{2}-\d{3}-\d{2}$/.test(value.licensePlate);if(!matches)ctx.addIssue({code:'custom',path:['licensePlate'],message:'מספר לוחית הרישוי אינו מתאים לתאריך העלייה לכביש.'});});
 export const fuelInput = z.object({
   vehicleId: z.string().min(1), date: recordDate,
-  estimatedRangeKm: z.number().int().min(1).max(100000),
+  estimatedRangeKm: z.number().int().min(1).max(100000).nullable().default(null),
   actualDistanceKm: z.number().int().min(0).max(100000).nullable().default(null),
-  currentOdometerKm: z.number().int().min(0).max(10000000).nullable().default(null),
-  liters: z.number().positive().max(10000), pricePerLiter: z.number().min(0).max(10000),
+  currentOdometerKm: z.number().int().min(0).max(10000000),
+  liters: z.number().positive().max(10000),
+  pricePerLiter: z.number().min(0).max(10000),
+  customPricePerLiter: z.number().positive().max(10000).nullable().default(null),
+  isFullTank: z.boolean(),
   notes: z.string().trim().max(1000).default('')
 }).strict();
 export const policyInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Mandatory', 'Comprehensive', 'Third party']), provider: z.string().trim().max(100).default(''), annualCost: z.number().min(0).max(1000000), startDate: recordDate, endDate: recordDate, reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00') }).strict().refine(value=>value.endDate>=value.startDate,'תאריך סיום הביטוח חייב להיות לאחר תאריך ההתחלה.');
