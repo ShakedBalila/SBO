@@ -22,8 +22,8 @@ export class FuelOdometerError extends Error {
 
 export function calculateFuelCycles(input: FuelCycleInput[]) {
   const rows = [...input].sort((left, right) =>
-    String(left.date).localeCompare(String(right.date)) ||
-    String(left.createdAt).localeCompare(String(right.createdAt)) ||
+    new Date(left.date).getTime() - new Date(right.date).getTime() ||
+    new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime() ||
     left.id.localeCompare(right.id));
   const cycles = new Map<string, FuelCycleResult>();
   let previousOdometer: number | null = null;

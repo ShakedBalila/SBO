@@ -29,7 +29,7 @@ test('nutrition diary searches the Ministry catalog and calculates from 100 gram
     await page.getByRole('link',{name:/חזרה ליומן/}).click();
     await page.getByRole('button',{name:/הוספת מזון/}).click();
     const dialog=page.locator('.nutrition-add-modal[open]');
-    await dialog.getByPlaceholder('חיפוש במאגר משרד הבריאות ובמאגר האישי').fill('בננה');
+    await dialog.getByRole('textbox',{name:'חיפוש מזון'}).fill('בננה');
     const result=dialog.locator('.nutrition-results article').filter({hasText:'משרד הבריאות'}).first();
     await expect(result).toBeVisible();
     await result.locator('.food-result-main').click();

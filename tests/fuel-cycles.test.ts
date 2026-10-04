@@ -24,3 +24,9 @@ test('first full tank and unclassified legacy rows do not create a consumption r
 test('editing into a decreasing odometer sequence is rejected',()=>{
   assert.throws(()=>calculateFuelCycles([row('first','2026-09-01',100000,40,true),row('second','2026-09-02',99999,20,false)]),FuelOdometerError);
 });
+
+test('database Date objects are sorted chronologically across weekdays and months',()=>{
+  const entries=[row('start','2026-09-30',100000,40,true),row('partial','2026-10-01',100100,10,false),row('end','2026-10-02',100350,25,true)]
+    .reverse().map(entry=>({...entry,date:new Date(entry.date),createdAt:new Date(entry.createdAt)}));
+  assert.equal(calculateFuelCycles(entries).get('end')?.cycleKmPerLiter,10);
+});

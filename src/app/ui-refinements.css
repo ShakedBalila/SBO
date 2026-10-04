@@ -1,0 +1,92 @@
+/* The image fade is confined to the media column; live text has its own opaque surface. */
+.overview-card .dashboard-art,.overview-card .dashboard-car-photo{width:42%;mask-image:linear-gradient(to right,#000 45%,#000c 67%,transparent 100%);-webkit-mask-image:linear-gradient(to right,#000 45%,#000c 67%,transparent 100%)}
+.overview-card .overview-content{width:58%;margin-left:42%;height:100%;min-height:0;padding:12px 16px;position:relative;background:var(--surface);gap:6px}
+.overview-card{min-height:0;height:100%}
+.workspace:has(.dashboard-redesign){height:100dvh;padding-block:12px;box-sizing:border-box}
+.dashboard-redesign{height:100%;padding:0;display:flex;flex-direction:column;min-height:0}
+.dashboard-masthead{flex:none;margin-bottom:12px;gap:10px}
+.dashboard-wordmark{font-size:36px}
+.dashboard-masthead h1{font-size:20px;margin:3px 0}
+.dashboard-masthead p{font-size:12px;margin:0}
+.dashboard-stack{flex:1;min-height:0;grid-template-rows:repeat(2,minmax(0,1fr));gap:12px}
+.overview-car-name{font-size:15px}
+.vehicle-expiries{gap:4px;margin:0}
+.vehicle-expiries span{gap:5px;padding:3px 6px;align-items:center}
+.vehicle-expiries small,.vehicle-expiries strong{font-size:11px;line-height:1.25}
+@media(max-width:1194px){
+ .workspace:has(.dashboard-redesign){height:auto!important;padding:10px clamp(10px,2.3vw,24px)}
+}
+@media(max-width:650px){
+ .dashboard-stack{grid-template-rows:.9fr .85fr 1fr 1.25fr;gap:8px}
+ .dashboard-masthead{margin-bottom:8px}.dashboard-wordmark{font-size:30px}
+ .dashboard-masthead h1{font-size:18px}.dashboard-masthead p{font-size:11px}
+ .dashboard-header-actions .icon-button{width:44px;height:44px}
+ .overview-card .overview-content{padding:6px 9px;gap:3px}
+ .overview-content h2{font-size:15px;margin:0}.overview-content h2 svg{width:18px}
+ .overview-content p{font-size:11px;line-height:1.2}.overview-car-name{font-size:13px;line-height:1.2}
+ .today-counts{gap:6px;margin:0}.today-counts span{padding:5px 3px}.today-counts strong{font-size:24px}
+ .water-overview-percent{font-size:28px}.overview-water-meter{height:8px;margin:0}
+ .dashboard-ring{width:clamp(46px,7.5dvh,66px);height:clamp(46px,7.5dvh,66px)}
+ .dashboard-ring strong{font-size:20px}.nutrition-overview-gauges{gap:8px}
+ .dashboard-gauge{gap:2px}.dashboard-gauge>span,.dashboard-gauge small{font-size:10px}
+ .vehicle-expiries{gap:2px}.vehicle-expiries span{padding:2px 4px}
+ .vehicle-expiries small,.vehicle-expiries strong{font-size:10px}
+}
+/* Compact, content-sized dialogs share one header, grid and footer system. */
+@media(max-width:650px) and (max-height:700px){
+ .dashboard-wordmark{font-size:24px}.dashboard-masthead h1{font-size:16px}.dashboard-masthead p{font-size:10px}
+ .dashboard-stack{grid-template-rows:.85fr .7fr 1.12fr 1.33fr;gap:6px}
+ .overview-content h2{font-size:13px}.overview-card .overview-content{padding:4px 6px;gap:2px}
+ .dashboard-ring{width:42px;height:42px}.dashboard-ring strong{font-size:16px}
+ .today-counts strong{font-size:22px}.today-counts span{padding:3px}
+ .water-overview-percent{font-size:24px}
+ .vehicle-expiries span{padding:1px 3px;gap:3px}.vehicle-expiries small,.vehicle-expiries strong{font-size:9px}
+}
+.modal{position:fixed;inset:0!important;margin:auto!important;width:min(680px,calc(100% - 24px))!important;max-width:calc(100% - 24px)!important;height:fit-content!important;min-height:0!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px)!important;padding:20px!important;border:1px solid var(--line)!important;border-radius:16px!important;overflow-y:auto;overscroll-behavior:contain;background:var(--surface)}
+.modal>form{min-height:0!important;height:auto;gap:12px}
+.modal-heading{position:relative;display:flex;justify-content:center;min-height:64px;padding:22px 48px 0;margin:0 0 16px;align-items:center}
+.modal-heading>div,.modal-heading>h2{flex:initial;width:100%;min-width:0}
+.modal-heading h2{font-size:21px;line-height:1.3;text-align:center;margin:0}
+.modal-heading .eyebrow{position:absolute;right:0;top:0;font-size:11px;letter-spacing:0;color:var(--gold)}
+.modal-heading>.icon-button{position:absolute;left:0;top:0;width:44px;height:44px;border:1px solid var(--line);background:var(--surface-raised)}
+.modal .form-grid,.modal .record-form-grid,.modal .serving-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch;gap:12px}
+.modal .form-grid>label,.modal .record-form-grid>label,.modal .serving-fields>label{display:flex;flex-direction:column;justify-content:flex-end;align-self:stretch;min-width:0;min-height:88px;margin:0!important;gap:0;font-size:13px;line-height:1.4}
+.modal .form-grid>label>span:first-child,.modal .record-form-grid>label>span:first-child{min-height:36px;display:flex;justify-content:center;flex-direction:column}
+.modal .optional{font-size:12px;min-height:0!important;line-height:1.4}
+.modal .form-grid>label.wide-field,.modal .record-form-grid>label.wide-field,.modal .form-grid>label:last-child:nth-child(odd),.modal .record-form-grid>label:last-child:nth-child(odd),.modal .serving-fields>label:last-child:nth-child(odd){grid-column:1/-1}
+.modal input:not([type=checkbox]):not([type=radio]):not([type=range]),.modal select,.modal .israeli-date-picker{height:48px!important;min-height:48px;width:100%;min-width:0;margin-top:8px!important;border-radius:11px;background-color:#062539;border-color:#42758d;padding-inline:12px;font-size:16px}
+.modal select{padding-left:30px}
+.modal .israeli-date-picker input{margin:0!important}
+.modal textarea{background:#062539;border-color:#42758d;min-height:64px;border-radius:11px}
+.modal fieldset{min-width:0;margin:0 0 14px;padding:12px;border:1px solid #42758d;border-radius:12px}
+.modal fieldset:last-of-type{margin-bottom:0}
+.modal legend,.modal .form-section-title{font-size:14px;color:var(--gold);font-weight:600;text-align:right}
+.modal .form-section-title{grid-column:1/-1;margin:4px 0 0}
+.modal .modal-actions{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row;grid-auto-columns:auto;width:min(100%,480px);gap:12px;margin:20px auto 0!important;padding:0!important;background:transparent;align-items:stretch}
+.modal .modal-actions .button{width:100%;height:48px;min-height:48px;padding:8px;font-size:14px;border-radius:11px}
+.modal .modal-actions>:only-child{grid-column:1/-1}
+.modal .modal-actions:has(>:nth-child(3))>:first-child{grid-column:1/-1}
+.modal .option-field button[role=switch]{position:relative;width:80px;height:48px;min-height:48px;border-radius:24px;margin-top:8px;align-self:center}
+.modal .option-field button[role=switch] i{position:absolute;top:10px;width:26px;height:26px;left:10px;right:auto}
+.modal .option-field button[role=switch].on i{left:42px}
+.boolean-control{display:grid;grid-template-columns:1fr 1fr;gap:4px;height:48px;margin-top:8px;padding:4px;border:1px solid #42758d;border-radius:11px;background:#062539}
+.boolean-control button{border:0;border-radius:7px;color:var(--muted);background:transparent;font-size:15px}
+.boolean-control button[aria-checked=true]{background:var(--gold);color:#211700;font-weight:600}
+.modal.nutrition-add-modal .search-field{display:flex!important;align-items:center;gap:8px;margin:0;height:50px;min-height:50px;min-width:0;padding-inline:12px}
+.modal.nutrition-add-modal .search-field svg{flex:none}
+.modal.nutrition-add-modal .search-field input:not([type=checkbox]):not([type=radio]){margin:0!important;border:0;background:transparent;padding-inline:0}
+.food-result-main small{padding:2px 6px;border:1px solid #42758d;border-radius:6px;background:#062539;font-size:11px}
+.nutrition-results:empty{display:none;margin:0}
+.nutrition-results{max-height:min(48dvh,440px);margin:12px 0 0}
+.nutrition-search-status{font-size:13px;color:var(--muted);margin:12px 0 0;line-height:1.5}
+.nutrition-add-modal .serving-fields>label:first-child{grid-column:auto}
+.nutrition-add-modal .serving-fields>label:only-child{grid-column:1/-1}
+@media(max-width:650px){
+ .modal{padding:16px 12px!important}.modal-heading{padding-inline:46px;min-height:60px;margin-bottom:12px}
+ .modal-heading h2{font-size:19px}.modal .form-grid,.modal .record-form-grid,.modal .serving-fields{gap:10px 8px}
+ .modal>form{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .modal>form>*{grid-column:1/-1}
+ .event-editor-modal>form>label:not(:nth-of-type(-n+3)){grid-column:auto}
+ .modal .modal-actions{gap:10px}.modal fieldset{padding:10px}
+}
+

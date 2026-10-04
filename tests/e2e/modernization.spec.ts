@@ -37,7 +37,7 @@ test('V3 mobile shell, utilities, reminders and vehicle fuel form',async({page})
     const fuelDialog=page.locator('.fuel-entry-modal:visible');
     await expect(fuelDialog.getByLabel(/קילומטראז׳ נוכחי/)).toHaveAttribute('required','');
     await expect(fuelDialog.getByLabel(/מחיר לליטר בתחנה/)).not.toHaveAttribute('required','');
-    await expect(fuelDialog.getByLabel(/האם המיכל מלא/)).toHaveAttribute('required','');
+    await expect(fuelDialog.getByRole('radio',{name:'כן',exact:true})).toHaveAttribute('aria-checked','true');
     await expect(fuelDialog.getByLabel(/הערות/)).toBeVisible();
     await expect(page.locator('.bottom-nav')).toBeHidden();
     await fuelDialog.getByRole('button',{name:'סגירת הטופס'}).click();await expect(page.locator('.record-modal[open]')).toHaveCount(0);
