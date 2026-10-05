@@ -32,14 +32,15 @@ test('registration, CRUD, isolation, responsive navigation and logout', async ({
   await page.getByLabel('תיאור משימה', { exact: false }).fill('Choose three priorities for the week.');
   const taskDialog=page.locator('dialog[open]');
   await taskDialog.locator('select').nth(1).selectOption('HIGH');
-  await taskDialog.locator('input[type="date"]').first().fill('2026-09-15');
+  const taskDate=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jerusalem'}).format(new Date());
+  await taskDialog.locator('input[type="date"]').first().fill(taskDate);
   await page.getByRole('button', { name: 'שמירה', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Plan the week', exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Plan the week', exact: true })).toBeVisible();
   const tasks = await (await page.request.get('/api/tasks')).json();
   const id = tasks[0].id;
-  expect(tasks[0].startDate).toBe('2026-09-15');
+  expect(tasks[0].startDate).toBe(taskDate);
   const other = await browser.newContext();
   expect((await other.request.post('http://localhost:3000/api/auth/register', { headers: origin, data: { name: 'Other account', email: emails[1], password } })).status()).toBe(200);
   expect(await (await other.request.get('http://localhost:3000/api/tasks')).json()).toEqual([]);
@@ -56,7 +57,7 @@ test('registration, CRUD, isolation, responsive navigation and logout', async ({
   await expect(page.getByRole('heading', { name: 'Plan a focused week' })).toBeVisible();
   await expect(page.getByRole('article').getByText('בתהליך', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'סיום Plan a focused week', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'פתיחת Plan a focused week' })).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Plan a focused week'})).not.toBeVisible();
   await page.getByRole('button', { name: 'משימות שהסתיימו', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Plan a focused week' })).toBeVisible();
   await page.getByRole('button', { name: 'פתיחת Plan a focused week' }).click();
@@ -84,7 +85,8 @@ test('registration, CRUD, isolation, responsive navigation and logout', async ({
   await db.connect();
   expect(Number((await db.query('SELECT count(*) FROM "TaskEvent" WHERE "taskId" = $1', [id])).rows[0].count)).toBe(5);
   await db.end();
-  await page.getByRole('button', { name: 'התנתקות', exact: true }).filter({ visible: true }).click();
+  await page.getByRole('button',{name:'פתיחת תפריט'}).click();
+  await page.locator('.mobile-drawer[open]').getByRole('button', { name: 'התנתקות', exact: true }).click();
   await expect(page).toHaveURL(/login/);
   expect((await page.request.get('/api/tasks')).status()).toBe(401);
   await page.getByLabel('כתובת אימייל').fill(emails[0]);

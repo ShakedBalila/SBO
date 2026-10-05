@@ -26,6 +26,7 @@ export const fuelInput = z.object({
   liters: z.number().positive().max(10000),
   pricePerLiter: z.number().min(0).max(10000),
   customPricePerLiter: z.number().positive().max(10000).nullable().default(null),
+  dashboardKmPerLiter: z.number().positive().max(200).nullable().default(null),
   isFullTank: z.boolean(),
   notes: z.string().trim().max(1000).default('')
 }).strict();

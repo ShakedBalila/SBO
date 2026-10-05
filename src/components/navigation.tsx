@@ -1,15 +1,16 @@
 "use client";
 import {TransitionLink as Link} from "@/components/transition-link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid, CalendarDays, CarFront, Utensils, LogOut, ArrowUpRight, Menu, Settings, Database, Bell, CircleHelp, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { LayoutGrid, CalendarDays, CarFront, Utensils, BriefcaseBusiness, LogOut, ArrowUpRight, Menu, Settings, Database, Bell, CircleHelp, X } from "lucide-react";
+import { useRef, useState } from "react";
 import { WaterBottleIcon } from "@/components/water-bottle-icon";
 const links = [
   { href: "/", label: "סקירה", mobileLabel:"ראשי", Icon: LayoutGrid },
   { href: "/tasks", label: "זמן ומשימות", mobileLabel:"משימות", Icon: CalendarDays },
   { href: "/water", label: "צריכת מים יומית", mobileLabel:"מים", Icon: WaterBottleIcon },
   { href: "/nutrition", label: "תזונה", mobileLabel:"תזונה", Icon: Utensils },
-  { href: "/car", label: "רכב", mobileLabel:"רכב", Icon: CarFront }
+  { href: "/car", label: "רכב", mobileLabel:"רכב", Icon: CarFront },
+  { href: "/work", label: "עבודה", mobileLabel:"עבודה", Icon: BriefcaseBusiness }
 ];
 const secondaryLinks=[
   {href:'/settings',label:'הגדרות',Icon:Settings},
@@ -20,12 +21,6 @@ const secondaryLinks=[
 export function Navigation({ name }: { name: string }) {
   const pathname = usePathname();
   const router = useRouter();
-  useEffect(()=>{
-    const viewport=window.visualViewport;
-    const update=()=>document.documentElement.style.setProperty('--sbo-viewport-bottom',String(viewport?viewport.offsetTop+viewport.height:window.innerHeight)+'px');
-    update();viewport?.addEventListener('resize',update);viewport?.addEventListener('scroll',update);window.addEventListener('resize',update);
-    return ()=>{viewport?.removeEventListener('resize',update);viewport?.removeEventListener('scroll',update);window.removeEventListener('resize',update);document.documentElement.style.removeProperty('--sbo-viewport-bottom');};
-  },[]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const drawer=useRef<HTMLDialogElement>(null);

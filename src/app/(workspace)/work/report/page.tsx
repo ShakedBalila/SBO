@@ -1,0 +1,6 @@
+import {requireUser} from '@/lib/auth';
+import {workData} from '@/lib/work-data';
+import {monthSummary,workClock} from '@/lib/work-calculations';
+import {reportRows} from '@/lib/work-export';
+import {PrintWorkReport} from '@/components/work-report';
+export default async function WorkReportPage({searchParams}:{searchParams:Promise<{month?:string}>}){const user=await requireUser(),data=await workData(user.id,user.settings?.timezone??'Asia/Jerusalem'),query=await searchParams,month=/^\d{4}-(0[1-9]|1[0-2])$/.test(query.month??'')?query.month!:data.today.slice(0,7),summary=monthSummary(data.entries,month,data.contract);return <article className="work-print-report"><h1>דוח שעות · {month}</h1><p>{user.name} · אזור זמן {data.timezone}</p><PrintWorkReport/><p className="work-print-button">בחלון ההדפסה ניתן לבחור ״שמירה כ־PDF״.</p><table><thead><tr>{['תאריך','כניסה','הפסקה','יציאה','סה״כ','סוג','רגילות','נוספות מאושרות'].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{reportRows(data,month).map((row,i)=><tr key={i}>{row.map((cell,j)=><td key={j}>{cell}</td>)}</tr>)}</tbody><tfoot><tr><td colSpan={4}>סה״כ</td><td>{workClock(summary.minutes)}</td><td/><td>{workClock(summary.days.reduce((sum,day)=>sum+day.regular,0))}</td><td>{workClock(summary.approvedMinutes)}</td></tr></tfoot></table></article>;}
