@@ -29,7 +29,7 @@ export async function POST(request: Request, context: { params: Promise<{ action
     if (action === "register") {
       if (user) throw new HttpError(400, "לא ניתן ליצור חשבון עם הפרטים האלה. אפשר לנסות להתחבר.");
       if (!input.name) throw new HttpError(400, "יש להזין שם.");
-      user = await db.user.create({ data: { email: input.email, name: input.name, passwordHash: await hashPassword(input.password), settings: { create: {} } } });
+      user = await db.user.create({ data: { email: input.email, name: input.name, passwordHash: await hashPassword(input.password), settings: { create: {onboardingStatus:"pending"} } } });
     } else {
       // Perform a password derivation even when the account does not exist.
       const valid = await verifyPassword(input.password, user?.passwordHash ?? "00000000000000000000000000000000:" + "00".repeat(64));

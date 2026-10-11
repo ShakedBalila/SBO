@@ -21,7 +21,7 @@ test('fluid shell, water history, vehicle logo and food bank',async({page})=>{
       if(width<=1194){await page.locator("main").evaluate(el=>el.scrollTo(0,el.scrollHeight));const nav=await page.locator('.bottom-nav').boundingBox();expect(nav).not.toBeNull();expect(Math.abs(nav!.y+nav!.height-height)).toBeLessThan(2);}
     }
     await page.setViewportSize({width:1440,height:1000});await page.goto('/');
-    const cardHeights=await page.locator('.module-grid>.module-card').evaluateAll(cards=>cards.map(card=>Math.round(card.getBoundingClientRect().height)));
+    const cardHeights=await page.locator('.overview-water,.overview-nutrition,.overview-car').evaluateAll(cards=>cards.map(card=>Math.round(card.getBoundingClientRect().height)));
     expect(Math.max(...cardHeights)-Math.min(...cardHeights)).toBeLessThanOrEqual(1);
     await page.goto('/tasks');
     const taskActionHeights=await page.locator('.time-primary-actions>*').evaluateAll(items=>items.map(item=>Math.round(item.getBoundingClientRect().height)));
@@ -29,13 +29,13 @@ test('fluid shell, water history, vehicle logo and food bank',async({page})=>{
     await page.goto('/water');
     const quickButtons=await page.locator('.quick-water .water-quick-button').evaluateAll(items=>items.map(item=>({width:Math.round(item.getBoundingClientRect().width),height:Math.round(item.getBoundingClientRect().height)})));
     expect(new Set(quickButtons.map(item=>item.width)).size).toBe(1);expect(new Set(quickButtons.map(item=>item.height)).size).toBe(1);
-    for(const route of ['/water','/car','/nutrition']){await page.goto(route);const statRows=await page.locator('.module-stats>*').evaluateAll(items=>items.map(item=>Math.round(item.getBoundingClientRect().height)));expect(Math.max(...statRows)-Math.min(...statRows),`${route}: ${statRows.join(',')}`).toBeLessThanOrEqual(1);}
+    for(const route of ['/water','/car','/nutrition']){await page.goto(route);const statRows=await page.locator(route==='/nutrition'?'.nutrition-summary>*':'.module-stats>*:visible').evaluateAll(items=>items.map(item=>Math.round(item.getBoundingClientRect().height)));expect(Math.max(...statRows)-Math.min(...statRows),`${route}: ${statRows.join(',')}`).toBeLessThanOrEqual(1);}
     await page.goto('/');
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href','/apple-touch-icon.png');
     const manifest=await page.request.get('/manifest.webmanifest');expect(manifest.ok()).toBeTruthy();expect(await manifest.text()).toContain('/sbo-icon-512.png');
     await page.setViewportSize({width:430,height:932});await page.goto('/water');
     await expect(page.locator('.water-history-days button')).toHaveCount(7);await expect(page.locator('.water-history-days button[aria-pressed="true"]')).toHaveText(weekday);await expect(page.getByRole('heading',{name:'325 מ״ל'})).toBeVisible();
-    await page.goto('/nutrition');await page.getByLabel('חיפוש במאגר המזון').fill('חזה עוף');await page.getByRole('button',{name:'חיפוש',exact:true}).click();await expect(page.getByText('חזה עוף מבושל',{exact:true})).toBeVisible();await page.locator('.food-results').getByRole('button',{name:/הוספה/}).click();const dialog=page.locator('dialog[open]');await expect(dialog).toBeVisible();await expect(dialog.getByLabel('כמות בגרם')).toHaveValue('100');await expect(dialog.getByLabel('יחידה')).toHaveCount(0);await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);
-    await page.goto('/');await expect(page.locator('.overview-vehicle img[alt="סמל Mazda 3"]')).toHaveAttribute('src',/google\.com\/s2\/favicons/);
+    await page.goto('/nutrition');await page.getByRole('button',{name:'הוספת מזון',exact:true}).click();const dialog=page.locator('.nutrition-add-modal[open]');await dialog.getByRole('textbox',{name:'חיפוש מזון'}).fill('חזה עוף');const result=dialog.locator('.nutrition-results article').filter({hasText:'משרד הבריאות'}).first();await expect(result).toBeVisible();await result.locator('.food-result-main').click();await expect(dialog.getByLabel('כמות שאכלת (גרם)',{exact:true})).toHaveValue('100');await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);
+    await page.goto('/car');await expect(page.getByRole('img',{name:'סמל Mazda 3',exact:true})).toHaveAttribute('src',/google\.com\/s2\/favicons/);
   }finally{await db.query('DELETE FROM "User" WHERE email=$1',[email]);await db.query('DELETE FROM "LoginAttempt" WHERE key=$1',[createHash('sha256').update(email).digest('hex')]);await db.end();}
 });

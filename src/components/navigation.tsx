@@ -14,7 +14,7 @@ const links = [
 ];
 const secondaryLinks=[
   {href:'/settings',label:'הגדרות',Icon:Settings},
-  {href:'/data',label:'גיבוי ונתונים',Icon:Database},
+  {href:'/data',label:'ייצוא וגיבוי',Icon:Database},
   {href:'/notifications',label:'התראות',Icon:Bell},
   {href:'/help',label:'עזרה',Icon:CircleHelp}
 ];

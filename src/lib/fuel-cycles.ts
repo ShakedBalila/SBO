@@ -3,6 +3,8 @@ export type FuelCycleInput = {
   date: Date | string;
   createdAt: Date | string;
   currentOdometerKm: number | null;
+  distanceMode?: string;
+  actualDistanceKm?: number | null;
   liters: number | { toString(): string };
   isFullTank: boolean | null;
 };
@@ -39,15 +41,15 @@ export function calculateFuelCycles(input: FuelCycleInput[]) {
     }
 
     if (!baseline) {
-      if (row.isFullTank === true && odometer !== null) baseline = row;
+      if (row.isFullTank === true) baseline = row;
       continue;
     }
 
     fuelSinceBaseline += Number(row.liters);
     if (row.isFullTank === null) hasUnclassifiedRefuel = true;
-    if (row.isFullTank !== true || odometer === null) continue;
+    if (row.isFullTank !== true) continue;
 
-    const distance = odometer - Number(baseline.currentOdometerKm);
+    const distance = row.distanceMode==='trip'?Number(row.actualDistanceKm??0):odometer!==null&&baseline.currentOdometerKm!==null?odometer-baseline.currentOdometerKm:0;
     if (!hasUnclassifiedRefuel && distance > 0 && fuelSinceBaseline > 0) {
       cycles.set(row.id, {
         previousFullRefuelId: baseline.id,

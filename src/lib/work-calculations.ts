@@ -1,17 +1,19 @@
 export const workDefaults = {
-  baseSalary:16000, standardMinutes:504, defaultBreakMinutes:30, monthlyHours:182,
-  contributionBasePercent:90, mealPerDay:37, travelAllowance:500,
-  vacationDays:15, vacationCarryover:0, sickEntitlement:0, sickPayPercent:100,
-  employeePensionPercent:6, employerPensionPercent:6.5, severancePercent:8.3,
-  employeeTrainingPercent:2.5, employerTrainingPercent:7.5,
+  baseSalary:0, standardMinutes:480, defaultBreakMinutes:0, monthlyHours:182,
+  contributionBasePercent:0, mealPerDay:0, travelAllowance:0,
+  vacationDays:0, vacationCarryover:0, sickEntitlement:0, sickPayPercent:0,
+  employeePensionPercent:0, employerPensionPercent:0, severancePercent:0,
+  employeeTrainingPercent:0, employerTrainingPercent:0,
   overtimeFirstMinutes:120, overtimeFirstPercent:125, overtimeNextPercent:150,
-  workDays:[0,1,2,3,4]
+  workDays:[0,1,2,3,4], employmentStartDate:null as string|null, employmentEndDate:null as string|null,
+  prorationMode:'workingDays' as 'workingDays'|'calendarDays', prorateTravel:true,
+  vacationAccrual:'monthly' as 'monthly'|'annual'
 };
 export type WorkContract = typeof workDefaults;
 export type WorkEntryRow = {id:string;date:string;type:string;startedAt:string|null;endedAt:string|null;breakMinutes:number;pausedAt:string|null;overtimeApproved:boolean;distanceKm:number;notes:string;tripId:string|null};
 export type WorkTripRow = {id:string;destination:string;startDate:string;endDate:string;status:string;details:Record<string,string|number>};
 export type WorkExpenseRow = {id:string;tripId:string|null;date:string;category:string;amount:number;currency:string;exchangeRate:number;rateDate:string;rateSource:string;paymentSource:string;reimbursable:boolean;paid:boolean;notes:string;documentId:string|null};
-export type WorkDocumentRow = {id:string;tripId:string|null;entryId:string|null;name:string;category:string;mimeType:string;size:number;createdAt:string};
+export type WorkDocumentRow = {id:string;tripId:string|null;entryId:string|null;name:string;category:string;mimeType:string;size:number;createdAt:string;documentDate:string|null;payslipMonth:string|null};
 export type WorkData = {contract:WorkContract;entries:WorkEntryRow[];trips:WorkTripRow[];expenses:WorkExpenseRow[];documents:WorkDocumentRow[];today:string;timezone:string};
 export const workTypes:Record<string,string> = {WORK:'עבודה',HOME:'עבודה מהבית',TRAVEL:'נסיעה',SICK:'מחלה',VACATION:'חופשה',OTHER:'אחר'};
 export const workClock=(minutes:number)=>`${Math.floor(Math.max(0,minutes)/60)}:${String(Math.floor(Math.max(0,minutes)%60)).padStart(2,'0')}`;
@@ -22,7 +24,7 @@ export function shiftMinutes(entry:WorkEntryRow,now=Date.now()) {
   return Math.max(0,Math.floor((end-Date.parse(entry.startedAt))/60000)-entry.breakMinutes);
 }
 export function monthDays(month:string){const start=new Date(`${month}-01T00:00:00Z`),last=new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth()+1,0)).getUTCDate();return Array.from({length:last},(_,index)=>`${month}-${String(index+1).padStart(2,'0')}`);}
-export function monthSummary(entries:WorkEntryRow[],month:string,contract:WorkContract,now=Date.now()){
+export function monthSummary(entries:WorkEntryRow[],month:string,contract:WorkContract,now=Date.now(),timezone='UTC'){
   const rows=entries.filter(entry=>entry.date.startsWith(month));
   const days=monthDays(month).map(date=>{
     const day=rows.filter(entry=>entry.date===date),shifts=day.filter(entry=>entry.startedAt).sort((a,b)=>Date.parse(a.startedAt!)-Date.parse(b.startedAt!));
@@ -30,11 +32,48 @@ export function monthSummary(entries:WorkEntryRow[],month:string,contract:WorkCo
     for(const shift of shifts){const next=minutes+shiftMinutes(shift,now),from=Math.max(0,minutes-contract.standardMinutes),to=Math.max(0,next-contract.standardMinutes);if(shift.overtimeApproved){approvedFirst+=Math.max(0,Math.min(to,contract.overtimeFirstMinutes)-Math.min(from,contract.overtimeFirstMinutes));approvedNext+=Math.max(0,to-contract.overtimeFirstMinutes)-Math.max(0,from-contract.overtimeFirstMinutes);}minutes=next;}
     return {date,minutes,regular:Math.min(minutes,contract.standardMinutes),overtime:Math.max(0,minutes-contract.standardMinutes),approvedFirst,approvedNext,sick:day.some(entry=>entry.type==='SICK'),vacation:day.some(entry=>entry.type==='VACATION'),travel:day.some(entry=>entry.type==='TRAVEL'),worked:minutes>0};
   });
-  const minutes=days.reduce((sum,day)=>sum+day.minutes,0),approvedFirst=days.reduce((sum,day)=>sum+day.approvedFirst,0),approvedNext=days.reduce((sum,day)=>sum+day.approvedNext,0),workedDays=days.filter(day=>day.worked).length,hourly=contract.baseSalary/contract.monthlyHours;
-  const overtimePay=hourly/60*(approvedFirst*contract.overtimeFirstPercent/100+approvedNext*contract.overtimeNextPercent/100),meals=workedDays*contract.mealPerDay;
-  const socialBase=contract.baseSalary*contract.contributionBasePercent/100,sickDays=days.filter(day=>day.sick).length;
-  const sickAdjustment=sickDays*contract.standardMinutes/60*hourly*(contract.sickPayPercent/100-1);
-  return {days,minutes,workedDays,approvedMinutes:approvedFirst+approvedNext,overtimePay,meals,sickAdjustment,gross:contract.baseSalary+overtimePay+contract.travelAllowance+sickAdjustment,socialBase,sickDays,vacationDays:days.filter(day=>day.vacation).length};
+  const today=dayKey(new Date(now),timezone),eligible=(date:string)=>inEmployment(date,contract);
+  const allWorkDays=days.filter(d=>isWorkingDay(d.date,contract)),employmentDays=days.filter(d=>eligible(d.date));
+  const expectedDays=allWorkDays.filter(d=>eligible(d.date));
+  const periodFraction=!contract.employmentStartDate?0:contract.prorationMode==='calendarDays'?employmentDays.length/days.length:allWorkDays.length?expectedDays.length/allWorkDays.length:0;
+  const salaryReady=Boolean(contract.employmentStartDate&&contract.baseSalary>0&&contract.monthlyHours>0&&periodFraction>0);
+  const paidDays=days.filter(d=>eligible(d.date)),approvedFirst=paidDays.reduce((sum,d)=>sum+d.approvedFirst,0),approvedNext=paidDays.reduce((sum,d)=>sum+d.approvedNext,0);
+  const minutes=days.reduce((sum,d)=>sum+d.minutes,0),workedDays=days.filter(d=>d.worked).length,hourly=contract.monthlyHours?contract.baseSalary/contract.monthlyHours:0;
+  const overtimePay=salaryReady?hourly/60*(approvedFirst*contract.overtimeFirstPercent/100+approvedNext*contract.overtimeNextPercent/100):0;
+  const basePay=salaryReady?contract.baseSalary*periodFraction:0,travelPay=salaryReady?contract.travelAllowance*(contract.prorateTravel?periodFraction:1):0;
+  const socialBase=basePay*contract.contributionBasePercent/100,sickDays=days.filter(d=>d.sick).length;
+  const sickAdjustment=salaryReady?paidDays.filter(d=>d.sick).length*contract.standardMinutes/60*hourly*(contract.sickPayPercent/100-1):0;
+  const completed=expectedDays.filter(d=>d.date<today),hasRecords=rows.length>0;
+  const reported=(date:string)=>rows.some(r=>r.date===date&&r.endedAt)||rows.some(r=>r.date===date&&['SICK','VACATION'].includes(r.type));
+  const deficitMinutes=completed.filter(d=>reported(d.date)&&!d.sick&&!d.vacation).reduce((sum,d)=>sum+Math.max(0,contract.standardMinutes-d.minutes),0);
+  const unreportedDays=completed.filter(d=>!reported(d.date)).length;
+  return {days,minutes,workedDays,approvedMinutes:days.reduce((sum,d)=>sum+d.approvedFirst+d.approvedNext,0),overtimePay,meals:paidDays.filter(d=>d.worked).length*contract.mealPerDay,sickAdjustment,gross:Math.max(0,basePay+overtimePay+travelPay+sickAdjustment),socialBase,sickDays,vacationDays:days.filter(d=>d.vacation).length,basePay,travelPay,periodFraction,salaryReady,hasRecords,deficitMinutes,unreportedDays};
+}
+export function inEmployment(date:string,contract:WorkContract){return Boolean(contract.employmentStartDate&&date>=contract.employmentStartDate&&(!contract.employmentEndDate||date<=contract.employmentEndDate));}
+export function isWorkingDay(date:string,contract:WorkContract){return contract.workDays.includes(new Date(`${date}T00:00:00Z`).getUTCDay());}
+export function vacationBalance(entries:WorkEntryRow[],year:string,contract:WorkContract,today:string){
+  const cutoff=today<`${year}-12-31`?today:`${year}-12-31`;
+  let accrued=0;
+  if(contract.employmentStartDate&&cutoff>=`${year}-01-01`){
+    for(let m=1;m<=12;m++){
+      const dates=monthDays(`${year}-${String(m).padStart(2,'0')}`);
+      const active=dates.filter(d=>d<=cutoff&&inEmployment(d,contract));
+      if(contract.vacationAccrual==='monthly')accrued+=contract.vacationDays/12*active.length/dates.length;
+    }
+    if(contract.vacationAccrual==='annual'){const dates=Array.from({length:12},(_,i)=>monthDays(`${year}-${String(i+1).padStart(2,'0')}`)).flat();if(contract.employmentStartDate<=cutoff)accrued=contract.vacationDays*dates.filter(d=>inEmployment(d,contract)).length/dates.length;}
+  }
+  const used=new Set(entries.filter(e=>e.type==='VACATION'&&e.date.startsWith(year)&&inEmployment(e.date,contract)).map(e=>e.date)).size;
+  return {accrued:Number(accrued.toFixed(2)),used,remaining:Number((accrued+contract.vacationCarryover-used).toFixed(2))};
+}
+export function tripSummary(trip:WorkTripRow,expenses:WorkExpenseRow[]){
+  const days=Math.max(1,Math.round((Date.parse(trip.endDate)-Date.parse(trip.startDate))/86400000)+1);
+  const departure=Number(trip.details.departureFactor??1),returnDay=Number(trip.details.returnFactor??1);
+  const eligibleDays=days===1?Math.min(departure,returnDay):Math.max(0,days-2)+departure+returnDay;
+  const perDiem=Number(trip.details.perDiem||0)*eligibleDays,rows=expenses.filter(e=>e.tripId===trip.id);
+  const personal=rows.filter(e=>e.paymentSource==='PERSONAL'&&e.reimbursable).reduce((s,e)=>s+e.amount*e.exchangeRate,0);
+  const company=rows.filter(e=>e.paymentSource==='COMPANY').reduce((s,e)=>s+e.amount*e.exchangeRate,0);
+  const expenseTotal=rows.reduce((s,e)=>s+e.amount*e.exchangeRate,0),perDiemILS=perDiem*Number(trip.details.perDiemExchangeRate??(trip.details.perDiemCurrency==='ILS'?1:0));
+  return {days,eligibleDays,perDiem,personal,company,expenseTotal,total:expenseTotal+perDiemILS,perDiemConverted:Boolean(trip.details.perDiemExchangeRate||trip.details.perDiemCurrency==='ILS')};
 }
 // Interpret wall-clock fields in the user's timezone; reject nonexistent DST times.
 export function localInstant(date:string,time:string,timezone:string){

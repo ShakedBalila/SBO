@@ -58,6 +58,7 @@ model User {
 model UserSettings {
   userId String @id
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  onboardingStatus String @default("complete") @db.VarChar(12)
   locale String @default("he")
   timezone String @default("Asia/Jerusalem")
   enabledModules String[] @default(["tasks", "water", "car", "nutrition"])
@@ -174,6 +175,7 @@ model FuelEntry {
   vehicle Vehicle @relation(fields: [vehicleId, userId], references: [id, userId], onDelete: Cascade)
   date DateTime @db.Date
   estimatedRangeKm Int?
+  distanceMode String @default("odometer") @db.VarChar(12)
   actualDistanceKm Int?
   currentOdometerKm Int?
   liters Decimal @db.Decimal(10, 2)
@@ -412,6 +414,9 @@ model WorkExpense {
   @@index([userId, date])
 }
 model WorkDocument {
+  documentDate DateTime? @db.Date
+  payslipMonth String? @db.VarChar(7)
+  uploadSize Int?
   id String @id @default(cuid())
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

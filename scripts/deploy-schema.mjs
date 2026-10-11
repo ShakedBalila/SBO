@@ -10,6 +10,7 @@ const migrations=[
   ,'../prisma/migrations/20260928120000_v3_fuel_details/migration.sql'
   ,'../prisma/migrations/20260929090000_fuel_full_tank_cycles/migration.sql'
   ,'../prisma/migrations/20261005120000_work_hub/migration.sql'
+  ,'../prisma/migrations/20261011120000_review_first_use/migration.sql'
 ];
 const pool=new Pool({connectionString:url,connectionTimeoutMillis:15000,max:1});
 try{

@@ -27,30 +27,30 @@ test('V3 mobile shell, utilities, reminders and vehicle fuel form',async({page})
     for(const type of ['Mandatory','Third party'])expect((await page.request.post('/api/modules/policies',{headers,data:{vehicleId,type,provider:'בדיקה',annualCost:1200,startDate:'2026-07-01',endDate:'2027-06-30',reminderDays:null,reminderTime:'09:00'}})).ok()).toBeTruthy();
     expect((await page.request.post('/api/modules/fuel',{headers,data:{vehicleId,date:'2026-09-20',currentOdometerKm:86000,liters:39.5,isFullTank:true,estimatedRangeKm:601,actualDistanceKm:null,pricePerLiter:7.2,customPricePerLiter:null,notes:''}})).ok()).toBeTruthy();
     expect((await page.request.post('/api/modules/fuel',{headers,data:{vehicleId,date:'2026-09-29',currentOdometerKm:86293,liters:31.5,isFullTank:true,estimatedRangeKm:526,actualDistanceKm:null,pricePerLiter:7.2,customPricePerLiter:6.5,notes:''}})).ok()).toBeTruthy();
-    await page.goto('/car');await expect(page.locator('.vehicle-visual.photo img')).toHaveAttribute('src','/mazda-3-black.png');
+    await page.goto('/car');await expect(page.locator('.vehicle-visual.photo:visible > img')).toHaveAttribute('src','/mazda-3-black.png');
     await expect(page.getByText(/9\.30 ק״מ\/ל׳/)).toBeVisible();
     expect(Number((await db.query('SELECT "totalCost" FROM "FuelEntry" WHERE "vehicleId"=$1 AND date=$2',[vehicleId,'2026-09-29'])).rows[0].totalCost)).toBe(204.75);
-    const detailBoxes=await page.locator('.vehicles-panel .record-detail-grid>span').evaluateAll(items=>items.map(item=>({width:Math.round(item.getBoundingClientRect().width),top:Math.round(item.getBoundingClientRect().top)})));expect(new Set(detailBoxes.map(item=>item.width)).size).toBe(1);
-    await page.locator('.vehicles-panel').scrollIntoViewIfNeeded();
+    const detailBoxes=await page.locator('.vehicles-panel:visible .record-detail-grid>span').evaluateAll(items=>items.map(item=>({width:Math.round(item.getBoundingClientRect().width),top:Math.round(item.getBoundingClientRect().top)})));expect(new Set(detailBoxes.map(item=>item.width)).size).toBe(1);
+    await page.locator('.vehicles-panel:visible').scrollIntoViewIfNeeded();
     await page.screenshot({path:'test-results/v3-car-iphone-feedback.png',fullPage:true});
     await page.getByRole('button',{name:/הוספת תדלוק/}).click();
     const fuelDialog=page.locator('.fuel-entry-modal:visible');
-    await expect(fuelDialog.getByLabel(/קילומטראז׳ נוכחי/)).toHaveAttribute('required','');
+    await expect(fuelDialog.locator('#fuel-distanceMode')).toHaveValue('trip');await fuelDialog.locator('#fuel-distanceMode').selectOption('odometer');await expect(fuelDialog.getByLabel(/קילומטראז׳ נוכחי/)).toBeVisible();
     await expect(fuelDialog.getByLabel(/מחיר לליטר בתחנה/)).not.toHaveAttribute('required','');
     await expect(fuelDialog.getByRole('radio',{name:'כן',exact:true})).toHaveAttribute('aria-checked','true');
     await expect(fuelDialog.getByLabel(/הערות/)).toBeVisible();
     await expect(page.locator('.bottom-nav')).toBeHidden();
     await fuelDialog.getByRole('button',{name:'סגירת הטופס'}).click();await expect(page.locator('.record-modal[open]')).toHaveCount(0);
     const manifest=await page.request.get('/manifest.webmanifest');expect(await manifest.text()).toContain('#121417');
-    await page.goto('/nutrition');const creatineCard=page.locator('.creatine-card');await creatineCard.scrollIntoViewIfNeeded();const creatine=await creatineCard.boundingBox();expect(creatine?.width).toBeLessThanOrEqual(390);
-    const creatineItems=await creatineCard.locator(':scope > *').evaluateAll(items=>items.map(item=>{const box=item.getBoundingClientRect();return {top:Math.round(box.top),bottom:Math.round(box.bottom),width:Math.round(box.width)}}));for(let index=1;index<creatineItems.length;index+=1)expect(creatineItems[index].top).toBeGreaterThanOrEqual(creatineItems[index-1].bottom-1);expect(creatineItems.every(item=>item.width<=Math.round(creatine!.width))).toBeTruthy();
+    await page.goto('/notifications');const creatineCard=page.locator('.creatine-card:visible');await creatineCard.scrollIntoViewIfNeeded();const creatine=await creatineCard.boundingBox();expect(creatine?.width).toBeLessThanOrEqual(390);
+    const pairs=await creatineCard.locator('.time-picker,:scope > .water-reminder-toggle').evaluateAll(items=>items.map(item=>{const box=item.getBoundingClientRect();return {top:box.top,width:box.width}}));expect(Math.abs(pairs[0].top-pairs[1].top)).toBeLessThan(2);expect(Math.abs(pairs[0].width-pairs[1].width)).toBeLessThan(2);
     const timeBox=await creatineCard.locator('input[type="time"]').boundingBox();expect(timeBox!.x).toBeGreaterThanOrEqual(creatine!.x);expect(timeBox!.x+timeBox!.width).toBeLessThanOrEqual(creatine!.x+creatine!.width+1);
     await page.screenshot({path:'test-results/v3-nutrition-iphone-feedback.png',fullPage:true});
     await page.goto('/nutrition/foods');await page.getByRole('button',{name:/יצירת מזון/}).click();await page.route('**/api/nutrition/barcode/7290000000000',route=>route.fulfill({json:{code:'7290000000000',name:'מוצר מזוהה',brand:'מותג בדיקה',servingSize:'25 g',per100g:{calories:400,proteinG:20,carbsG:50,fatG:10}}}));await page.getByLabel(/ברקוד/).fill('7290000000000');await page.getByRole('button',{name:'זיהוי לפי ברקוד'}).click();await expect(page.getByLabel('שם המזון')).toHaveValue('מוצר מזוהה');await page.keyboard.press('Escape');
     await page.goto('/tasks');await expect(page.locator('.task-tabs')).toHaveCSS('border-top-color','rgb(138, 107, 22)');const outside=page.locator('.calendar-day.outside').first(),inside=page.locator('.calendar-day:not(.outside):not(.today)').first();await expect(outside).toHaveCSS('opacity','1');expect(await outside.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(await inside.evaluate(el=>getComputedStyle(el).backgroundColor));
     await page.goto('/');await expect(page.locator('.dashboard-agenda')).toHaveCount(0);await expect(page.locator('.today-counts:visible').first()).toBeVisible();await expect(page.locator('.dashboard-car-photo:visible').first()).toHaveAttribute('src','/mazda-3-black.png');
-    for(const card of await page.locator('.overview-card:visible').all()){const media=await card.locator('.dashboard-art,.dashboard-car-photo').boundingBox(),content=await card.locator('.overview-content').boundingBox();expect(media!.x+media!.width).toBeLessThanOrEqual(content!.x+1);}
-    const carCard=page.locator('.overview-car:visible').first(),expiries=carCard.locator('.vehicle-expiries');const carBox=await carCard.boundingBox(),expiryBox=await expiries.boundingBox();expect(expiryBox!.y+expiryBox!.height).toBeLessThanOrEqual(carBox!.y+carBox!.height+1);await expect(expiries.locator('span')).toHaveCount(4);
+    for(const card of await page.locator('.overview-card:visible:not(.overview-work)').all()){const media=await card.locator('.dashboard-art,.dashboard-car-photo').boundingBox(),content=await card.locator('.overview-content').boundingBox();expect(media!.x+media!.width).toBeLessThanOrEqual(content!.x+1);}
+    const carCard=page.locator('.overview-car:visible').first(),expiries=carCard.locator('.vehicle-expiries');const carBox=await carCard.boundingBox(),expiryBox=await expiries.boundingBox();expect(expiryBox!.y+expiryBox!.height).toBeLessThanOrEqual(carBox!.y+carBox!.height+1);await expect(expiries.locator('span')).toHaveCount(3);
     const policyDates=await expiries.locator('span').filter({hasText:/ביטוח (חובה|צד ג׳)/}).locator('strong').allTextContents();expect(policyDates[0]).toBe(policyDates[1]);
     await page.screenshot({path:'test-results/v3-iphone-feedback.png',fullPage:true});
     const offline=await page.request.get('/offline');expect(offline.ok()).toBeTruthy();

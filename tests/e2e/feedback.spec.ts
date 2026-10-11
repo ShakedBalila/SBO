@@ -15,7 +15,7 @@ test('native login, eight-character password and module persistence', async ({ b
   const page = await context.newPage();
   await page.goto(`${lan}/login?mode=register`);
   await page.getByLabel('שם',{exact:true}).fill('Mobile User'); await page.getByLabel('כתובת אימייל').fill(email); await page.getByLabel('סיסמה').fill(password);
-  await page.getByRole('button',{name:'יצירת חשבון'}).click(); await expect(page).toHaveURL(`${lan}/`); await expect(page.getByRole('button',{name:'התנתקות'})).toBeVisible();
+  await page.getByRole('button',{name:'יצירת חשבון'}).click(); await expect(page).toHaveURL(`${lan}/`); expect((await page.request.get(`${lan}/api/work/data`)).ok()).toBeTruthy();
   await context.close();
 
   const wrong = await browser.newContext({javaScriptEnabled:false}); const wrongPage=await wrong.newPage();
@@ -28,7 +28,7 @@ test('native login, eight-character password and module persistence', async ({ b
   for(const [path,data] of [
     ['goals',{waterGoalMl:2500,calorieGoal:2200,proteinGoalG:160}],['water',{amountMl:500,date:'2026-09-11'}],
     ['nutrition',{name:'Chicken bowl',meal:'Lunch',calories:650,proteinG:55,date:'2026-09-11'}],
-    ['events',{title:'Workout',type:'Workout',date:'2026-09-12',endDate:'2026-09-12',time:null,endTime:null,allDay:true,color:'#4f7cff',eventTypeId:null,recurrence:'NONE',recurrenceDays:[],recurrenceUntil:null,reminderMinutes:null,notes:''}]
+    ['events',{title:'Workout',type:'Workout',date:new Date().toISOString().slice(0,10),endDate:new Date().toISOString().slice(0,10),time:null,endTime:null,allDay:true,color:'#4f7cff',eventTypeId:null,recurrence:'NONE',recurrenceDays:[],recurrenceUntil:null,reminderMinutes:null,notes:''}]
   ] as const) expect((await api.post(`${lan}/api/modules/${path}`,{headers:origin,data})).ok()).toBe(true);
   const vehicleResponse=await api.post(`${lan}/api/modules/vehicles`,{headers:origin,data:{name:'My car',licensePlate:'123-45-678',year:2022,roadMonth:5,odometerKm:45000,fuelTankLiters:50}}); expect(vehicleResponse.ok()).toBe(true);
   const client=new Client({connectionString:process.env.DATABASE_URL});await client.connect();const vehicleId=(await client.query('SELECT v.id FROM "Vehicle" v JOIN "User" u ON u.id=v."userId" WHERE u.email=$1',[email])).rows[0].id;
@@ -37,8 +37,8 @@ test('native login, eight-character password and module persistence', async ({ b
   expect((await api.post(`${lan}/api/modules/reminders`,{headers:origin,data:{vehicleId,type:'Test',title:'טסט',dueDate:'2026-09-20',expiryDate:'2027-09-20',cost:null,licenseFee:120,testFee:100,reminderDays:30,reminderTime:'09:00',notes:''}})).ok()).toBe(true);
   expect((await api.post(`${lan}/api/tasks`,{headers:origin,data:{title:'Daily stretch',description:'',status:'TODO',priority:'MEDIUM',startDate:'2026-09-12',endDate:'2026-09-12',startTime:null,endTime:null,color:null,category:null,showOnCalendar:true,reminderMinutes:null,recurrence:'DAILY',recurrenceDays:[],recurrenceUntil:'2026-09-14'}})).ok()).toBe(true);
   expect(Number((await client.query('SELECT count(*) FROM "Task" t JOIN "User" u ON u.id=t."userId" WHERE u.email=$1 AND t.title=$2',[email,'Daily stretch'])).rows[0].count)).toBe(1);await client.end();
-  await appPage.goto(`${lan}/`); await expect(appPage.locator('.module-grid').getByRole('link',{name:/צריכת מים יומית/})).toBeVisible(); await appPage.screenshot({path:'test-results/dark-dashboard.png',fullPage:true});
-  await appPage.goto(`${lan}/car`); await expect(appPage.getByRole('heading',{name:'My car',exact:true})).toBeVisible(); await expect(appPage.getByText(/200.*לחודש/)).toBeVisible(); await expect(appPage.getByText(/טסט/).first()).toBeVisible();
+  await appPage.goto(`${lan}/`); await expect(appPage.locator('.overview-water')).toBeVisible(); await appPage.screenshot({path:'test-results/dark-dashboard.png',fullPage:true});
+  await appPage.goto(`${lan}/car`); await expect(appPage.locator('.vehicles-panel').getByRole('heading',{name:'My car',exact:true})).toBeVisible(); await expect(appPage.locator('.policies-panel:visible').getByText(/200.*לחודש/)).toBeVisible(); await expect(appPage.getByText(/טסט/).first()).toBeVisible();
   await appPage.goto(`${lan}/tasks`); await expect(appPage.getByRole('heading',{name:'לוח שנה חודשי'})).toBeVisible(); await expect(appPage.getByText('Workout',{exact:true}).first()).toBeVisible();
   await app.close();
 });

@@ -30,3 +30,13 @@ test('database Date objects are sorted chronologically across weekdays and month
     .reverse().map(entry=>({...entry,date:new Date(entry.date),createdAt:new Date(entry.createdAt)}));
   assert.equal(calculateFuelCycles(entries).get('end')?.cycleKmPerLiter,10);
 });
+
+test('Trip A closes a cycle without odometer readings and includes every partial refill',()=>{
+ const entries=[{...row('start','2026-10-01',0,40,true),currentOdometerKm:null,distanceMode:'trip'}, {...row('partial','2026-10-02',0,10,false),currentOdometerKm:null,distanceMode:'trip'}, {...row('end','2026-10-03',0,21.5,true),currentOdometerKm:null,distanceMode:'trip',actualDistanceKm:293}];
+ assert.equal(calculateFuelCycles(entries).get('end')?.cycleKmPerLiter,9.3);assert.equal(calculateFuelCycles(entries).get('end')?.cycleFuelLiters,31.5);
+ assert.equal(calculateFuelCycles(entries.slice(0,2)).size,0);
+});
+test('switching to odometer without a previous odometer establishes a new baseline',()=>{
+ const entries=[{...row('start','2026-10-01',0,40,true),currentOdometerKm:null,distanceMode:'trip'},row('middle','2026-10-02',100000,20,true),row('end','2026-10-03',100200,20,true)];
+ assert.equal(calculateFuelCycles(entries).has('middle'),false);assert.equal(calculateFuelCycles(entries).get('end')?.cycleKmPerLiter,10);
+});

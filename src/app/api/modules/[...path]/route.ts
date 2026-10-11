@@ -66,6 +66,10 @@ async function handle(request: Request, context: Context) {
         const vehicle=await db.vehicle.findFirst({where:{id:parsed.vehicleId,userId:user.id}});
         if(!vehicle)throw new HttpError(404,'הרכב לא נמצא.');
         if(vehicle.fuelTankLiters!==null&&parsed.liters>Number(vehicle.fuelTankLiters))throw new HttpError(400,'כמות התדלוק אינה יכולה לעלות על נפח מכל הדלק של הרכב.');
+        if(parsed.distanceMode==='trip')parsed.currentOdometerKm=null;
+        if(!parsed.isFullTank)parsed.actualDistanceKm=null;
+        if(parsed.distanceMode==='odometer')parsed.actualDistanceKm=null;
+        if(parsed.isFullTank&&parsed.distanceMode==='trip'&&!parsed.actualDistanceKm&&await db.fuelEntry.findFirst({where:{userId:user.id,vehicleId:parsed.vehicleId,isFullTank:true,date:{lte:new Date(parsed.date)},...(id?{id:{not:id}}:{})}}))throw new HttpError(400,'יש להזין את מרחק Trip A מאז התדלוק המלא הקודם.');
         const {customPricePerLiter,...fuel}=parsed;
         const pricePerLiter=customPricePerLiter??fuel.pricePerLiter;
         const data = { ...fuel, pricePerLiter, date: new Date(fuel.date), totalCost:Math.round(fuel.liters*pricePerLiter*100)/100 };
@@ -75,7 +79,7 @@ async function handle(request: Request, context: Context) {
             else await transaction.fuelEntry.create({ data: { ...data, userId: user.id } });
             const rows=await transaction.fuelEntry.findMany({where:{userId:user.id,vehicleId:parsed.vehicleId},orderBy:[{date:'asc'},{createdAt:'asc'}]});
             calculateFuelCycles(rows);
-            if(parsed.currentOdometerKm>vehicle.odometerKm)await transaction.vehicle.update({where:{id:vehicle.id},data:{odometerKm:parsed.currentOdometerKm}});
+            if(parsed.currentOdometerKm!==null&&parsed.currentOdometerKm>vehicle.odometerKm)await transaction.vehicle.update({where:{id:vehicle.id},data:{odometerKm:parsed.currentOdometerKm}});
           });
         } catch(error) {
           if(error instanceof FuelOdometerError)throw new HttpError(400,error.message);
