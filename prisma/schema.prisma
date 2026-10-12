@@ -222,6 +222,9 @@ model VehicleReminder {
   @@index([userId, dueDate])
 }
 model VehicleExpense {
+  washType String @default("") @db.VarChar(30)
+  location String @default("") @db.VarChar(200)
+  updatedAt DateTime @default(now()) @updatedAt
   nextServiceDate DateTime? @db.Date
   reminderDays Int?
   reminderTime String @default("09:00") @db.VarChar(5)

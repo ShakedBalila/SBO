@@ -72,7 +72,8 @@ export const nutritionInput = z.object({
   preferenceServingName: z.string().trim().max(40).nullable().default(null),
   date: recordDate
 }).strict();
-export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, nextServiceDate:recordDate.nullable().default(null),reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00'), notes: z.string().trim().max(2000).default('') }).strict().refine(value=>value.reminderDays===null||value.nextServiceDate!==null,'יש להזין מועד לטיפול הבא כדי להפעיל התראה.');
+export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Parking', 'Tolls', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, nextServiceDate:recordDate.nullable().default(null),reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00'), notes: z.string().trim().max(2000).default('') }).strict().refine(value=>value.reminderDays===null||value.nextServiceDate!==null,'יש להזין מועד לטיפול הבא כדי להפעיל התראה.');
+export const carWashInput=z.object({vehicleId:z.string().min(1),date:recordDate,amount:z.number().min(0.01).max(1000000).refine(value=>Math.abs(value*100-Math.round(value*100))<0.0000001,'עלות השטיפה צריכה להיות בשתי ספרות אחרי הנקודה לכל היותר'),washType:z.enum(['','Exterior','InteriorExterior','Premium','Detailing','Other']).default(''),location:z.string().trim().max(200).default(''),notes:z.string().trim().max(2000).default('')}).strict();
 export const goalInput = z.object({
   waterGoalMl: z.number().int().min(1).max(20000).nullable().optional(),
   waterDayStart: wholeHour.optional(),
@@ -89,6 +90,6 @@ export const goalInput = z.object({
   weeklyWorkouts: z.number().int().min(0).max(5).nullable().optional(),
   weightGoal: z.enum(['lose', 'maintain', 'gain']).nullable().optional()
 }).strict().refine(input => Object.keys(input).length > 0, 'Enter a goal.').refine(input => !input.waterDayStart || !input.waterDayEnd || input.waterDayEnd > input.waterDayStart, 'שעת הסיום חייבת להיות מאוחרת משעת ההתחלה.');
-export type RecordKind = 'water' | 'vehicles' | 'fuel' | 'nutrition' | 'policies' | 'reminders' | 'expenses' | 'events' | 'event-types';
+export type RecordKind = 'car-washes' | 'water' | 'vehicles' | 'fuel' | 'nutrition' | 'policies' | 'reminders' | 'expenses' | 'events' | 'event-types';
 export type ModuleValue = string | number | boolean | null | number[];
 export type ModuleRecord = { id: string; [key: string]: ModuleValue };

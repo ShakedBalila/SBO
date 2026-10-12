@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { nutritionTargets } from '@/lib/nutrition-targets';
 import { calculateFuelCycles, FuelOdometerError } from '@/lib/fuel-cycles';
 import { apiError, checkOrigin, HttpError, jsonBody } from '@/lib/http';
-import { waterInput, waterReminderInput, vehicleReminderSettingsInput, creatineReminderInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, eventInput, eventTypeInput } from '@/lib/modules';
+import { waterInput, waterReminderInput, vehicleReminderSettingsInput, creatineReminderInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, carWashInput, eventInput, eventTypeInput } from '@/lib/modules';
 type Context = { params: Promise<{ path: string[] }> };
 async function handle(request: Request, context: Context) {
   try {
@@ -116,6 +116,16 @@ async function handle(request: Request, context: Context) {
         const data = { ...parsed, dueDate: new Date(parsed.dueDate), expiryDate:new Date(parsed.expiryDate) };
         if (id) count = (await db.vehicleReminder.updateMany({ where, data })).count;
         else await db.vehicleReminder.create({ data: { ...data, userId: user.id } });
+        break;
+      }
+      case 'car-washes': {
+        const washWhere={...where,type:'CarWash'};
+        if(deleting){count=(await db.vehicleExpense.deleteMany({where:washWhere})).count;break;}
+        const parsed=carWashInput.parse(input);
+        if(!await db.vehicle.findFirst({where:{id:parsed.vehicleId,userId:user.id}}))throw new HttpError(404,'הרכב לא נמצא.');
+        const data={...parsed,date:new Date(parsed.date),type:'CarWash',title:'שטיפת רכב',nextServiceDate:null,reminderDays:null};
+        if(id)count=(await db.vehicleExpense.updateMany({where:washWhere,data})).count;
+        else await db.vehicleExpense.create({data:{...data,userId:user.id}});
         break;
       }
       case 'expenses': {
