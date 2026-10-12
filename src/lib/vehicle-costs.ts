@@ -18,5 +18,5 @@ export function vehicleMonthCosts({month,fuel,policies,reminders,expenses}:{mont
   else amounts.other+=value;
  }
  const total=Object.values(amounts).reduce((sum,value)=>sum+value,0)/100;
- return {...Object.fromEntries(Object.entries(amounts).map(([key,value])=>[key,value/100])) as {[K in keyof typeof amounts]:number},washCount,distanceKm,total,costPerKm:distanceKm>0?total/distanceKm:null};
+ return {...Object.fromEntries(Object.entries(amounts).map(([key,value])=>[key,value/100])) as {[K in keyof typeof amounts]:number},washCount,distanceKm,total,costPerKm:null as number|null};
 }

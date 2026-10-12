@@ -6,7 +6,7 @@ const washes=[{id:'a',type:'CarWash',date:'2026-10-04',amount:60},{id:'b',type:'
 const calculate=(expenses:Record<string,unknown>[],month='2026-10')=>vehicleMonthCosts({month,fuel,policies:[],reminders:[],expenses});
 test('one-time washes join financial costs exactly and do not repeat in the next month',()=>{
  const value=calculate([...washes,{type:'Parking',date:'2026-10-02',amount:90}]);
- assert.equal(value.carWashes,135);assert.equal(value.washCount,2);assert.equal(value.fuel,820);assert.equal(value.total,1045);assert.equal(value.costPerKm,1.045);
+ assert.equal(value.carWashes,135);assert.equal(value.washCount,2);assert.equal(value.fuel,820);assert.equal(value.total,1045);assert.equal(value.costPerKm,null);
  assert.equal(calculate(washes,'2026-11').total,0);assert.equal(calculate(washes,'2026-11').washCount,0);
 });
 test('edits move only the actual expense between months, deletion recalculates, and cents remain exact',()=>{

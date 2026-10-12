@@ -11,6 +11,7 @@ import "./work.css";
 import "./review.css";
 import "./overview.css";
 import "./vehicle-costs.css";
+import "./vehicle-v3.css";
 import { PwaRegister } from '@/components/pwa-register';
 export const metadata: Metadata = {
   title: "SBO · סביבת העבודה שלך",

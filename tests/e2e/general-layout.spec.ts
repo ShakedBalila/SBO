@@ -17,7 +17,7 @@ test('fluid shell, water history, vehicle logo and food bank',async({page})=>{
     for(const width of [320,430,507,600,834,1024,1440,1920]){
       const height=width===430?932:width===834?1194:width===1440?1000:width===1920?1080:800;await page.setViewportSize({width,height});
       for(const route of ['/','/tasks','/water','/car','/nutrition']){await page.goto(route);const ready=route==='/'?'.dashboard-home':route==='/tasks'?'.tasks-workspace':'.module-workspace';await page.locator(ready+':visible').waitFor();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();if([430,507,834,1440].includes(width)){const name=route==='/'?'home':route.slice(1);await page.screenshot({path:`test-results/general-${name}-${width}.png`,fullPage:true});}}
-      await page.goto('/');await page.screenshot({path:`test-results/general-home-${width}.png`,fullPage:true});
+      await page.goto('/');await page.locator('.dashboard-home:visible').waitFor();await page.screenshot({path:`test-results/general-home-${width}.png`,fullPage:true});
       if(width<=1194){await page.locator("main").evaluate(el=>el.scrollTo(0,el.scrollHeight));const nav=await page.locator('.bottom-nav').boundingBox();expect(nav).not.toBeNull();expect(Math.abs(nav!.y+nav!.height-height)).toBeLessThan(2);}
     }
     await page.setViewportSize({width:1440,height:1000});await page.goto('/');

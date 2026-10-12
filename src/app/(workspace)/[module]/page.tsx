@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { moduleData } from '@/lib/module-data';
 import { ModuleWorkspace } from '@/components/module-workspace';
 import { getIsraelFuelPrice } from '@/lib/fuel-price';
-import { calculateFuelCycles, type FuelCycleResult } from '@/lib/fuel-cycles';
+import { rebuildFuelCycles, type FuelCycle } from '@/lib/fuel-cycles';
 import { NutritionWorkspace } from '@/components/nutrition-workspace';
 export default async function ModulePage({ params }: { params: Promise<{ module: string }> }) {
   const module = (await params).module;
@@ -31,8 +31,8 @@ export default async function ModulePage({ params }: { params: Promise<{ module:
     module === 'car' ? db.vehicleExpense.findMany({ where: { userId: user.id }, orderBy: [{ date:'desc' },{ createdAt:'desc' }] }) : [],
     module === 'car' ? getIsraelFuelPrice() : null
   ]);
-  const fuelCycles=new Map<string,FuelCycleResult>();
-  for(const vehicle of vehicles){try{for(const [id,cycle] of calculateFuelCycles(fuel.filter(row=>row.vehicleId===vehicle.id)))fuelCycles.set(id,cycle);}catch{/* Invalid legacy sequences stay unclassified until edited. */}}
+  const fuelCycles=new Map<string,FuelCycle>();
+  for(const vehicle of vehicles){try{for(const [id,cycle] of rebuildFuelCycles(fuel.filter(row=>row.vehicleId===vehicle.id)))fuelCycles.set(id,cycle);}catch{/* Invalid legacy sequences stay unclassified until edited. */}}
   return <ModuleWorkspace module={module} summary={{ today: summary.today, waterMl: summary.waterMl,
     calories: summary.calories, proteinG: summary.proteinG, fuelCost: summary.fuelCost,
     waterGoalMl: summary.settings?.waterGoalMl ?? null, calorieGoal: summary.settings?.calorieGoal ?? null,
@@ -42,7 +42,7 @@ export default async function ModulePage({ params }: { params: Promise<{ module:
     waterReminderEnabled:summary.settings?.waterReminderEnabled??false,waterReminderStart:summary.settings?.waterReminderStart??'08:00',waterReminderEnd:summary.settings?.waterReminderEnd??'16:00',waterReminderIntervalMinutes:summary.settings?.waterReminderIntervalMinutes??60,vehicleReminderEnabled:summary.settings?.vehicleReminderEnabled??false }}
     water={water.map(row => ({ id: row.id, date: row.date.toISOString().slice(0, 10), amountMl: row.amountMl, createdAt:row.createdAt.toISOString() }))}
     vehicles={vehicles.map(row => ({ id: row.id, name: row.name, licensePlate: row.licensePlate, year: row.year, roadMonth:row.roadMonth, odometerKm: row.odometerKm, fuelTankLiters: Number(row.fuelTankLiters ?? 0) || null }))}
-    fuel={fuel.map(row => {const cycle=fuelCycles.get(row.id);return { id: row.id, vehicleId: row.vehicleId, date: row.date.toISOString().slice(0, 10), estimatedRangeKm: row.estimatedRangeKm, actualDistanceKm: row.actualDistanceKm,distanceMode:row.distanceMode, currentOdometerKm:row.currentOdometerKm, liters: Number(row.liters), pricePerLiter: Number(row.pricePerLiter), totalCost:Number(row.totalCost??Number(row.liters)*Number(row.pricePerLiter)), dashboardKmPerLiter:row.dashboardKmPerLiter===null?null:Number(row.dashboardKmPerLiter),isFullTank:row.isFullTank, cycleDistanceKm:cycle?.cycleDistanceKm??null,cycleFuelLiters:cycle?.cycleFuelLiters??null,cycleKmPerLiter:cycle?.cycleKmPerLiter??null,previousFullRefuelId:cycle?.previousFullRefuelId??null,notes:row.notes };})}
+    fuel={fuel.map(row => {const cycle=fuelCycles.get(row.id);return { id: row.id, vehicleId: row.vehicleId, date: row.date.toISOString().slice(0, 10), estimatedRangeKm: row.estimatedRangeKm, actualDistanceKm: row.actualDistanceKm,distanceMode:row.distanceMode,distanceSource:row.distanceSource,distanceConfirmedAt:row.distanceConfirmedAt?.toISOString()??null,cycleStatus:cycle?.cycleStatus??null,includedRefuelIds:cycle?.includedRefuelIds.join(',')??'',createdAt:row.createdAt.toISOString(), currentOdometerKm:row.currentOdometerKm, liters: Number(row.liters), pricePerLiter: Number(row.pricePerLiter), totalCost:Number(row.totalCost??Number(row.liters)*Number(row.pricePerLiter)), dashboardKmPerLiter:row.dashboardKmPerLiter===null?null:Number(row.dashboardKmPerLiter),isFullTank:row.isFullTank, cycleDistanceKm:cycle?.cycleDistanceKm??null,cycleFuelLiters:cycle?.cycleFuelLiters??null,cycleKmPerLiter:cycle?.cycleKmPerLiter??null,previousFullRefuelId:cycle?.previousFullRefuelId??null,notes:row.notes };})}
     nutrition={[]}
     policies={policies.map(row => ({ id: row.id, vehicleId: row.vehicleId, type: row.type, provider: row.provider, annualCost: Number(row.annualCost), startDate: row.startDate.toISOString().slice(0,10), endDate: row.endDate.toISOString().slice(0,10),reminderDays:row.reminderDays,reminderTime:row.reminderTime }))}
     reminders={reminders.map(row => ({ id: row.id, vehicleId: row.vehicleId, type: row.type, title: row.title, dueDate: row.dueDate.toISOString().slice(0,10),expiryDate:row.expiryDate?.toISOString().slice(0,10)??row.dueDate.toISOString().slice(0,10), cost: Number(row.cost ?? 0) || null,licenseFee:Number(row.licenseFee??0),testFee:Number(row.testFee??0),reminderDays:row.reminderDays,reminderTime:row.reminderTime, notes: row.notes }))}

@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { nutritionTargets } from '@/lib/nutrition-targets';
-import { calculateFuelCycles, FuelOdometerError } from '@/lib/fuel-cycles';
+import { rebuildFuelCycles, validateFuelOdometers, FuelOdometerError } from '@/lib/fuel-cycles';
 import { apiError, checkOrigin, HttpError, jsonBody } from '@/lib/http';
-import { waterInput, waterReminderInput, vehicleReminderSettingsInput, creatineReminderInput, vehicleInput, fuelInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, carWashInput, eventInput, eventTypeInput } from '@/lib/modules';
+import { waterInput, waterReminderInput, vehicleReminderSettingsInput, creatineReminderInput, vehicleInput, fuelInput, fuelDistanceInput, nutritionInput, goalInput, policyInput, reminderInput, expenseInput, carWashInput, eventInput, eventTypeInput } from '@/lib/modules';
 type Context = { params: Promise<{ path: string[] }> };
 async function handle(request: Request, context: Context) {
   try {
@@ -60,32 +60,44 @@ async function handle(request: Request, context: Context) {
         else await db.vehicle.create({ data: { ...data, userId: user.id } });
         break;
       }
+      case 'fuel-distance': {
+        if(request.method!=='PATCH'||!id)throw new HttpError(400,'יש לבחור תדלוק מלא להשלמת המרחק.');
+        const parsed=fuelDistanceInput.parse(input);
+        await db.$transaction(async transaction=>{
+          const entry=await transaction.fuelEntry.findFirst({where});if(!entry)throw new HttpError(404,'התדלוק לא נמצא.');
+          const rows=await transaction.fuelEntry.findMany({where:{userId:user.id,vehicleId:entry.vehicleId}}),cycle=rebuildFuelCycles(rows).get(entry.id);
+          if(!cycle?.previousFullRefuelId||cycle.previousFullRefuelId!==parsed.startRefuelId||cycle.cycleStatus==='NEEDS_REVIEW')throw new HttpError(409,'גבולות המחזור השתנו או דורשים בדיקה. יש לפתוח מחדש את השלמת המרחק.');
+          if(parsed.source==='ODOMETER_CONFIRMED'){
+            const baseline=rows.find(row=>row.id===parsed.startRefuelId);
+            if(entry.currentOdometerKm===null||baseline?.currentOdometerKm===null||baseline?.currentOdometerKm===undefined||entry.currentOdometerKm-baseline.currentOdometerKm!==parsed.actualDistanceKm)throw new HttpError(400,'יש לאשר מרחק התואם למד האוץ בשני התדלוקים.');
+          }
+          await transaction.fuelEntry.updateMany({where,data:{actualDistanceKm:parsed.actualDistanceKm,distanceSource:parsed.source,distanceStartRefuelId:parsed.startRefuelId,distanceConfirmedAt:new Date()}});
+        },{isolationLevel:'Serializable'});break;
+      }
       case 'fuel': {
-        if (deleting) { count = (await db.fuelEntry.deleteMany({ where })).count; break; }
-        const parsed = fuelInput.parse(input);
-        const vehicle=await db.vehicle.findFirst({where:{id:parsed.vehicleId,userId:user.id}});
+        if(deleting){await db.$transaction(async transaction=>{count=(await transaction.fuelEntry.deleteMany({where})).count;await transaction.fuelEntry.updateMany({where:{userId:user.id,distanceStartRefuelId:id},data:{distanceConfirmedAt:null}});});break;}
+        const parsed=fuelInput.parse(input),vehicle=await db.vehicle.findFirst({where:{id:parsed.vehicleId,userId:user.id}});
         if(!vehicle)throw new HttpError(404,'הרכב לא נמצא.');
         if(vehicle.fuelTankLiters!==null&&parsed.liters>Number(vehicle.fuelTankLiters))throw new HttpError(400,'כמות התדלוק אינה יכולה לעלות על נפח מכל הדלק של הרכב.');
-        if(parsed.distanceMode==='trip')parsed.currentOdometerKm=null;
-        if(!parsed.isFullTank)parsed.actualDistanceKm=null;
-        if(parsed.distanceMode==='odometer')parsed.actualDistanceKm=null;
-        if(parsed.isFullTank&&parsed.distanceMode==='trip'&&!parsed.actualDistanceKm&&await db.fuelEntry.findFirst({where:{userId:user.id,vehicleId:parsed.vehicleId,isFullTank:true,date:{lte:new Date(parsed.date)},...(id?{id:{not:id}}:{})}}))throw new HttpError(400,'יש להזין את מרחק Trip A מאז התדלוק המלא הקודם.');
-        const {customPricePerLiter,...fuel}=parsed;
-        const pricePerLiter=customPricePerLiter??fuel.pricePerLiter;
-        const data = { ...fuel, pricePerLiter, date: new Date(fuel.date), totalCost:Math.round(fuel.liters*pricePerLiter*100)/100 };
-        try {
-          await db.$transaction(async transaction=>{
-            if (id) count = (await transaction.fuelEntry.updateMany({ where, data })).count;
-            else await transaction.fuelEntry.create({ data: { ...data, userId: user.id } });
-            const rows=await transaction.fuelEntry.findMany({where:{userId:user.id,vehicleId:parsed.vehicleId},orderBy:[{date:'asc'},{createdAt:'asc'}]});
-            calculateFuelCycles(rows);
-            if(parsed.currentOdometerKm!==null&&parsed.currentOdometerKm>vehicle.odometerKm)await transaction.vehicle.update({where:{id:vehicle.id},data:{odometerKm:parsed.currentOdometerKm}});
-          });
-        } catch(error) {
-          if(error instanceof FuelOdometerError)throw new HttpError(400,error.message);
-          throw error;
-        }
-        break;
+        const {customPricePerLiter,totalCost:paid,actualDistanceKm:legacyDistance,...fuel}=parsed;
+        const pricePerLiter=paid!==null?paid/fuel.liters:customPricePerLiter??fuel.pricePerLiter;
+        const data={...fuel,pricePerLiter,date:new Date(fuel.date),totalCost:paid??Math.round(fuel.liters*pricePerLiter*100)/100};
+        try{await db.$transaction(async transaction=>{
+          if(!id&&parsed.clientRequestId){const saved=await transaction.fuelEntry.findFirst({where:{userId:user.id,clientRequestId:parsed.clientRequestId}});if(saved){if(saved.vehicleId!==data.vehicleId||saved.date.getTime()!==data.date.getTime()||Number(saved.liters)!==data.liters||Number(saved.totalCost)!==data.totalCost||saved.isFullTank!==data.isFullTank)throw new HttpError(409,'הבקשה כבר נשמרה עם פרטים אחרים. יש לפתוח תדלוק חדש.');return;}}
+          const old=id?await transaction.fuelEntry.findFirst({where}):null;
+          if(id&&!old)throw new HttpError(404,'התדלוק לא נמצא.');
+          const changedBoundary=old&&(old.vehicleId!==data.vehicleId||old.date.getTime()!==data.date.getTime()||old.isFullTank!==data.isFullTank);
+          const changedOdometer=old&&old.currentOdometerKm!==data.currentOdometerKm;
+          if(changedBoundary)await transaction.fuelEntry.updateMany({where:{userId:user.id,OR:[{id},{distanceStartRefuelId:id}]},data:{distanceConfirmedAt:null}});
+          if(changedOdometer)await transaction.fuelEntry.updateMany({where:{userId:user.id,distanceSource:'ODOMETER_CONFIRMED',OR:[{id},{distanceStartRefuelId:id}]},data:{distanceConfirmedAt:null}});
+          if(id)count=(await transaction.fuelEntry.updateMany({where,data})).count;
+          else await transaction.fuelEntry.create({data:{...data,userId:user.id,actualDistanceKm:legacyDistance}});
+          const rows=await transaction.fuelEntry.findMany({where:{userId:user.id,vehicleId:parsed.vehicleId}});
+          // Invalidate obsolete endpoint pairs permanently; later restoring a boundary cannot revive stale confirmation.
+          const rebuilt=rebuildFuelCycles(rows);for(const row of rows){if(row.distanceConfirmedAt&&rebuilt.get(row.id)?.previousFullRefuelId!==row.distanceStartRefuelId)await transaction.fuelEntry.update({where:{id:row.id},data:{distanceConfirmedAt:null}});}
+          validateFuelOdometers(rows);
+          if(parsed.currentOdometerKm!==null&&parsed.currentOdometerKm>vehicle.odometerKm)await transaction.vehicle.update({where:{id:vehicle.id},data:{odometerKm:parsed.currentOdometerKm}});
+        },{isolationLevel:'Serializable'});}catch(error){if(error instanceof FuelOdometerError)throw new HttpError(400,error.message);throw error;}break;
       }
       case 'nutrition': {
         if (deleting) { count = (await db.nutritionEntry.deleteMany({ where })).count; break; }

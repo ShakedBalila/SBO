@@ -26,7 +26,7 @@ test('car forms, tank limit and split-screen navigation', async ({ page }) => {
       expect(result.status()).toBe(liters===50?201:400);
     }
     await page.goto('/car');
-    await expect(page.getByRole('heading',{name:'Test car · 50L'})).toBeVisible();
+    await expect(page.locator('.fuel-journal:visible')).toContainText('50 ל׳');
     await page.getByRole('button',{name:'הוספת טסט',exact:true}).click();
     await page.getByLabel('אגרת טסט',{exact:true}).fill('123');
     await page.getByLabel('עלות הטסט',{exact:true}).fill('90');
@@ -67,7 +67,7 @@ test('car forms, tank limit and split-screen navigation', async ({ page }) => {
     await page.mouse.click(2,2);await expect(page.locator('dialog[open]')).toHaveCount(0);
     await page.getByRole('button',{name:'הוספת תדלוק',exact:true}).click();
     await expect(page.locator('dialog[open]').getByText('האם המיכל מלא לאחר התדלוק?',{exact:true})).toBeVisible();
-    await expect(page.locator('dialog[open]').getByText(/מחיר לליטר בתחנה/)).toBeVisible();
+    await expect(page.locator('dialog[open]').getByLabel(/מחיר לליטר/)).toBeVisible();
     await page.locator('dialog[open]').getByRole('button',{name:'סגירת הטופס'}).click();await expect(page.locator('dialog[open]')).toHaveCount(0);
     for(const label of ['הוספת טסט','הוספת ביטוח','הוספת טיפול']){await page.getByRole('button',{name:label,exact:true}).click();await expect(page.locator('dialog[open]')).toHaveCount(1);await page.locator('dialog[open]').getByRole('button',{name:'סגירת הטופס'}).click();await expect(page.locator('dialog[open]')).toHaveCount(0);}
     await page.getByRole('button',{name:'מחיקת Test car',exact:true}).click();await expect(page.locator('dialog[open]')).toHaveCount(1);await page.locator('dialog[open]').getByRole('button',{name:'ביטול'}).click();await expect(page.locator('dialog[open]')).toHaveCount(0);

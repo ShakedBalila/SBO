@@ -1,3 +1,4 @@
+import {confirmLatestFuel} from './fuel-helper';
 import {test,expect} from '@playwright/test';
 import {Client} from 'pg';
 test.use({channel:'msedge',viewport:{width:390,height:844}});
@@ -27,6 +28,7 @@ test('V3 mobile shell, utilities, reminders and vehicle fuel form',async({page})
     for(const type of ['Mandatory','Third party'])expect((await page.request.post('/api/modules/policies',{headers,data:{vehicleId,type,provider:'בדיקה',annualCost:1200,startDate:'2026-07-01',endDate:'2027-06-30',reminderDays:null,reminderTime:'09:00'}})).ok()).toBeTruthy();
     expect((await page.request.post('/api/modules/fuel',{headers,data:{vehicleId,date:'2026-09-20',currentOdometerKm:86000,liters:39.5,isFullTank:true,estimatedRangeKm:601,actualDistanceKm:null,pricePerLiter:7.2,customPricePerLiter:null,notes:''}})).ok()).toBeTruthy();
     expect((await page.request.post('/api/modules/fuel',{headers,data:{vehicleId,date:'2026-09-29',currentOdometerKm:86293,liters:31.5,isFullTank:true,estimatedRangeKm:526,actualDistanceKm:null,pricePerLiter:7.2,customPricePerLiter:6.5,notes:''}})).ok()).toBeTruthy();
+    await confirmLatestFuel(page.request,vehicleId,293);
     await page.goto('/car');await expect(page.locator('.vehicle-visual.photo:visible > img')).toHaveAttribute('src','/mazda-3-black.png');
     await expect(page.locator('.fuel-journal:visible').getByText(/9\.30 ק״מ\/ל׳/)).toBeVisible();
     expect(Number((await db.query('SELECT "totalCost" FROM "FuelEntry" WHERE "vehicleId"=$1 AND date=$2',[vehicleId,'2026-09-29'])).rows[0].totalCost)).toBe(204.75);
@@ -35,8 +37,8 @@ test('V3 mobile shell, utilities, reminders and vehicle fuel form',async({page})
     await page.screenshot({path:'test-results/v3-car-iphone-feedback.png',fullPage:true});
     await page.getByRole('button',{name:/הוספת תדלוק/}).click();
     const fuelDialog=page.locator('.fuel-entry-modal:visible');
-    await expect(fuelDialog.locator('#fuel-distanceMode')).toHaveValue('trip');await fuelDialog.locator('#fuel-distanceMode').selectOption('odometer');await expect(fuelDialog.getByLabel(/קילומטראז׳ נוכחי/)).toBeVisible();
-    await expect(fuelDialog.getByLabel(/מחיר לליטר בתחנה/)).not.toHaveAttribute('required','');
+    await expect(fuelDialog.locator('#fuel-currentOdometerKm')).toHaveCount(0);await fuelDialog.getByRole('button',{name:'פרטים מתקדמים'}).click();await expect(fuelDialog.getByLabel(/מד אוץ/)).toBeVisible();
+    await expect(fuelDialog.getByLabel(/מחיר לליטר/)).not.toHaveAttribute('required','');
     await expect(fuelDialog.getByRole('radio',{name:'כן',exact:true})).toHaveAttribute('aria-checked','true');
     await expect(fuelDialog.getByLabel(/הערות/)).toBeVisible();
     await expect(page.locator('.bottom-nav')).toBeHidden();

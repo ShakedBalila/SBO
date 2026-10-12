@@ -12,7 +12,7 @@ export async function moduleData(userId: string, timezone: string) {
     db.waterEntry.aggregate({ where: { userId, date }, _sum: { amountMl: true } }),
     db.waterEntry.findMany({where:{userId,date:{gte:weekStart,lte:weekEnd}},select:{date:true,amountMl:true}}),
     db.nutritionEntry.aggregate({ where: { userId, date }, _sum: { calories: true, proteinG: true, carbsG:true, fatG:true } }),
-    db.fuelEntry.findMany({ where: { userId, date: { gte: month, lte: date } }, select: { liters: true, pricePerLiter: true } }),
+    db.fuelEntry.findMany({ where: { userId, date: { gte: month, lte: date } }, select: { liters: true, pricePerLiter: true, totalCost:true } }),
     db.vehicle.findMany({where:{userId},orderBy:{createdAt:'asc'},select:{id:true,name:true,licensePlate:true,year:true,roadMonth:true,odometerKm:true},take:3}),
     db.vehicle.count({where:{userId}}),
     db.vehiclePolicy.findMany({where:{userId},orderBy:{endDate:'desc'},select:{vehicleId:true,type:true,endDate:true}}),
@@ -23,5 +23,5 @@ export async function moduleData(userId: string, timezone: string) {
   const waterWeek=Array.from({length:7},(_,index)=>{const day=new Date(weekStart);day.setUTCDate(day.getUTCDate()+index);const key=day.toISOString().slice(0,10);return {date:key,amountMl:waterWeekEntries.filter(entry=>entry.date.toISOString().slice(0,10)===key).reduce((sum,entry)=>sum+entry.amountMl,0)};});
   return { today, settings, waterMl: water._sum.amountMl ?? 0, waterWeek, calories: nutrition._sum.calories ?? 0,
     proteinG: Number(nutrition._sum.proteinG ?? 0), carbsG:Number(nutrition._sum.carbsG??0),fatG:Number(nutrition._sum.fatG??0), vehicleCount,vehicles,policies,tests,
-    fuelCost: fuel.reduce((sum, entry) => sum + Math.round(Number(entry.liters) * Number(entry.pricePerLiter) * 100) / 100, 0) };
+    fuelCost: fuel.reduce((sum, entry) => sum + (entry.totalCost===null?Math.round(Number(entry.liters)*Number(entry.pricePerLiter)*100)/100:Number(entry.totalCost)), 0) };
 }

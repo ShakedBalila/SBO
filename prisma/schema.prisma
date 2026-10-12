@@ -177,6 +177,10 @@ model FuelEntry {
   estimatedRangeKm Int?
   distanceMode String @default("odometer") @db.VarChar(12)
   actualDistanceKm Int?
+  distanceStartRefuelId String? @db.VarChar(64)
+  distanceSource String? @db.VarChar(24)
+  distanceConfirmedAt DateTime?
+  clientRequestId String? @db.VarChar(36)
   currentOdometerKm Int?
   liters Decimal @db.Decimal(10, 2)
   pricePerLiter Decimal @db.Decimal(10, 3)
@@ -185,6 +189,8 @@ model FuelEntry {
   isFullTank Boolean?
   notes String @default("") @db.VarChar(1000)
   createdAt DateTime @default(now())
+  @@unique([userId, clientRequestId])
+  @@index([userId, vehicleId, date, createdAt])
   @@index([userId, date])
 }
 model VehiclePolicy {
