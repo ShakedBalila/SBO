@@ -16,13 +16,15 @@ export const vehicleInput = z.object({
   year: z.number().int().min(1900).max(2100),
   roadMonth: z.coerce.number().int().min(1).max(12),
   odometerKm: z.number().int().min(0).max(10000000)
-  , fuelTankLiters: z.number().positive().max(1000).nullable().default(null)
+  , fuelTankLiters: z.number().positive().max(1000).nullable().default(null), acquisitionDate:recordDate.nullable().default(null)
 }).strict().superRefine((value,ctx)=>{const modern=value.year>2017||(value.year===2017&&value.roadMonth>6),matches=modern?/^\d{3}-\d{2}-\d{3}$/.test(value.licensePlate):/^\d{2}-\d{3}-\d{2}$/.test(value.licensePlate);if(!matches)ctx.addIssue({code:'custom',path:['licensePlate'],message:'מספר לוחית הרישוי אינו מתאים לתאריך העלייה לכביש.'});});
 export const fuelInput = z.object({
   clientRequestId:z.string().uuid().optional(),
   vehicleId: z.string().min(1), date: recordDate,
   estimatedRangeKm: z.number().int().min(1).max(100000).nullable().default(null),
   actualDistanceKm: z.number().int().min(0).max(100000).nullable().default(null),
+  distanceSource:z.enum(['TRIP_A','MANUAL','ODOMETER_CONFIRMED']).default('TRIP_A'),
+  distanceConfirmed:z.boolean().default(false),
   distanceMode:z.enum(['odometer','trip']).default('odometer'),
   currentOdometerKm: z.number().int().min(0).max(10000000).nullable().default(null),
   liters: z.number().positive().max(10000),
@@ -37,7 +39,7 @@ export const fuelDistanceInput=z.object({startRefuelId:z.string().min(1).max(64)
 export const policyInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Mandatory', 'Comprehensive', 'Third party']), provider: z.string().trim().max(100).default(''), annualCost: z.number().min(0).max(1000000), startDate: recordDate, endDate: recordDate, reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00') }).strict().refine(value=>value.endDate>=value.startDate,'תאריך סיום הביטוח חייב להיות לאחר תאריך ההתחלה.');
 export const reminderInput = z.object({ vehicleId: z.string().min(1), type: z.literal('Test'), title: z.string().trim().min(1).max(150).default('טסט'), dueDate: recordDate, expiryDate:recordDate, cost: z.number().min(0).max(1000000).nullable().default(null), licenseFee:z.number().min(0).max(1000000),testFee:z.number().min(0).max(1000000),reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00'), notes: z.string().trim().max(2000).default('') }).strict().refine(value=>value.expiryDate>=value.dueDate,'תאריך גמר הטסט חייב להיות לאחר תאריך הביצוע.');
 const recurrence = z.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY', 'CUSTOM']);
-const color = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'יש לבחור צבע תקין.');
+const color = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'יש לבחור צבע תקין.').transform(value=>value.toLowerCase());
 export const eventInput = z.object({
   title: z.string().trim().min(1).max(200),
   type: z.string().trim().min(1).max(30).default('אחר'),
@@ -75,7 +77,7 @@ export const nutritionInput = z.object({
   preferenceServingName: z.string().trim().max(40).nullable().default(null),
   date: recordDate
 }).strict();
-export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Parking', 'Tolls', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, nextServiceDate:recordDate.nullable().default(null),reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00'), notes: z.string().trim().max(2000).default('') }).strict().refine(value=>value.reminderDays===null||value.nextServiceDate!==null,'יש להזין מועד לטיפול הבא כדי להפעיל התראה.');
+export const expenseInput = z.object({ vehicleId: z.string().min(1), type: z.enum(['Maintenance', 'Repair', 'Test', 'Parking', 'Tolls', 'Other']), title: z.string().trim().min(1).max(150), amount: z.number().min(0).max(1000000), date: recordDate, serviceOdometerKm:z.number().int().min(0).max(10000000).nullable().default(null),ownershipPeriod:z.enum(['BEFORE_PURCHASE','CURRENT_OWNERSHIP','UNKNOWN','UNKNOWN_LEGACY']).default('UNKNOWN_LEGACY'),paidBy:z.enum(['USER','PREVIOUS_OWNER','THIRD_PARTY','UNKNOWN','UNKNOWN_LEGACY']).default('UNKNOWN_LEGACY'),totalServiceCost:z.number().min(0).max(1000000).nullable().default(null),userPaidAmount:z.number().min(0).max(1000000).nullable().default(null),sourceProof:z.string().trim().max(500).default(''),nextServiceDate:recordDate.nullable().default(null),reminderDays:optionalReminderDays.default(null),reminderTime:clockTime.default('09:00'), notes: z.string().trim().max(2000).default('') }).strict().refine(value=>value.reminderDays===null||value.nextServiceDate!==null,'יש להזין מועד לטיפול הבא כדי להפעיל התראה.').refine(value=>value.paidBy!=='USER'||value.userPaidAmount!==null||value.totalServiceCost!==null||value.amount>0,'יש להזין כמה שילמת בפועל.');
 export const carWashInput=z.object({vehicleId:z.string().min(1),date:recordDate,amount:z.number().min(0.01).max(1000000).refine(value=>Math.abs(value*100-Math.round(value*100))<0.0000001,'עלות השטיפה צריכה להיות בשתי ספרות אחרי הנקודה לכל היותר'),washType:z.enum(['','Exterior','InteriorExterior','Premium','Detailing','Other']).default(''),location:z.string().trim().max(200).default(''),notes:z.string().trim().max(2000).default('')}).strict();
 export const goalInput = z.object({
   waterGoalMl: z.number().int().min(1).max(20000).nullable().optional(),

@@ -159,6 +159,7 @@ model Vehicle {
   roadMonth Int?
   odometerKm Int @default(0)
   fuelTankLiters Decimal? @db.Decimal(8, 1)
+  acquisitionDate DateTime? @db.Date
   createdAt DateTime @default(now())
   fuelEntries FuelEntry[]
   policies VehiclePolicy[]
@@ -244,6 +245,12 @@ model VehicleExpense {
   amount Decimal @db.Decimal(12, 2)
   date DateTime @db.Date
   notes String @default("") @db.VarChar(2000)
+  serviceOdometerKm Int?
+  ownershipPeriod String @default("UNKNOWN_LEGACY") @db.VarChar(24)
+  paidBy String @default("UNKNOWN_LEGACY") @db.VarChar(24)
+  totalServiceCost Decimal? @db.Decimal(12, 2)
+  userPaidAmount Decimal? @db.Decimal(12, 2)
+  sourceProof String @default("") @db.VarChar(500)
   createdAt DateTime @default(now())
   @@index([userId, date])
 }
@@ -359,7 +366,15 @@ model PushDelivery {
   id String @id @default(cuid())
   subscriptionId String
   occurrenceKey String
-  sentAt DateTime @default(now())
+  scheduledAtUtc DateTime?
+  computedLocalDueAt String? @db.VarChar(80)
+  queuedAtUtc DateTime @default(now())
+  sentAt DateTime?
+  providerAcceptedAt DateTime?
+  deliveryResult String? @db.VarChar(40)
+  deviceTimezone String? @db.VarChar(64)
+  sourceTrigger String? @db.VarChar(40)
+  leadMinutes Int @default(0)
   @@unique([subscriptionId, occurrenceKey])
   @@index([sentAt])
 }

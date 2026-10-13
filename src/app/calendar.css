@@ -119,3 +119,4 @@ html:has(dialog[open]),body:has(dialog[open]){overflow:hidden;overscroll-behavio
   .task-content{grid-column:2}
   .option-field>span{font-size:14px}
 }
+.event-item{background:var(--event-color)!important;color:var(--event-foreground,#fff)!important}

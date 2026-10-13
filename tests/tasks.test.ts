@@ -7,6 +7,7 @@ import { expectedWaterAt, waterTimeMarks } from '../src/lib/water-pacing.ts';
 import { goalInput, vehicleInput, policyInput, reminderInput, fuelInput } from '../src/lib/modules.ts';
 import { parseSelfService95Price } from '../src/lib/fuel-price.ts';
 import { vehicleReminderDue } from '../src/lib/vehicle-reminders.ts';
+import {notificationDiagnosticLocal,notificationIsDue,scheduledNotification} from '../src/lib/notification-schedule.ts';
 test('task validation rejects bad dates, blank titles and owner injection', () => {
   assert.equal(taskInput.safeParse({ title: '   ' }).success, false);
   assert.equal(taskInput.safeParse({ title: 'Hello', startDate: '2026-02-30' }).success, false);
@@ -80,4 +81,13 @@ test('vehicle reminders fire once at the configured Israel time',()=>{
   assert.equal(vehicleReminderDue(new Date('2026-09-15T06:00:00Z'),expiry,7,'09:00',zone),true);
   assert.equal(vehicleReminderDue(new Date('2026-09-15T06:01:59Z'),expiry,7,'09:00',zone),true);
   assert.equal(vehicleReminderDue(new Date('2026-09-15T06:02:00Z'),expiry,7,'09:00',zone),false);
+});
+test('exact-time notifications never become due 15 minutes early unless the lead is explicit',()=>{
+  const exact=scheduledNotification({date:'2026-10-13',time:'09:00',timeZone:'Asia/Jerusalem'}),early=new Date(exact.getTime()-15*60000);
+  assert.equal(notificationIsDue(early,exact),false);
+  const withLead=scheduledNotification({date:'2026-10-13',time:'09:00',timeZone:'Asia/Jerusalem',leadMinutes:15});
+  assert.equal(withLead.getTime(),early.getTime());assert.equal(notificationIsDue(early,withLead),true);
+});
+test('recurring Israel reminders retain the requested local clock through DST',()=>{
+  for(const date of ['2026-01-15','2026-07-15'])assert.equal(notificationDiagnosticLocal(date,'09:00','Asia/Jerusalem'),`${date}T09:00[Asia/Jerusalem]`);
 });

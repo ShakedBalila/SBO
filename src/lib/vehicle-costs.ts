@@ -2,6 +2,12 @@ type Row=Record<string,unknown>;
 export const washTypes={Exterior:'חיצונית',InteriorExterior:'פנים וחוץ',Premium:'פרימיום',Detailing:'דיטיילינג',Other:'אחר'};
 const date=(value:unknown)=>value instanceof Date?value.toISOString().slice(0,10):String(value??'');
 const cents=(value:unknown)=>Math.round(Number(value??0)*100);
+export function personalVehicleExpenseAmount(row:Row){
+ if(!['Maintenance','Repair','Test'].includes(String(row.type)))return Number(row.amount??0);
+ if(row.userPaidAmount!==null&&row.userPaidAmount!==undefined)return Number(row.userPaidAmount);
+ if(['PREVIOUS_OWNER','THIRD_PARTY'].includes(String(row.paidBy)))return 0;
+ return Number(row.amount??0);
+}
 export function vehicleMonthCosts({month,fuel,policies,reminders,expenses}:{month:string;fuel:Row[];policies:Row[];reminders:Row[];expenses:Row[]}){
  const amounts={fuel:0,carWashes:0,insurance:0,maintenance:0,parking:0,other:0};
  let washCount=0,distanceKm=0;
@@ -13,7 +19,7 @@ export function vehicleMonthCosts({month,fuel,policies,reminders,expenses}:{mont
  for(const row of reminders){if(date(row.dueDate).slice(0,7)===month)amounts.maintenance+=cents(row.licenseFee)+cents(row.testFee);}
  for(const row of expenses){if(date(row.date).slice(0,7)!==month)continue;const value=cents(row.amount);
   if(row.type==='CarWash'){amounts.carWashes+=value;washCount++;}
-  else if(['Maintenance','Repair','Test'].includes(String(row.type)))amounts.maintenance+=value;
+  else if(['Maintenance','Repair','Test'].includes(String(row.type)))amounts.maintenance+=cents(personalVehicleExpenseAmount(row));
   else if(['Parking','Tolls'].includes(String(row.type)))amounts.parking+=value;
   else amounts.other+=value;
  }

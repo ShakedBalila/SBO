@@ -19,3 +19,13 @@ test('insurance and test expenses are preserved and distance crossing month boun
  const value=vehicleMonthCosts({month:'2026-10',fuel:[{...fuel[0],date:'2026-09-30'},fuel[1]],policies:[{annualCost:1200,startDate:'2026-01-01',endDate:'2026-12-31'}],reminders:[{dueDate:'2026-10-04',licenseFee:100,testFee:50}],expenses:washes});
  assert.equal(value.insurance,100);assert.equal(value.maintenance,150);assert.equal(value.total,1005);assert.equal(value.distanceKm,0);assert.equal(value.costPerKm,null);
 });
+test('physical service history counts only the user-funded portion in personal costs',()=>{
+ const expenses=[
+  {type:'Maintenance',date:'2026-10-01',amount:650,totalServiceCost:650,userPaidAmount:0,paidBy:'PREVIOUS_OWNER'},
+  {type:'Repair',date:'2026-10-02',amount:0,totalServiceCost:900,userPaidAmount:0,paidBy:'THIRD_PARTY'},
+  {type:'Maintenance',date:'2026-10-03',amount:520,totalServiceCost:520,userPaidAmount:520,paidBy:'USER'},
+  {type:'Repair',date:'2026-10-04',amount:300,totalServiceCost:1000,userPaidAmount:300,paidBy:'USER'},
+  {type:'Maintenance',date:'2026-10-05',amount:75,paidBy:'UNKNOWN_LEGACY'}
+ ];
+ assert.equal(calculate(expenses).maintenance,895);
+});

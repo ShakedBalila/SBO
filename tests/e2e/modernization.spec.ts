@@ -37,7 +37,7 @@ test('V3 mobile shell, utilities, reminders and vehicle fuel form',async({page})
     await page.screenshot({path:'test-results/v3-car-iphone-feedback.png',fullPage:true});
     await page.getByRole('button',{name:/הוספת תדלוק/}).click();
     const fuelDialog=page.locator('.fuel-entry-modal:visible');
-    await expect(fuelDialog.locator('#fuel-currentOdometerKm')).toHaveCount(0);await fuelDialog.getByRole('button',{name:'פרטים מתקדמים'}).click();await expect(fuelDialog.getByLabel(/מד אוץ/)).toBeVisible();
+    await expect(fuelDialog.locator('#fuel-currentOdometerKm')).toHaveCount(0);await fuelDialog.getByRole('button',{name:'פרטים מתקדמים'}).click();await expect(fuelDialog.locator('#fuel-currentOdometerKm')).toBeVisible();
     await expect(fuelDialog.getByLabel(/מחיר לליטר/)).not.toHaveAttribute('required','');
     await expect(fuelDialog.getByRole('radio',{name:'כן',exact:true})).toHaveAttribute('aria-checked','true');
     await expect(fuelDialog.getByLabel(/הערות/)).toBeVisible();
@@ -51,7 +51,7 @@ test('V3 mobile shell, utilities, reminders and vehicle fuel form',async({page})
     await page.goto('/nutrition/foods');await page.getByRole('button',{name:/יצירת מזון/}).click();await page.route('**/api/nutrition/barcode/7290000000000',route=>route.fulfill({json:{code:'7290000000000',name:'מוצר מזוהה',brand:'מותג בדיקה',servingSize:'25 g',per100g:{calories:400,proteinG:20,carbsG:50,fatG:10}}}));await page.getByLabel(/ברקוד/).fill('7290000000000');await page.getByRole('button',{name:'זיהוי לפי ברקוד'}).click();await expect(page.getByLabel('שם המזון')).toHaveValue('מוצר מזוהה');await page.keyboard.press('Escape');
     await page.goto('/tasks');await expect(page.locator('.task-tabs')).toHaveCSS('border-top-color','rgb(138, 107, 22)');const outside=page.locator('.calendar-day.outside').first(),inside=page.locator('.calendar-day:not(.outside):not(.today)').first();await expect(outside).toHaveCSS('opacity','1');expect(await outside.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(await inside.evaluate(el=>getComputedStyle(el).backgroundColor));
     await page.goto('/');await expect(page.locator('.dashboard-agenda')).toHaveCount(0);await expect(page.locator('.today-counts:visible').first()).toBeVisible();await expect(page.locator('.dashboard-car-photo:visible').first()).toHaveAttribute('src','/overview-car.webp');
-    for(const card of await page.locator('.overview-card:visible').all()){const media=await card.locator('.card-image-layer').boundingBox(),content=await card.locator('.overview-content').boundingBox();expect(media!.x+media!.width).toBeLessThanOrEqual(content!.x+1);}
+    for(const card of await page.locator('.overview-card:visible').all()){const media=await card.locator('.card-image-layer').boundingBox(),box=await card.boundingBox();expect(Math.abs(media!.height-box!.height)).toBeLessThanOrEqual(2);expect(media!.width/box!.width).toBeGreaterThanOrEqual(.35);}
     const carCard=page.locator('.overview-car:visible').first(),expiries=carCard.locator('.vehicle-expiries');const carBox=await carCard.boundingBox(),expiryBox=await expiries.boundingBox();expect(expiryBox!.y+expiryBox!.height).toBeLessThanOrEqual(carBox!.y+carBox!.height+1);await expect(expiries.locator('span')).toHaveCount(3);
     const policyDates=await expiries.locator('span').filter({hasText:/ביטוח (חובה|צד ג׳)/}).locator('strong').allTextContents();expect(policyDates[0]).toBe(policyDates[1]);
     await page.screenshot({path:'test-results/v3-iphone-feedback.png',fullPage:true});

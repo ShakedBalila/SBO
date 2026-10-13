@@ -55,7 +55,8 @@ async function handle(request: Request, context: Context) {
       }
       case 'vehicles': {
         if (deleting) { count = (await db.vehicle.deleteMany({ where })).count; break; }
-        const data = vehicleInput.parse(input);
+        const parsed = vehicleInput.parse(input);
+        const data = {...parsed,acquisitionDate:parsed.acquisitionDate?new Date(parsed.acquisitionDate):null};
         if (id) count = (await db.vehicle.updateMany({ where, data })).count;
         else await db.vehicle.create({ data: { ...data, userId: user.id } });
         break;
@@ -79,7 +80,7 @@ async function handle(request: Request, context: Context) {
         const parsed=fuelInput.parse(input),vehicle=await db.vehicle.findFirst({where:{id:parsed.vehicleId,userId:user.id}});
         if(!vehicle)throw new HttpError(404,'הרכב לא נמצא.');
         if(vehicle.fuelTankLiters!==null&&parsed.liters>Number(vehicle.fuelTankLiters))throw new HttpError(400,'כמות התדלוק אינה יכולה לעלות על נפח מכל הדלק של הרכב.');
-        const {customPricePerLiter,totalCost:paid,actualDistanceKm:legacyDistance,...fuel}=parsed;
+        const {customPricePerLiter,totalCost:paid,actualDistanceKm,distanceSource,distanceConfirmed,...fuel}=parsed;
         const pricePerLiter=paid!==null?paid/fuel.liters:customPricePerLiter??fuel.pricePerLiter;
         const data={...fuel,pricePerLiter,date:new Date(fuel.date),totalCost:paid??Math.round(fuel.liters*pricePerLiter*100)/100};
         try{await db.$transaction(async transaction=>{
@@ -90,9 +91,20 @@ async function handle(request: Request, context: Context) {
           const changedOdometer=old&&old.currentOdometerKm!==data.currentOdometerKm;
           if(changedBoundary)await transaction.fuelEntry.updateMany({where:{userId:user.id,OR:[{id},{distanceStartRefuelId:id}]},data:{distanceConfirmedAt:null}});
           if(changedOdometer)await transaction.fuelEntry.updateMany({where:{userId:user.id,distanceSource:'ODOMETER_CONFIRMED',OR:[{id},{distanceStartRefuelId:id}]},data:{distanceConfirmedAt:null}});
+          let savedId=id;
           if(id)count=(await transaction.fuelEntry.updateMany({where,data})).count;
-          else await transaction.fuelEntry.create({data:{...data,userId:user.id,actualDistanceKm:legacyDistance}});
+          else savedId=(await transaction.fuelEntry.create({data:{...data,userId:user.id}})).id;
           const rows=await transaction.fuelEntry.findMany({where:{userId:user.id,vehicleId:parsed.vehicleId}});
+          if(actualDistanceKm!==null&&actualDistanceKm>0){
+            if(!distanceConfirmed)throw new HttpError(400,'יש לאשר שהמרחק בפועל שייך למחזור התדלוק הזה.');
+            const cycle=rebuildFuelCycles(rows).get(String(savedId));
+            if(!cycle?.previousFullRefuelId||cycle.cycleStatus==='NEEDS_REVIEW')throw new HttpError(409,'לא נמצא תדלוק מלא קודם תקין עבור המרחק שהוזן.');
+            if(distanceSource==='ODOMETER_CONFIRMED'){
+              const baseline=rows.find(row=>row.id===cycle.previousFullRefuelId),closing=rows.find(row=>row.id===savedId);
+              if(!closing||closing.currentOdometerKm===null||baseline?.currentOdometerKm===null||baseline?.currentOdometerKm===undefined||closing.currentOdometerKm-baseline.currentOdometerKm!==actualDistanceKm)throw new HttpError(400,'יש לאשר מרחק התואם למד האוץ בשני התדלוקים.');
+            }
+            await transaction.fuelEntry.update({where:{id:String(savedId)},data:{actualDistanceKm,distanceSource,distanceStartRefuelId:cycle.previousFullRefuelId,distanceConfirmedAt:new Date()}});
+          }
           // Invalidate obsolete endpoint pairs permanently; later restoring a boundary cannot revive stale confirmation.
           const rebuilt=rebuildFuelCycles(rows);for(const row of rows){if(row.distanceConfirmedAt&&rebuilt.get(row.id)?.previousFullRefuelId!==row.distanceStartRefuelId)await transaction.fuelEntry.update({where:{id:row.id},data:{distanceConfirmedAt:null}});}
           validateFuelOdometers(rows);
@@ -144,7 +156,8 @@ async function handle(request: Request, context: Context) {
         if (deleting) { count = (await db.vehicleExpense.deleteMany({ where })).count; break; }
         const parsed = expenseInput.parse(input);
         if (!await db.vehicle.findFirst({ where: { id: parsed.vehicleId, userId: user.id } })) throw new HttpError(404, 'הרכב לא נמצא.');
-        const data = { ...parsed, date: new Date(parsed.date),nextServiceDate:parsed.nextServiceDate?new Date(parsed.nextServiceDate):null };
+        const personalAmount=parsed.userPaidAmount??(parsed.paidBy==='USER'?(parsed.totalServiceCost??parsed.amount):['PREVIOUS_OWNER','THIRD_PARTY'].includes(parsed.paidBy)?0:parsed.amount);
+        const data = { ...parsed, amount:personalAmount,userPaidAmount:parsed.paidBy==='UNKNOWN_LEGACY'?null:personalAmount, date: new Date(parsed.date),nextServiceDate:parsed.nextServiceDate?new Date(parsed.nextServiceDate):null };
         if (id) count = (await db.vehicleExpense.updateMany({ where, data })).count;
         else await db.vehicleExpense.create({ data: { ...data, userId: user.id } });
         break;

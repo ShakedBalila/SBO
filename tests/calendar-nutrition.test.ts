@@ -3,6 +3,7 @@ import test from 'node:test';
 import { weekEventSegments, calendarOccurrence } from '../src/lib/calendar-occurrence.ts';
 import { nutritionTargets } from '../src/lib/nutrition-targets.ts';
 import { eventInput, goalInput } from '../src/lib/modules.ts';
+import {eventForeground,normalizeEventColor} from '../src/lib/event-colors.ts';
 
 test('event ranges persist optional dates and reject reversed dates',()=>{
   assert.equal(eventInput.parse({title:'Trip',date:'2026-09-18',endDate:'2026-09-22'}).endDate,'2026-09-22');
@@ -26,4 +27,8 @@ test('automatic targets require a complete profile and respond to weekly workout
   assert.notEqual(nutritionTargets({...profile,weeklyWorkouts:5})?.calorieGoal,2670);
   assert.equal(goalInput.safeParse({weeklyWorkouts:0}).success,true);
   assert.equal(goalInput.safeParse({weeklyWorkouts:6}).success,false);
+});
+test('event colors are canonical and retain their selected fill with adaptive contrast',()=>{
+ assert.equal(eventInput.parse({title:'Bright',date:'2026-10-13',color:'#4F7CFF'}).color,'#4f7cff');
+ assert.equal(normalizeEventColor('#EFF6FC'),'#eff6fc');assert.equal(eventForeground('#eff6fc'),'#071722');assert.equal(eventForeground('#162235'),'#ffffff');
 });

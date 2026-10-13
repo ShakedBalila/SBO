@@ -35,8 +35,8 @@ test('five mosaic cards fit the viewport and compact dialogs keep paired control
       const layout=await page.locator('.workspace').evaluate(el=>({height:el.clientHeight,scroll:el.scrollHeight,width:el.clientWidth,scrollWidth:el.scrollWidth}));
       expect(layout.scroll,JSON.stringify(size)).toBeLessThanOrEqual(layout.height+1);expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);
       for(const card of await page.locator('.overview-card:visible').all()){
-        const metrics=await card.evaluate(el=>{const media=el.querySelector('.dashboard-art,.dashboard-car-photo')!,content=el.querySelector('.overview-content')!;return{height:content.clientHeight,scroll:content.scrollHeight,mediaRight:media?.getBoundingClientRect().right??0,contentLeft:content.getBoundingClientRect().left,fade:getComputedStyle(el.querySelector('.card-gradient-fade')!).backgroundImage};});
-        expect(metrics.scroll,`card ${await card.getAttribute('class')} at ${size.width}`).toBeLessThanOrEqual(metrics.height+1);expect(metrics.mediaRight).toBeLessThanOrEqual(metrics.contentLeft+1);expect(metrics.fade).toContain('linear-gradient');
+        const metrics=await card.evaluate(el=>{const media=el.querySelector('.card-image-layer')!,content=el.querySelector('.overview-content')!,card=el.getBoundingClientRect();return{height:content.clientHeight,scroll:content.scrollHeight,mediaHeight:media.getBoundingClientRect().height,cardHeight:card.height,fraction:media.getBoundingClientRect().width/card.width,fade:getComputedStyle(el.querySelector('.card-gradient-fade')!).backgroundImage};});
+        expect(metrics.scroll,`card ${await card.getAttribute('class')} at ${size.width}`).toBeLessThanOrEqual(metrics.height+1);expect(Math.abs(metrics.mediaHeight-metrics.cardHeight)).toBeLessThanOrEqual(2);expect(metrics.fraction).toBeGreaterThanOrEqual(.35);expect(metrics.fade).toContain('linear-gradient');
       }
       await page.screenshot({path:`test-results/compact-dashboard-${size.width}.png`});
     }
