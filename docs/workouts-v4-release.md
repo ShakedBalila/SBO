@@ -19,6 +19,8 @@ PDF text, DOCX, XLSX, CSV and JSON imports first return a review preview with no
 
 Confirmed imports are transactional, create inactive draft copies and deduplicate repeated backups. JSON preserves plan snapshots and actual sets separately; CSV/XLSX identify PLAN and ACTUAL rows. Kilograms and timezone are explicit. Private exercise images are excluded from backup payloads and must be reattached.
 
+Serverless PDF loading explicitly initializes the packaged worker data and canvas factory before the parser. These packages remain server externals, following the [parser's deployment guidance](https://github.com/mehmet-kozan/pdf-parse/blob/main/docs/troubleshooting.md), so no CDN worker or paid service is needed.
+
 The built-in exercise library deliberately uses neutral equipment placeholders and general guidance where verified media is unavailable. Personal JPEG/PNG/WebP uploads (up to 2 MB) require owner access; SVG is rejected. Optional demonstration links open trusted HTTPS YouTube/Vimeo providers externally. Missing videos are labeled, with no invented links.
 
 Dashboard dumbbell photo: [Pexels — close-up of a black dumbbell](https://www.pexels.com/photo/close-up-shot-of-a-black-dumbbell-8032962/). Served locally as `public/overview-workouts.webp`; no external image service is required at runtime.

@@ -3,7 +3,7 @@ const config: NextConfig = {
   ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
   outputFileTracingIncludes: { "/*": ["./certs/supabase-ca.crt"] },
   poweredByHeader: false,
-  serverExternalPackages: ['pdf-parse','mammoth','exceljs'],
+  serverExternalPackages: ['pdf-parse','@napi-rs/canvas','mammoth','exceljs'],
   devIndicators: false,
   allowedDevOrigins: (process.env.APP_ORIGINS ?? '').split(',').filter(Boolean).map(origin => new URL(origin.trim()).hostname),
   async headers() {
