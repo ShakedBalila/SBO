@@ -15,7 +15,7 @@ test('car forms, tank limit and split-screen navigation', async ({ page }) => {
     await page.goto('/login?mode=register');
     await page.getByLabel('שם',{exact:true}).fill('Car feedback');
     await page.getByLabel('כתובת אימייל').fill(email);
-    await page.getByLabel('סיסמה').fill('Eight8!x');
+    await page.getByLabel('סיסמה').fill('TwelveEnough12!');
     await page.getByRole('button',{name:'יצירת חשבון'}).click();
     await expect(page).toHaveURL('http://localhost:3000/');
     const response=await page.request.post('/api/modules/vehicles',{headers:{Origin:'http://localhost:3000'},data:{name:'Test car',year:2022,roadMonth:5,licensePlate:'123-45-678',odometerKm:100,fuelTankLiters:50}});

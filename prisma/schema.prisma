@@ -54,6 +54,7 @@ model User {
   workExpenses WorkExpense[]
   workDocuments WorkDocument[]
   pushSubscriptions PushSubscription[]
+  auditEvents AuditEvent[]
 }
 model UserSettings {
   userId String @id
@@ -92,6 +93,8 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  userAgent String @default("") @db.VarChar(500)
   @@index([userId])
   @@index([expiresAt])
 }
@@ -193,6 +196,20 @@ model FuelEntry {
   @@unique([userId, clientRequestId])
   @@index([userId, vehicleId, date, createdAt])
   @@index([userId, date])
+}
+model AuditEvent {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action String @db.VarChar(80)
+  outcome String @default("SUCCESS") @db.VarChar(16)
+  entityType String? @db.VarChar(40)
+  entityId String? @db.VarChar(64)
+  sessionId String? @db.VarChar(64)
+  changedFields String[] @default([])
+  metadata Json?
+  occurredAt DateTime @default(now())
+  @@index([userId, occurredAt])
 }
 model VehiclePolicy {
   id String @id @default(cuid())
@@ -450,7 +467,9 @@ model WorkDocument {
   name String @db.VarChar(200)
   category String @db.VarChar(20)
   mimeType String @db.VarChar(80)
-  content Bytes
+  content Bytes?
+  storageKey String? @unique @db.VarChar(500)
+  sha256 String? @db.VarChar(64)
   size Int
   createdAt DateTime @default(now())
   @@index([userId, createdAt])

@@ -9,6 +9,7 @@ import {expenseInput,parseContract,timeOffInput,workContractInput,workEntryInput
 import {workRate} from '@/lib/work-rates';
 import {recordDate} from '@/lib/modules';
 import {workXlsx} from '@/lib/work-export';
+import {audit} from '@/lib/audit';
 type Context={params:Promise<{path:string[]}>};
 function detectMime(content:Buffer){return content.subarray(0,5).toString()==='%PDF-'?'application/pdf':content[0]===255&&content[1]===216&&content[2]===255?'image/jpeg':content.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))?'image/png':content.subarray(0,4).toString()==='RIFF'&&content.subarray(8,12).toString()==='WEBP'?'image/webp':null;}
 const toDate=(date:string)=>new Date(`${date}T00:00:00Z`);
@@ -23,11 +24,13 @@ export async function GET(request:Request,context:Context){try{
   if(kind==='rate'){const url=new URL(request.url);return NextResponse.json(await workRate(url.searchParams.get('currency')??'',url.searchParams.get('date')??''));}
   if(kind==='documents'&&id){
     const row=await db.workDocument.findFirst({where:{id,userId:owner.id,uploadSize:null}});if(!row)throw new HttpError(404,'המסמך לא נמצא.');
+    if(!row.content)throw new HttpError(503,'המסמך נמצא בהעברה לאחסון פרטי.');
     const range=request.headers.get('range'),match=range?.match(/^bytes=(\d+)-(\d*)$/);
     if(range&&!match)throw new HttpError(416,'טווח המסמך אינו תקין.');
     const start=match?Number(match[1]):0,end=match?Math.min(row.size-1,start+1024*1024-1,match[2]?Number(match[2]):Infinity):row.size-1;
     if(start>=row.size||end<start)throw new HttpError(416,'טווח המסמך אינו תקין.');
     if(!match&&row.size>4*1024*1024)throw new HttpError(413,'למסמך גדול יש להשתמש בכפתורי הצפייה או ההורדה במסך מסמכים.');
+    void audit({userId:owner.id,action:'DOCUMENT_ACCESSED',entityType:'WORK_DOCUMENT',entityId:row.id});
     return new Response(new Uint8Array(row.content.subarray(start,end+1)),{status:match?206:200,headers:{'Content-Type':row.mimeType,'Content-Disposition':`${new URL(request.url).searchParams.get('download')==='1'?'attachment':'inline'}; filename="document"; filename*=UTF-8''${encodeURIComponent(row.name)}`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"sandbox",'Accept-Ranges':'bytes',...(match?{'Content-Range':`bytes ${start}-${end}/${row.size}`}:{})}});
   }
   throw new HttpError(404,'פעולה לא נמצאה.');
@@ -53,7 +56,7 @@ async function mutate(request:Request,context:Context){try{
     await db.$transaction(async tx=>{
       const row=await tx.workDocument.findFirst({where:{id,userId,uploadSize:{not:null}}});if(!row)throw new HttpError(404,'העלאת המסמך לא נמצאה.');
       if(row.size!==offset||row.size+bytes.length>row.uploadSize!)throw new HttpError(409,'סדר חלקי המסמך אינו תקין. יש להעלות מחדש.');
-      const content=Buffer.concat([row.content,bytes]),done=content.length===row.uploadSize;
+      const content=Buffer.concat([row.content??Buffer.alloc(0),bytes]),done=content.length===row.uploadSize;
       if(done){const mime=detectMime(content);if(!mime||mime!==row.mimeType)throw new HttpError(400,'הקובץ אינו PDF או תמונה תקינים.');}
       const changed=await tx.workDocument.updateMany({where:{id,userId,size:offset,uploadSize:row.uploadSize},data:{content,size:content.length,uploadSize:done?null:row.uploadSize}});
       if(!changed.count)throw new HttpError(409,'המסמך עודכן במקביל.');

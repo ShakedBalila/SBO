@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { Client } from 'pg';
 import { createHash } from 'node:crypto';
 const email = `sbo-feedback-${Date.now()}@example.test`;
-const password = 'Eight8!x';
+const password = 'TwelveEnough12!';
 const lan = process.env.TEST_APP_URL ?? 'http://localhost:3000';
 const origin = { Origin: lan };
 test.afterAll(async () => {
@@ -10,7 +10,7 @@ test.afterAll(async () => {
   await client.query('DELETE FROM "User" WHERE email=$1',[email]);
   await client.query('DELETE FROM "LoginAttempt" WHERE key=$1',[createHash('sha256').update(email).digest('hex')]); await client.end();
 });
-test('native login, eight-character password and module persistence', async ({ browser }) => {
+test('native login, twelve-character password and module persistence', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled:false, viewport:{width:390,height:844} });
   const page = await context.newPage();
   await page.goto(`${lan}/login?mode=register`);

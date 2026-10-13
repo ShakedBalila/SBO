@@ -8,7 +8,7 @@ test('V3 mobile shell, utilities, reminders and vehicle fuel form',async({page})
     await page.goto('/login?mode=register');
     await page.getByLabel('שם',{exact:true}).fill('בדיקת V3');
     await page.getByLabel('כתובת אימייל').fill(email);
-    await page.getByLabel('סיסמה').fill('Eight8!x');
+    await page.getByLabel('סיסמה').fill('TwelveEnough12!');
     await page.getByRole('button',{name:'יצירת חשבון'}).click();
     await expect(page).toHaveURL('http://localhost:3000/');
     for(const route of ['/','/tasks','/water','/nutrition','/car','/settings','/data','/notifications','/help']){

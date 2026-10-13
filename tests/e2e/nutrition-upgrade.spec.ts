@@ -8,7 +8,7 @@ test('nutrition diary searches the Ministry catalog and calculates from 100 gram
     await page.goto('/login?mode=register');
     await page.getByLabel('שם',{exact:true}).fill('בדיקת תזונה');
     await page.getByLabel('כתובת אימייל').fill(email);
-    await page.getByLabel('סיסמה').fill('Eight8!x');
+    await page.getByLabel('סיסמה').fill('TwelveEnough12!');
     await page.getByRole('button',{name:'יצירת חשבון'}).click();
     await page.goto('/nutrition');
     await expect(page.getByRole('heading',{name:'יומן האכילה שלי'})).toBeVisible();

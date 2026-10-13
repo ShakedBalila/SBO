@@ -5,6 +5,7 @@ import { createSession, deleteSession } from "@/lib/auth";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { apiError, checkOrigin, HttpError, jsonBody } from "@/lib/http";
 import { createHash } from "node:crypto";
+import { audit } from "@/lib/audit";
 const credentials = z.object({
   email: z.email("יש להזין כתובת אימייל תקינה.").max(254).transform(v => v.toLowerCase().trim()),
   password: z.string().min(1, "יש להזין סיסמה.").max(128),
@@ -19,7 +20,7 @@ export async function POST(request: Request, context: { params: Promise<{ action
     if (action === "logout") { await deleteSession(); return NextResponse.json({ ok: true }); }
     if (action !== "login" && action !== "register") throw new HttpError(404, "לא נמצא.");
     const input = credentials.parse(isForm ? Object.fromEntries(new URLSearchParams(await request.text())) : await jsonBody(request));
-    if (action === 'register' && input.password.length < 8) throw new HttpError(400, 'הסיסמה צריכה להכיל לפחות 8 תווים.');
+    if (action === 'register' && input.password.length < 12) throw new HttpError(400, 'הסיסמה צריכה להכיל לפחות 12 תווים.');
     const key = createHash("sha256").update(input.email).digest("hex");
     // Database-backed fixed window; do not rely on a process-local counter.
     await db.loginAttempt.deleteMany({ where: { key, windowStart: { lt: new Date(Date.now() - 15 * 60000) } } });
@@ -35,7 +36,8 @@ export async function POST(request: Request, context: { params: Promise<{ action
       const valid = await verifyPassword(input.password, user?.passwordHash ?? "00000000000000000000000000000000:" + "00".repeat(64));
       if (!user || !valid) throw new HttpError(401, "האימייל או הסיסמה שגויים.");
     }
-    await createSession(user!.id);
+    await createSession(user!.id,request.headers.get('user-agent')??'');
+    await audit({userId:user!.id,action:action==='register'?'ACCOUNT_REGISTERED':'LOGIN_SUCCESS',entityType:'ACCOUNT'});
     if (isForm) return NextResponse.redirect(new URL('/', trustedOrigin), 303);
     return NextResponse.json({ ok: true });
   } catch (error) {

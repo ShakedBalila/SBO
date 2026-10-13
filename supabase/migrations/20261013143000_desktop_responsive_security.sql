@@ -1,0 +1,30 @@
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "lastSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE "Session" ADD COLUMN IF NOT EXISTS "userAgent" VARCHAR(500) NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS "AuditEvent" (
+  "id" TEXT NOT NULL,
+  "userId" TEXT NOT NULL,
+  "action" VARCHAR(80) NOT NULL,
+  "outcome" VARCHAR(16) NOT NULL DEFAULT 'SUCCESS',
+  "entityType" VARCHAR(40),
+  "entityId" VARCHAR(64),
+  "sessionId" VARCHAR(64),
+  "changedFields" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+  "metadata" JSONB,
+  "occurredAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "AuditEvent_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "AuditEvent_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "AuditEvent_userId_occurredAt_idx" ON "AuditEvent"("userId", "occurredAt");
+
+ALTER TABLE "WorkDocument" ALTER COLUMN "content" DROP NOT NULL;
+ALTER TABLE "WorkDocument" ADD COLUMN IF NOT EXISTS "storageKey" VARCHAR(500);
+ALTER TABLE "WorkDocument" ADD COLUMN IF NOT EXISTS "sha256" VARCHAR(64);
+CREATE UNIQUE INDEX IF NOT EXISTS "WorkDocument_storageKey_key" ON "WorkDocument"("storageKey");
+
+ALTER TABLE "AuditEvent" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "AuditEvent" NO FORCE ROW LEVEL SECURITY;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN REVOKE ALL ON TABLE "AuditEvent" FROM anon; END IF;
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN REVOKE ALL ON TABLE "AuditEvent" FROM authenticated; END IF;
+END $$;

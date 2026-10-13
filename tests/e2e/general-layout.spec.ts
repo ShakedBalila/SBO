@@ -7,7 +7,7 @@ test('fluid shell, water history, vehicle logo and food bank',async({page})=>{
   test.setTimeout(240000);
   const email=`general-layout-${Date.now()}@example.test`,db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();
   try{
-    await page.goto('/login?mode=register');await page.getByLabel('שם',{exact:true}).fill('General layout');await page.getByLabel('כתובת אימייל').fill(email);await page.getByLabel('סיסמה').fill('Eight8!x');await page.getByRole('button',{name:'יצירת חשבון'}).click();await expect(page).toHaveURL('http://localhost:3000/');
+    await page.goto('/login?mode=register');await page.getByLabel('שם',{exact:true}).fill('General layout');await page.getByLabel('כתובת אימייל').fill(email);await page.getByLabel('סיסמה').fill('TwelveEnough12!');await page.getByRole('button',{name:'יצירת חשבון'}).click();await expect(page).toHaveURL('http://localhost:3000/');
     const headers={Origin:'http://localhost:3000'};
     const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jerusalem'}).format(new Date());
     const weekday=['א','ב','ג','ד','ה','ו','ש'][new Date(today+'T00:00:00Z').getUTCDay()];

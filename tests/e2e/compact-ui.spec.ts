@@ -26,7 +26,7 @@ test('five mosaic cards fit the viewport and compact dialogs keep paired control
   const email=`compact-${Date.now()}@example.test`,db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();
   try{
     await page.setViewportSize({width:390,height:844});await page.goto('/login?mode=register');
-    await page.getByLabel('שם',{exact:true}).fill('בדיקת סימטריה');await page.getByLabel('כתובת אימייל').fill(email);await page.getByLabel('סיסמה').fill('Eight8!x');await page.getByRole('button',{name:'יצירת חשבון'}).click();await expect(page).toHaveURL('http://localhost:3000/');
+    await page.getByLabel('שם',{exact:true}).fill('בדיקת סימטריה');await page.getByLabel('כתובת אימייל').fill(email);await page.getByLabel('סיסמה').fill('TwelveEnough12!');await page.getByRole('button',{name:'יצירת חשבון'}).click();await expect(page).toHaveURL('http://localhost:3000/');
     const headers={Origin:'http://localhost:3000'};
     expect((await page.request.post('/api/modules/vehicles',{headers,data:{name:'MAZDA 3',year:2024,roadMonth:5,licensePlate:'123-45-678',odometerKm:100000,fuelTankLiters:60}})).ok()).toBeTruthy();
     for(const size of [{width:320,height:568},{width:390,height:844},{width:507,height:800},{width:834,height:1112},{width:1440,height:900}]){
