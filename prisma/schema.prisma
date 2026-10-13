@@ -55,6 +55,10 @@ model User {
   workDocuments WorkDocument[]
   pushSubscriptions PushSubscription[]
   auditEvents AuditEvent[]
+  workoutPlans WorkoutPlan[]
+  workoutSessions WorkoutSession[]
+  workoutExercises WorkoutExercise[]
+  workoutLinks WorkoutLink[]
 }
 model UserSettings {
   userId String @id
@@ -74,6 +78,7 @@ model UserSettings {
   vehicleReminderEnabled Boolean @default(false)
   creatineReminderEnabled Boolean @default(false)
   creatineReminderTime String @default("09:00") @db.VarChar(5)
+  creatineDosageText String @default("") @db.VarChar(200)
   calorieGoal Int?
   proteinGoalG Int?
   nutritionGoalMode String @default("auto") @db.VarChar(10)
@@ -142,6 +147,72 @@ model LoginAttempt {
   key String @id
   count Int @default(1)
   windowStart DateTime @default(now())
+}
+model WorkoutPlan {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name String @db.VarChar(120)
+  version Int @default(1)
+  active Boolean @default(false)
+  archived Boolean @default(false)
+  draft Boolean @default(true)
+  content Json
+  importKey String? @db.VarChar(64)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions WorkoutSession[]
+  @@unique([id, userId])
+  @@unique([userId, importKey])
+  @@index([userId, active])
+}
+model WorkoutSession {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId String
+  plan WorkoutPlan @relation(fields: [planId, userId], references: [id, userId], onDelete: NoAction)
+  dayId String @db.VarChar(80)
+  localDate String @db.VarChar(10)
+  status String @default("SCHEDULED") @db.VarChar(20)
+  snapshot Json
+  performed Json
+  startedAt DateTime?
+  endedAt DateTime?
+  pausedAt DateTime?
+  pausedSeconds Int @default(0)
+  revision Int @default(0)
+  notes String @default("") @db.VarChar(2000)
+  importKey String? @db.VarChar(64)
+  updatedAt DateTime @updatedAt
+  @@unique([userId, planId, dayId, localDate])
+  @@unique([userId, importKey])
+  @@index([userId, localDate])
+  @@index([planId, userId])
+}
+model WorkoutExercise {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name String @db.VarChar(150)
+  details Json
+  favorite Boolean @default(false)
+  image Bytes?
+  imageMime String? @db.VarChar(30)
+  updatedAt DateTime @updatedAt
+  @@index([userId])
+}
+model WorkoutLink {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceKind String @db.VarChar(10)
+  sourceId String
+  localDate String @db.VarChar(10)
+  original Json
+  hidden Boolean @default(true)
+  @@unique([userId, sourceKind, sourceId])
+  @@index([userId, localDate])
 }
 model WaterEntry {
   id String @id @default(cuid())

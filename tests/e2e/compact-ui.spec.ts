@@ -30,7 +30,7 @@ test('five mosaic cards fit the viewport and compact dialogs keep paired control
     const headers={Origin:'http://localhost:3000'};
     expect((await page.request.post('/api/modules/vehicles',{headers,data:{name:'MAZDA 3',year:2024,roadMonth:5,licensePlate:'123-45-678',odometerKm:100000,fuelTankLiters:60}})).ok()).toBeTruthy();
     for(const size of [{width:320,height:568},{width:390,height:844},{width:507,height:800},{width:834,height:1112},{width:1440,height:900}]){
-      await page.setViewportSize(size);await page.goto('/');await expect(page.locator('.overview-card:visible')).toHaveCount(5);await expect.poll(()=>page.locator('.card-image-layer img:visible').evaluateAll(images=>images.length===5&&images.every(img=>(img as HTMLImageElement).complete&&(img as HTMLImageElement).naturalWidth>0))).toBeTruthy();
+      await page.setViewportSize(size);await page.goto('/');await expect(page.locator('.overview-card:visible')).toHaveCount(6);await expect.poll(()=>page.locator('.card-image-layer img:visible').evaluateAll(images=>images.length===6&&images.every(img=>(img as HTMLImageElement).complete&&(img as HTMLImageElement).naturalWidth>0))).toBeTruthy();
       await page.screenshot({path:`test-results/compact-dashboard-${size.width}.png`});
       const layout=await page.locator('.workspace').evaluate(el=>({height:el.clientHeight,scroll:el.scrollHeight,width:el.clientWidth,scrollWidth:el.scrollWidth}));
       expect(layout.scroll,JSON.stringify(size)).toBeLessThanOrEqual(layout.height+1);expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);

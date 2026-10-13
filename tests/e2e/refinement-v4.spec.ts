@@ -1,0 +1,29 @@
+import {test,expect} from '@playwright/test';
+import {Client} from 'pg';
+const headers={Origin:'http://localhost:3000'};
+test('V4 vehicle financial filters, mobile task controls and compact dialogs preserve data',async({page})=>{
+ test.setTimeout(120000);const email='refine-v4-'+Date.now()+'@example.test',db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();
+ try{
+ await page.request.post('/api/auth/register',{headers,data:{name:'V4 UI',email,password:'RefinementTesting123!'}});
+ await page.request.post('/api/modules/vehicles',{headers,data:{name:'MAZDA 3',year:2024,roadMonth:5,licensePlate:'123-45-678',odometerKm:1000,fuelTankLiters:70}});
+ const vehicleId=(await db.query('SELECT id FROM "Vehicle" WHERE "userId"=(SELECT id FROM "User" WHERE email=$1)',[email])).rows[0].id;
+ for(const fuel of [{date:'2026-09-01',liters:40,totalCost:300.20,isFullTank:true},{date:'2026-09-20',liters:30,totalCost:239.40,isFullTank:false},{date:'2026-10-01',liters:35,totalCost:258.40,isFullTank:true}])expect((await page.request.post('/api/modules/fuel',{headers,data:{vehicleId,currentOdometerKm:null,pricePerLiter:7,...fuel}})).ok()).toBeTruthy();
+ await page.request.post('/api/modules/car-washes',{headers,data:{vehicleId,date:'2026-10-12',amount:90}});
+ await page.setViewportSize({width:390,height:844});await page.goto('/car');const summary=page.locator('.vehicle-cost-summary');await summary.getByLabel('חודש הוצאות רכב').fill('2026-10');await expect(summary.locator('[data-cost=total] strong')).toContainText('348.40');await expect(page.locator('.module-stats')).toContainText('עלות הדלק בחודש');await expect(page.locator('.module-stats')).toContainText('258.40');
+ await summary.getByLabel('חודש הוצאות רכב').fill('2026-09');await expect(summary.locator('[data-cost=fuel] strong')).toContainText('539.60');await summary.getByLabel('חודש הוצאות רכב').fill('2026-10');
+ const chart=page.locator('.cost-chart:visible');await expect(chart).toHaveCount(1);await expect(page.locator('.efficiency-chart')).toHaveCount(0);
+ const logical=await page.locator('.fuel-journal,[data-expense-tile=wash],.cost-chart').evaluateAll(nodes=>nodes.map(n=>n.className||n.getAttribute('data-expense-tile')));expect(String(logical[0])).toContain('fuel');expect(logical.at(-1)).toBe('cost-chart');
+ await chart.getByRole('button',{name:'הסתר שטיפות בגרף',exact:true}).click();await expect(chart.locator('.bar .carWashes')).toHaveCount(0);await expect(summary.locator('[data-cost=total] strong')).toContainText('348.40');await expect(chart.getByRole('button',{name:/סה״כ מוצג 2026-10/})).toContainText('258.40');
+ await summary.getByLabel('חודש הוצאות רכב').fill('2026-09');await expect(chart.getByRole('button',{name:'הצג שטיפות בגרף'})).toHaveAttribute('aria-pressed','false');await summary.getByLabel('חודש הוצאות רכב').fill('2026-10');
+ for(const button of await chart.locator('.chart-legend button').all())if(await button.getAttribute('aria-pressed')==='true')await button.click();await expect(chart).toContainText('לא נבחרו קטגוריות להצגה');await expect(summary.locator('[data-cost=total] strong')).toContainText('348.40');await chart.getByRole('button',{name:'הצג הכול'}).click();await expect(chart.locator('.chart-legend button[aria-pressed=true]')).toHaveCount(6);await page.screenshot({path:'test-results/v4-chart-390.png',fullPage:true});
+ const today=(await (await page.request.get('/api/workouts/data')).json()).today;
+ await page.request.post('/api/tasks',{headers,data:{title:'בדיקת שתי פעולות',status:'IN_PROGRESS',priority:'MEDIUM',startDate:today,endDate:today,showOnCalendar:true}});
+ await page.goto('/tasks');const row=page.locator('.task-row').filter({hasText:'בדיקת שתי פעולות'}),select=row.locator('.selection-check'),complete=row.locator('.task-check'),divider=row.locator('.task-mobile-divider');await expect(row).toBeVisible();const a=await select.boundingBox(),b=await complete.boundingBox(),line=await divider.boundingBox();expect(Math.abs(a!.y-b!.y)).toBeLessThan(2);expect(line!.x).toBeGreaterThan(Math.min(a!.x,b!.x));expect(line!.x).toBeLessThan(Math.max(a!.x,b!.x));expect(a!.width).toBeGreaterThanOrEqual(44);
+ await select.click();await expect(select).toHaveAttribute('aria-checked','true');await expect(complete).not.toHaveClass(/checked/);await complete.click();await expect(row).toHaveCount(0);await expect(page.locator('.bulk-actions strong')).toContainText('1');expect((await db.query('SELECT status FROM "Task" WHERE "userId"=(SELECT id FROM "User" WHERE email=$1) AND title=$2',[email,'בדיקת שתי פעולות'])).rows[0].status).toBe('DONE');
+ await page.getByRole('button',{name:'יצירת משימה',exact:true}).click();const taskModal=page.locator('.task-editor-modal[open]');console.log('V4 task modal height:',(await taskModal.boundingBox())!.height);await page.screenshot({path:'test-results/v4-task-modal-390.png'});await page.keyboard.press('Escape');
+ for(const size of [{width:320,height:568},{width:375,height:812},{width:430,height:932},{width:1280,height:800},{width:1920,height:1080}]){
+ await page.setViewportSize(size);await page.goto('/water');const pace=page.locator('.water-pacing-settings summary');await expect(pace).toHaveCSS('justify-content','center');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+ await page.goto('/car');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();await page.getByRole('button',{name:'הוספת תדלוק',exact:true}).click();const modal=page.locator('dialog[open]').first();expect((await modal.boundingBox())!.height).toBeLessThanOrEqual(size.height-10);console.log('V4 refuel modal',size.width,(await modal.boundingBox())!.height);await page.screenshot({path:'test-results/v4-refuel-'+size.width+'.png'});await page.keyboard.press('Escape');
+ }
+ }finally{await db.query('DELETE FROM "User" WHERE email=$1',[email]);await db.end();}
+});

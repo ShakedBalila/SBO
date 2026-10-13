@@ -11,3 +11,4 @@ playwright-report/
 .sites-runtime/
 .tools/
 *.backup
+supabase/.temp/
