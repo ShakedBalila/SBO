@@ -1,5 +1,5 @@
 export const workDefaults = {
-  baseSalary:0, standardMinutes:480, defaultBreakMinutes:0, monthlyHours:182,
+  baseSalary:0, standardMinutes:480, defaultBreakMinutes:0, monthlyHours:182, paidBreaks:false,
   contributionBasePercent:0, mealPerDay:0, travelAllowance:0,
   vacationDays:0, vacationCarryover:0, sickEntitlement:0, sickPayPercent:0,
   employeePensionPercent:0, employerPensionPercent:0, severancePercent:0,
@@ -10,7 +10,8 @@ export const workDefaults = {
   vacationAccrual:'monthly' as 'monthly'|'annual'
 };
 export type WorkContract = typeof workDefaults;
-export type WorkEntryRow = {id:string;date:string;type:string;startedAt:string|null;endedAt:string|null;breakMinutes:number;pausedAt:string|null;overtimeApproved:boolean;distanceKm:number;notes:string;tripId:string|null};
+export type WorkBreakSegment={startedAt:string;endedAt:string|null;paid:boolean};
+export type WorkEntryRow = {id:string;date:string;type:string;startedAt:string|null;endedAt:string|null;breakMinutes:number;pausedAt:string|null;breakSegments?:WorkBreakSegment[];overtimeApproved:boolean;distanceKm:number;notes:string;tripId:string|null};
 export type WorkTripRow = {id:string;destination:string;startDate:string;endDate:string;status:string;details:Record<string,string|number>};
 export type WorkExpenseRow = {id:string;tripId:string|null;date:string;category:string;amount:number;currency:string;exchangeRate:number;rateDate:string;rateSource:string;paymentSource:string;reimbursable:boolean;paid:boolean;notes:string;documentId:string|null};
 export type WorkDocumentRow = {id:string;tripId:string|null;entryId:string|null;name:string;category:string;mimeType:string;size:number;createdAt:string;documentDate:string|null;payslipMonth:string|null};
@@ -18,11 +19,19 @@ export type WorkData = {contract:WorkContract;entries:WorkEntryRow[];trips:WorkT
 export const workTypes:Record<string,string> = {WORK:'עבודה',HOME:'עבודה מהבית',TRAVEL:'נסיעה',SICK:'מחלה',VACATION:'חופשה',OTHER:'אחר'};
 export const workClock=(minutes:number)=>`${Math.floor(Math.max(0,minutes)/60)}:${String(Math.floor(Math.max(0,minutes)%60)).padStart(2,'0')}`;
 export function dayKey(date:Date,timezone:string){return new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).format(date);}
-export function shiftMinutes(entry:WorkEntryRow,now=Date.now()) {
-  if(!entry.startedAt)return 0;
-  const end=entry.pausedAt?Date.parse(entry.pausedAt):entry.endedAt?Date.parse(entry.endedAt):now;
-  return Math.max(0,Math.floor((end-Date.parse(entry.startedAt))/60000)-entry.breakMinutes);
+export function parseBreakSegments(value:unknown):WorkBreakSegment[]{return Array.isArray(value)?value.filter((v):v is WorkBreakSegment=>Boolean(v&&typeof v==='object'&&typeof v.startedAt==='string'&&Number.isFinite(Date.parse(v.startedAt))&&(v.endedAt===null||typeof v.endedAt==='string'&&Number.isFinite(Date.parse(v.endedAt)))&&typeof v.paid==='boolean')):[];}
+export function workDurations(entry:WorkEntryRow,now=Date.now()){
+ if(!entry.startedAt)return {presence:0,net:0,paid:0,unpaid:0,breakTotal:0};
+ const end=entry.endedAt?Date.parse(entry.endedAt):now,segments=parseBreakSegments(entry.breakSegments),seconds=(start:string,finish:string|null)=>Math.max(0,((finish?Date.parse(finish):end)-Date.parse(start))/1000);
+ const closedUnpaid=segments.filter(s=>!s.paid&&s.endedAt).reduce((sum,s)=>sum+seconds(s.startedAt,s.endedAt),0),legacy=Math.max(0,entry.breakMinutes-Math.floor(closedUnpaid/60))*60;
+ let unpaid=legacy,paid=0;for(const segment of segments){const duration=seconds(segment.startedAt,segment.endedAt);if(segment.paid)paid+=duration;else unpaid+=duration;}
+ if(entry.pausedAt&&!segments.some(s=>s.endedAt===null))unpaid+=seconds(entry.pausedAt,null);
+ const presence=Math.max(0,(end-Date.parse(entry.startedAt))/1000);return {presence:Math.floor(presence/60),net:Math.floor(Math.max(0,presence-unpaid)/60),paid:Math.floor(paid/60),unpaid:Math.floor(unpaid/60),breakTotal:Math.floor((paid+unpaid)/60)};
 }
+export function shiftMinutes(entry:WorkEntryRow,now=Date.now()){return workDurations(entry,now).net;}
+// Sunday-first annual index: week 1 contains Jan 1 of each date's calendar year.
+export function annualSundayWeek(date:string){const d=new Date(date+'T00:00:00Z'),start=new Date(Date.UTC(d.getUTCFullYear(),0,1));start.setUTCDate(start.getUTCDate()-start.getUTCDay());return {year:d.getUTCFullYear(),week:Math.floor((d.valueOf()-start.valueOf())/604800000)+1};}
+export function monthlyWorkWeeks(month:string){const groups=new Map<string,{year:number;week:number;dates:string[]}>();for(const date of monthDays(month)){const {year,week}=annualSundayWeek(date),key=year+'-'+week;if(!groups.has(key))groups.set(key,{year,week,dates:[]});groups.get(key)!.dates.push(date);}return [...groups.values()];}
 export function monthDays(month:string){const start=new Date(`${month}-01T00:00:00Z`),last=new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth()+1,0)).getUTCDate();return Array.from({length:last},(_,index)=>`${month}-${String(index+1).padStart(2,'0')}`);}
 export function monthSummary(entries:WorkEntryRow[],month:string,contract:WorkContract,now=Date.now(),timezone='UTC'){
   const rows=entries.filter(entry=>entry.date.startsWith(month));
@@ -73,7 +82,8 @@ export function tripSummary(trip:WorkTripRow,expenses:WorkExpenseRow[]){
   const personal=rows.filter(e=>e.paymentSource==='PERSONAL'&&e.reimbursable).reduce((s,e)=>s+e.amount*e.exchangeRate,0);
   const company=rows.filter(e=>e.paymentSource==='COMPANY').reduce((s,e)=>s+e.amount*e.exchangeRate,0);
   const expenseTotal=rows.reduce((s,e)=>s+e.amount*e.exchangeRate,0),perDiemILS=perDiem*Number(trip.details.perDiemExchangeRate??(trip.details.perDiemCurrency==='ILS'?1:0));
-  return {days,eligibleDays,perDiem,personal,company,expenseTotal,total:expenseTotal+perDiemILS,perDiemConverted:Boolean(trip.details.perDiemExchangeRate||trip.details.perDiemCurrency==='ILS')};
+  const personalPaid=rows.filter(e=>e.paymentSource==='PERSONAL').reduce((s,e)=>s+e.amount*e.exchangeRate,0),reimbursed=rows.filter(e=>e.paymentSource==='PERSONAL'&&e.reimbursable&&e.paid).reduce((s,e)=>s+e.amount*e.exchangeRate,0),outstanding=rows.filter(e=>e.paymentSource==='PERSONAL'&&e.reimbursable&&!e.paid).reduce((s,e)=>s+e.amount*e.exchangeRate,0);
+  return {days,eligibleDays,perDiem,personal,personalPaid,reimbursed,outstanding,company,expenseTotal,total:expenseTotal+perDiemILS,perDiemConverted:Boolean(trip.details.perDiemExchangeRate||trip.details.perDiemCurrency==='ILS')};
 }
 // Interpret wall-clock fields in the user's timezone; reject nonexistent DST times.
 export function localInstant(date:string,time:string,timezone:string){

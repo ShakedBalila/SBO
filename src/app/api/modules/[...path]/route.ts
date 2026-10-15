@@ -112,7 +112,8 @@ async function handle(request: Request, context: Context) {
         },{isolationLevel:'Serializable'});}catch(error){if(error instanceof FuelOdometerError)throw new HttpError(400,error.message);throw error;}break;
       }
       case 'nutrition': {
-        if (deleting) { count = (await db.nutritionEntry.deleteMany({ where })).count; break; }
+        if (deleting) { count = await db.$transaction(async tx=>{const drafts=await tx.foodPhotoDraft.findMany({where:{userId:user.id,entryId:id},select:{id:true}});await tx.foodPhoto.deleteMany({where:{userId:user.id,draftId:{in:drafts.map(d=>d.id)}}});await tx.foodPhotoDraft.deleteMany({where:{userId:user.id,id:{in:drafts.map(d=>d.id)}}});return (await tx.nutritionEntry.deleteMany({where})).count;}); break; }
+        if(id&&await db.nutritionEntry.findFirst({where:{...where,source:'food_photo'}}))throw new HttpError(400,'ארוחה מצולמת יש לערוך דרך צילום אוכל כדי לשמור את המרכיבים והמקורות.');
         const parsed = nutritionInput.parse(input);
         const {preferenceQuantity,preferenceUnit,preferenceServingGrams,preferenceServingName,...entry}=parsed;
         const data = { ...entry, date: new Date(entry.date) };

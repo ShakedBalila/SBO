@@ -4,7 +4,7 @@ import {currentUser} from '@/lib/auth';
 import {db} from '@/lib/db';
 import {HttpError,apiError,checkOrigin,jsonBody} from '@/lib/http';
 import {workData} from '@/lib/work-data';
-import {dayKey,localInstant} from '@/lib/work-calculations';
+import {dayKey,localInstant,parseBreakSegments} from '@/lib/work-calculations';
 import {expenseInput,parseContract,timeOffInput,workContractInput,workEntryInput,workTripInput} from '@/lib/work-validation';
 import {workRate} from '@/lib/work-rates';
 import {recordDate} from '@/lib/modules';
@@ -78,16 +78,21 @@ async function mutate(request:Request,context:Context){try{
   if(kind==='settings'){const contract=workContractInput.parse(body);await db.workSettings.upsert({where:{userId},create:{userId,contract},update:{contract}});return NextResponse.json({ok:true});}
   if(kind==='clock'){
     const value=z.object({action:z.enum(['start','stop','pause','resume','type']),type:z.enum(['WORK','HOME','TRAVEL']).default('WORK'),tripId:z.string().nullable().default(null)}).strict().parse(body),now=new Date();await ownTrip(userId,value.tripId);
+    const contract=parseContract((await db.workSettings.findUnique({where:{userId}}))?.contract);
     const result=await db.$transaction(async tx=>{
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`;
       const active=await tx.workEntry.findFirst({where:{userId,startedAt:{not:null},endedAt:null}});
-      if(value.action==='start'){if(active)throw new HttpError(409,'כבר יש משמרת פעילה.');return tx.workEntry.create({data:{userId,date:toDate(dayKey(now,timezone)),startedAt:now,type:value.type,tripId:value.tripId}});}
+      if(value.action==='start'){if(active)throw new HttpError(409,'כבר יש משמרת פעילה.');if(await tx.workEntry.findFirst({where:{userId,date:toDate(dayKey(now,timezone)),type:{in:['SICK','VACATION']}}}))throw new HttpError(409,'ביום הזה רשומה היעדרות מלאה. יש לתקן את רשומת ההיעדרות לפני התחלת עבודה.');return tx.workEntry.create({data:{userId,date:toDate(dayKey(now,timezone)),startedAt:now,type:value.type,tripId:value.tripId}});}
       if(!active)throw new HttpError(409,'אין משמרת פעילה.');
       if(value.action==='type')return tx.workEntry.update({where:{id:active.id},data:{type:value.type}});
-      if(value.action==='pause'){if(active.pausedAt)throw new HttpError(409,'ההפסקה כבר פעילה.');return tx.workEntry.update({where:{id:active.id},data:{pausedAt:now}});}
-      const extra=active.pausedAt?Math.max(0,Math.floor((now.valueOf()-active.pausedAt.valueOf())/60000)):0;
+      const segments=parseBreakSegments(active.breakSegments);
+      if(value.action==='pause'){if(active.pausedAt)throw new HttpError(409,'ההפסקה כבר פעילה.');segments.push({startedAt:now.toISOString(),endedAt:null,paid:contract.paidBreaks});return tx.workEntry.update({where:{id:active.id},data:{pausedAt:now,breakSegments:segments}});}
       if(value.action==='resume'&&!active.pausedAt)throw new HttpError(409,'אין הפסקה פעילה.');
-      return tx.workEntry.update({where:{id:active.id},data:{breakMinutes:active.breakMinutes+extra,pausedAt:null,...(value.action==='stop'?{endedAt:now}:{})}});
-    },{isolationLevel:'Serializable'});
+      const closedSeconds=segments.filter(s=>!s.paid&&s.endedAt).reduce((n,s)=>n+(Date.parse(s.endedAt!)-Date.parse(s.startedAt))/1000,0),legacy=Math.max(0,active.breakMinutes-Math.floor(closedSeconds/60));
+      if(active.pausedAt){const segment=segments.find(s=>s.endedAt===null);if(segment)segment.endedAt=now.toISOString();else segments.push({startedAt:active.pausedAt.toISOString(),endedAt:now.toISOString(),paid:false});}
+      const unpaidSeconds=segments.filter(s=>!s.paid&&s.endedAt).reduce((n,s)=>n+Math.max(0,(Date.parse(s.endedAt!)-Date.parse(s.startedAt))/1000),0);
+      return tx.workEntry.update({where:{id:active.id},data:{breakMinutes:legacy+Math.floor(unpaidSeconds/60),breakSegments:segments,pausedAt:null,...(value.action==='stop'?{endedAt:now}:{})}});
+    });await audit({userId,action:'WORK_CLOCK_'+value.action.toUpperCase(),entityType:'WORK_ENTRY',entityId:result.id});
     return NextResponse.json({id:result.id});
   }
   if(kind==='entries'){
@@ -95,9 +100,11 @@ async function mutate(request:Request,context:Context){try{
     let startedAt:Date|null=null,endedAt:Date|null=null;
     try{if(value.startTime){startedAt=localInstant(value.date,value.startTime,timezone);endedAt=localInstant(value.endDate??value.date,value.endTime!,timezone);}}catch{throw new HttpError(400,'התאריך או השעה אינם תקינים באזור הזמן.');}
     if(startedAt&&endedAt&&(endedAt<=startedAt||endedAt.valueOf()-startedAt.valueOf()>48*3600000||value.breakMinutes>(endedAt.valueOf()-startedAt.valueOf())/60000))throw new HttpError(400,'יש לבדוק שעות כניסה, יציאה והפסקה (עד 48 שעות למשמרת).');
+    if(startedAt&&endedAt&&await db.workEntry.findFirst({where:{userId,id:id?{not:id}:undefined,date:toDate(value.date),type:{in:['SICK','VACATION']}}}))throw new HttpError(409,'ביום הזה קיימת היעדרות מלאה. יש לתקן אותה לפני רישום עבודה.');
     if(startedAt&&endedAt){const overlap=await db.workEntry.findFirst({where:{userId,id:id?{not:id}:undefined,startedAt:{lt:endedAt},OR:[{endedAt:{gt:startedAt}},{endedAt:null}]}});if(overlap)throw new HttpError(409,'שעות העבודה חופפות למשמרת קיימת.');}
     const {startTime,endTime,endDate,...fields}=value;void startTime;void endTime;void endDate;
-    const data={...fields,date:toDate(value.date),startedAt,endedAt,pausedAt:null};
+    const previous=id?await db.workEntry.findFirst({where:{id,userId}}):null;if(id&&!previous)throw new HttpError(404,'הרשומה לא נמצאה.');if(previous&&startedAt&&previous.startedAt&&Math.floor(startedAt.valueOf()/60000)===Math.floor(previous.startedAt.valueOf()/60000))startedAt=previous.startedAt;if(previous&&endedAt&&previous.endedAt&&Math.floor(endedAt.valueOf()/60000)===Math.floor(previous.endedAt.valueOf()/60000))endedAt=previous.endedAt;if(previous)await audit({userId,action:'WORK_ENTRY_CORRECTED',entityType:'WORK_ENTRY',entityId:id,metadata:{previous:JSON.stringify({startedAt:previous.startedAt,endedAt:previous.endedAt,breakMinutes:previous.breakMinutes,breakSegments:previous.breakSegments}),next:JSON.stringify({startedAt,endedAt,breakMinutes:value.breakMinutes})}});
+    const data={...fields,date:toDate(value.date),startedAt,endedAt,pausedAt:null,...(previous&&(previous.startedAt?.valueOf()!==startedAt?.valueOf()||previous.endedAt?.valueOf()!==endedAt?.valueOf()||previous.breakMinutes!==value.breakMinutes)?{breakSegments:[]}:{} )};
     if(id){const result=await db.workEntry.updateMany({where:{id,userId},data});if(!result.count)throw new HttpError(404,'הרשומה לא נמצאה.');return NextResponse.json({id});}
     const result=await db.workEntry.create({data:{...data,userId}});return NextResponse.json({id:result.id},{status:201});
   }
@@ -105,7 +112,7 @@ async function mutate(request:Request,context:Context){try{
     const value=timeOffInput.parse(body),contract=parseContract((await db.workSettings.findUnique({where:{userId}}))?.contract),dates:Date[]=[];
     for(let stamp=Date.parse(value.startDate);stamp<=Date.parse(value.endDate);stamp+=86400000){const date=new Date(stamp);if(contract.workDays.includes(date.getUTCDay()))dates.push(date);}
     if(!dates.length)throw new HttpError(400,'אין ימי עבודה בטווח שבחרת.');
-    const result=await db.$transaction(async tx=>{if(await tx.workEntry.findFirst({where:{userId,date:{in:dates},type:{in:['SICK','VACATION']}}}))throw new HttpError(409,'כבר הוזנה חופשה או מחלה בחלק מהימים.');const ids=[];for(const date of dates){const row=await tx.workEntry.create({data:{userId,date,type:value.type,notes:value.notes}});ids.push(row.id);}return ids;},{isolationLevel:'Serializable'});
+    const result=await db.$transaction(async tx=>{await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`;if(await tx.workEntry.findFirst({where:{userId,date:{in:dates},startedAt:{not:null}}}))throw new HttpError(409,'קיימות שעות עבודה ביום שבחרת. יש לתקן אותן לפני רישום היעדרות מלאה.');if(await tx.workEntry.findFirst({where:{userId,date:{in:dates},type:{in:['SICK','VACATION']}}}))throw new HttpError(409,'כבר הוזנה חופשה או מחלה בחלק מהימים.');const ids=[];for(const date of dates){const row=await tx.workEntry.create({data:{userId,date,type:value.type,notes:value.notes}});ids.push(row.id);}return ids;},{isolationLevel:'Serializable'});
     return NextResponse.json({id:result[0],ids:result},{status:201});
   }
   if(kind==='trips'){

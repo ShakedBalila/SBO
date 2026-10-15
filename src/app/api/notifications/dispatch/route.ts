@@ -6,6 +6,8 @@ import { getIsraelFuelPrice } from "@/lib/fuel-price";
 import { vehicleReminderDue } from "@/lib/vehicle-reminders";
 import {notificationDiagnosticLocal,notificationIsDue,notificationLocalParts,scheduledNotification} from '@/lib/notification-schedule';
 
+import {expireFoodPhotoDrafts} from '@/lib/food-photo-maintenance';
+
 export const dynamic="force-dynamic";
 const DAY=86400000;
 function shift(value:string,days:number){const d=new Date(`${value}T00:00:00Z`);d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);}
@@ -19,6 +21,7 @@ export async function POST(request:Request){
   const publicKey=process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,privateKey=process.env.VAPID_PRIVATE_KEY;
   if(!publicKey||!privateKey)return NextResponse.json({error:"Push keys are not configured"},{status:503});
   const current=new Date(),monthStart=new Date(Date.UTC(current.getUTCFullYear(),current.getUTCMonth(),1));
+  await expireFoodPhotoDrafts();
   await getIsraelFuelPrice();
   await db.task.deleteMany({where:{deletedAt:{lt:monthStart}}});
   webpush.setVapidDetails("mailto:sbo.notifications@gmail.com",publicKey,privateKey);

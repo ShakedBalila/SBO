@@ -11,7 +11,8 @@ export function localClockInstant(date:string,time:string,timeZone:string){
     const shown=notificationLocalParts(new Date(value),timeZone);
     value+=wanted-Date.UTC(Number(shown.year),Number(shown.month)-1,Number(shown.day),Number(shown.hour),Number(shown.minute));
   }
-  return new Date(value);
+  const shown=notificationLocalParts(new Date(value),timeZone);
+  return shown.year===String(year)&&shown.month===String(month).padStart(2,'0')&&shown.day===String(day).padStart(2,'0')&&shown.hour===String(hour).padStart(2,'0')&&shown.minute===String(minute).padStart(2,'0')?new Date(value):new Date(NaN);
 }
 
 export function scheduledNotification({date,time,timeZone,leadMinutes=0}:NotificationSchedule){
@@ -25,6 +26,7 @@ export function notificationIsDue(now:Date,scheduledAt:Date,graceMs=120000){
 
 export function notificationDiagnosticLocal(date:string,time:string,timeZone:string,leadMinutes=0){
   const scheduledAt=scheduledNotification({date,time,timeZone,leadMinutes});
+  if(Number.isNaN(scheduledAt.valueOf()))return `${date}T${time}[${timeZone}]:invalid`;
   const parts=notificationLocalParts(scheduledAt,timeZone);
   return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}[${timeZone}]`;
 }
