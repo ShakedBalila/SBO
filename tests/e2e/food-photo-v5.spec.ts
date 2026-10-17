@@ -1,3 +1,4 @@
+import {registerInvited} from './invitation-fixture';
 import {test,expect} from '@playwright/test';
 import {Client} from 'pg';
 import {readFileSync} from 'node:fs';
@@ -6,7 +7,7 @@ const headers={Origin:'http://localhost:3000'};
 test('photo review shares the journal, keeps drafts unknown, saves idempotently and isolates private media/recipes',async({page,browser})=>{
  test.setTimeout(180000);const email='photo-v5-'+Date.now()+'@example.test',otherEmail='other-'+email,db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  try{
-  expect((await page.request.post('/api/auth/register',{headers,data:{name:'Photo QA',email,password:'OnlyTestingV5Photo!'}})).ok()).toBeTruthy();
+  expect((await registerInvited(page.request,{headers,data:{name:'Photo QA',email,password:'OnlyTestingV5Photo!'}})).ok()).toBeTruthy();
   const foodResponse=await page.request.post('/api/nutrition/foods',{headers,data:{name:'SBO V5 rice',caloriesPer100:130,proteinPer100G:2.7,carbsPer100G:28,fatPer100G:.3}});expect(foodResponse.ok()).toBeTruthy();
   const today=(await (await page.request.get('/api/workouts/data')).json()).today;
   await page.setViewportSize({width:390,height:844});await page.goto('/nutrition');await expect(page.getByRole('button',{name:'הוספת מזון',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'פתיחת סורק',exact:true})).toBeVisible();await page.getByRole('button',{name:'צילום אוכל',exact:true}).click();
@@ -21,7 +22,7 @@ test('photo review shares the journal, keeps drafts unknown, saves idempotently 
   let data=await (await page.request.get('/api/nutrition/photo/data')).json(),draft=await (await page.request.get('/api/nutrition/photo/drafts/'+data.drafts[0].id)).json();const entryId=draft.entryId,imageId=draft.photos[0].id,recipeId=data.recipes[0].id;
   const confirmations=await Promise.all([page.request.post('/api/nutrition/photo/confirm',{headers,data:{draftId:draft.id,revision:draft.revision,confirmed:true}}),page.request.post('/api/nutrition/photo/confirm',{headers,data:{draftId:draft.id,revision:draft.revision,confirmed:true}})]);for(const r of confirmations){expect(r.ok(),await r.text()).toBeTruthy();expect((await r.json()).id).toBe(entryId);}
   expect((await db.query('SELECT count(*)::int AS count FROM "NutritionEntry" WHERE "userId"=(SELECT id FROM "User" WHERE email=$1)',[email])).rows[0].count).toBe(1);expect((await page.request.get('/api/nutrition/photo/image/'+imageId)).status()).toBe(200);
-  const other=await browser.newContext({baseURL:'http://localhost:3000'});await other.request.post('/api/auth/register',{headers,data:{name:'Other Photo',email:otherEmail,password:'OnlyTestingV5Photo!'}});
+  const other=await browser.newContext({baseURL:'http://localhost:3000'});await registerInvited(other.request,{headers,data:{name:'Other Photo',email:otherEmail,password:'OnlyTestingV5Photo!'}});
   for(const path of ['drafts/'+draft.id,'image/'+imageId])expect((await other.request.get('/api/nutrition/photo/'+path)).status()).toBe(404);
   expect((await other.request.post('/api/nutrition/photo/confirm',{headers,data:{draftId:draft.id,revision:draft.revision,confirmed:true}})).status()).toBe(404);
   expect((await (await other.request.get('/api/nutrition/photo/data')).json()).recipes).toHaveLength(0);await other.close();

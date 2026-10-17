@@ -1,3 +1,4 @@
+import {changeVehicle} from '@/lib/vehicle-management';
 import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -16,6 +17,7 @@ async function handle(request: Request, context: Context) {
     const deleting = request.method === 'DELETE';
     if (path.length > 2 || (request.method !== 'POST' && !id) || (request.method === 'POST' && id)) throw new HttpError(400, 'כתובת הרשומה אינה תקינה.');
     const input = deleting ? null : await jsonBody(request);
+    if(!id&&input?.vehicleId&&await db.vehicle.findFirst({where:{id:input.vehicleId,userId:user.id,archivedAt:{not:null}}}))throw new HttpError(409,'הרכב בארכיון. יש לשחזר אותו לפני הוספת רשומה.');
     if (kind === 'goals' && request.method === 'POST') {
       const data = goalInput.parse(input);
       const profile=await db.userSettings.findUnique({where:{userId:user.id}});
@@ -28,6 +30,7 @@ async function handle(request: Request, context: Context) {
       const parsed=waterReminderInput.parse(input);
       const data={waterReminderEnabled:parsed.enabled,waterReminderStart:parsed.startTime,waterReminderEnd:parsed.endTime,waterReminderIntervalMinutes:parsed.intervalMinutes};
       await db.userSettings.upsert({where:{userId:user.id},create:{userId:user.id,...data},update:data});
+      await db.reminderOverride.upsert({where:{userId_source_sourceId:{userId:user.id,source:'water',sourceId:user.id}},create:{userId:user.id,source:'water',sourceId:user.id,enabled:parsed.enabled,resumedAt:new Date()},update:{enabled:parsed.enabled,pauseReason:null,resumedAt:new Date()}});
       return NextResponse.json({ok:true});
     }
     if(kind==='vehicle-reminders'&&request.method==='POST'){
@@ -39,8 +42,12 @@ async function handle(request: Request, context: Context) {
       const parsed=creatineReminderInput.parse(input);
       const data={creatineReminderEnabled:parsed.enabled,creatineReminderTime:parsed.time};
       await db.userSettings.upsert({where:{userId:user.id},create:{userId:user.id,...data},update:data});
+      await db.reminderOverride.upsert({where:{userId_source_sourceId:{userId:user.id,source:'creatine',sourceId:user.id}},create:{userId:user.id,source:'creatine',sourceId:user.id,enabled:parsed.enabled,resumedAt:new Date()},update:{enabled:parsed.enabled,pauseReason:null,resumedAt:new Date()}});
       return NextResponse.json({ok:true});
     }
+    const reminderSource:Record<string,string>={events:'event',policies:'policy',reminders:'test',expenses:'service'};
+    let reminderChanged=false;
+    if(id&&!deleting&&reminderSource[kind]){const previous=kind==='events'?await db.calendarEvent.findFirst({where:{id,userId:user.id}}):kind==='policies'?await db.vehiclePolicy.findFirst({where:{id,userId:user.id}}):kind==='reminders'?await db.vehicleReminder.findFirst({where:{id,userId:user.id}}):await db.vehicleExpense.findFirst({where:{id,userId:user.id}});if(previous)reminderChanged=['reminderMinutes','reminderDays','reminderTime'].some(key=>key in input&&input[key]!==Reflect.get(previous,key));}
     const where = { id, userId: user.id };
     // Every branch scopes record access and mutation to the signed-in owner.
     let count = 1;
@@ -54,11 +61,11 @@ async function handle(request: Request, context: Context) {
         break;
       }
       case 'vehicles': {
-        if (deleting) { count = (await db.vehicle.deleteMany({ where })).count; break; }
+        if (deleting) { await changeVehicle(user.id,id,'archive'); break; }
         const parsed = vehicleInput.parse(input);
         const data = {...parsed,acquisitionDate:parsed.acquisitionDate?new Date(parsed.acquisitionDate):null};
         if (id) count = (await db.vehicle.updateMany({ where, data })).count;
-        else await db.vehicle.create({ data: { ...data, userId: user.id } });
+        else await db.$transaction(async tx=>{await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${user.id}))`;const existing=await tx.vehicle.count({where:{userId:user.id,archivedAt:null}});await tx.vehicle.create({data:{...data,userId:user.id,isPrimary:existing===0}});});
         break;
       }
       case 'fuel-distance': {
@@ -181,6 +188,7 @@ async function handle(request: Request, context: Context) {
       }
       default: throw new HttpError(404, 'התחום לא נמצא.');
     }
+    if(id&&reminderChanged&&count)await db.reminderOverride.upsert({where:{userId_source_sourceId:{userId:user.id,source:reminderSource[kind],sourceId:id}},create:{userId:user.id,source:reminderSource[kind],sourceId:id,enabled:true,resumedAt:new Date()},update:{enabled:true,pauseReason:null,resumedAt:new Date()}});
     if (!count) throw new HttpError(404, 'הרשומה לא נמצאה.');
     return NextResponse.json({ ok: true }, { status: request.method === 'POST' ? 201 : 200 });
   } catch (error) { return apiError(error); }

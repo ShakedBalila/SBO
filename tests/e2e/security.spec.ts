@@ -1,3 +1,4 @@
+import {registerInvited} from './invitation-fixture';
 import {test,expect} from '@playwright/test';
 import {Client} from 'pg';
 
@@ -5,8 +6,8 @@ test('strong passwords, owned device sessions, revocation and CSRF protection',a
  const email=`security-${Date.now()}@example.test`,password='Long passphrase 2026!',nextPassword='Changed passphrase 2026!',origin={Origin:'http://localhost:3000'},db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();
  const first=await browser.newContext(),page=await first.newPage();
  try{
-  expect((await page.request.post('/api/auth/register',{headers:origin,data:{name:'Security QA',email,password:'short-pass'}})).status()).toBe(400);
-  expect((await page.request.post('/api/auth/register',{headers:origin,data:{name:'Security QA',email,password}})).ok()).toBeTruthy();
+  expect((await registerInvited(page.request,{headers:origin,data:{name:'Security QA',email,password:'short-pass'}})).status()).toBe(400);
+  expect((await registerInvited(page.request,{headers:origin,data:{name:'Security QA',email,password}})).ok()).toBeTruthy();
   let body=await (await page.request.get('/api/security/sessions')).json();expect(body.sessions).toHaveLength(1);expect(body.sessions[0].current).toBe(true);expect(body.sessions[0]).not.toHaveProperty('tokenHash');
   const second=await browser.newContext(),secondPage=await second.newPage();expect((await secondPage.request.post('/api/auth/login',{headers:origin,data:{email,password}})).ok()).toBeTruthy();
   body=await (await page.request.get('/api/security/sessions')).json();expect(body.sessions).toHaveLength(2);expect((await page.request.post('/api/security/revoke-others',{headers:origin,data:{}})).ok()).toBeTruthy();expect((await secondPage.request.get('/api/work/data')).status()).toBe(401);await second.close();

@@ -48,3 +48,11 @@ test('trip summary handles same-day boundaries and partial departure and return 
  assert.equal(tripSummary(trip,[]).days,3);assert.equal(tripSummary(trip,[]).eligibleDays,2);assert.equal(tripSummary(trip,[]).total,400);
  assert.equal(tripSummary({...trip,endDate:trip.startDate},[]).eligibleDays,.5);
 });
+
+test('contract revisions preserve vacation earned before the effective month',()=>{
+ const old={...contract,employmentStartDate:'2026-01-01',vacationDays:12};
+ const revised={...old,vacationDays:24};
+ const versions=[{effectiveFrom:'2026-01-01',contract:old},{effectiveFrom:'2026-07-01',contract:revised}];
+ assert.equal(vacationBalance([],'2026',revised,'2026-12-31',versions).accrued,18);
+ assert.equal(vacationBalance([],'2026',revised,'2026-06-30',versions).accrued,6);
+});

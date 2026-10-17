@@ -1,3 +1,3 @@
 import {requireUser} from '@/lib/auth';
-import {SetupWorkspace} from '@/components/onboarding';
-export default async function SetupPage(){const user=await requireUser();return <SetupWorkspace status={user.settings?.onboardingStatus??'pending'}/>;}
+import {ModuleManager} from '@/components/module-manager';
+export default async function Page(){const user=await requireUser();return <div className='utility-workspace utility-card'><ModuleManager onboarding={user.settings?.onboardingStatus!=='complete'}/></div>;}

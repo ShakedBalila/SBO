@@ -1,0 +1,8 @@
+'use client';
+import {useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {accountRequest} from './account-client';
+export function EmploymentManager({rows,selected}:{rows:{id:string;name:string;archivedAt:string|null}[];selected:string|null}){
+ const router=useRouter(),[busy,setBusy]=useState(false),[error,setError]=useState(''),active=rows.find(e=>!e.archivedAt);
+ return <section className="utility-card employment-manager"><label>מקום עבודה<select value={selected??''} onChange={e=>router.push(`/work?employment=${encodeURIComponent(e.target.value)}`)}>{!rows.length&&<option value="">טרם הוגדר מקום עבודה</option>}{rows.map(e=><option key={e.id} value={e.id}>{e.name}{e.archivedAt?' · ארכיון':' · פעיל'}</option>)}</select></label><details><summary>הוספת מקום עבודה</summary><form className="v6-form" onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');const f=new FormData(e.currentTarget);try{const result=await accountRequest('/api/employments',{action:'create',name:f.get('name'),archiveCurrent:f.get('archive')==='on'});router.push(`/work?employment=${result.id}`);router.refresh();}catch(e){setError(e instanceof Error?e.message:'לא ניתן לשמור.');}finally{setBusy(false);}}}><label>שם מקום העבודה<input name="name" required maxLength={150}/></label><p>סוג העסקה: שכר חודשי. מקום העבודה החדש מתחיל ללא שכר או זכאויות מוגדרים. אפשר לרשום נוכחות ולהשלים תנאי חוזה בהמשך.</p>{active&&<label className="v6-check"><input type="checkbox" name="archive" required/>העברת {active.name} לארכיון ושמירת כל ההיסטוריה</label>}<button className="button primary" disabled={busy}>הוספת מקום עבודה</button></form></details>{error&&<p role="alert">{error}</p>}</section>;
+}

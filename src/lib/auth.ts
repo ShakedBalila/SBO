@@ -9,12 +9,14 @@ export const currentSession = cache(async function currentSession() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const session = await db.session.findUnique({ where: { tokenHash: digest(token) }, include: { user: { include: { settings: true } } } });
-  if(!session||session.expiresAt<=new Date())return null;
+  if(!session||session.expiresAt<=new Date()||session.user.status!=='active')return null;
   if(Date.now()-session.lastSeenAt.valueOf()>5*60_000)void db.session.update({where:{id:session.id},data:{lastSeenAt:new Date()}}).catch(()=>{});
   return session;
 });
 export const currentUser = cache(async function currentUser() { return (await currentSession())?.user??null; });
 export async function createSession(userId: string, userAgent="") {
+  const user=await db.user.findUnique({where:{id:userId},select:{status:true}});
+  if(!user||user.status!=='active')throw new Error('Inactive account');
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 7 * 86400000);
   await db.session.create({ data: { userId, tokenHash: digest(token), expiresAt, userAgent:userAgent.slice(0,500) } });
@@ -28,6 +30,9 @@ export async function requireUser() {
 export async function deleteSession() {
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
-  if (token) await db.session.deleteMany({ where: { tokenHash: digest(token) } });
+  if (token) {
+    const session=await db.session.findUnique({where:{tokenHash:digest(token)},select:{id:true,userId:true}});
+    if(session)await db.$transaction([db.pushSubscription.updateMany({where:{userId:session.userId,OR:[{sessionId:session.id},{sessionId:null}]},data:{enabled:false}}),db.session.deleteMany({where:{id:session.id}})]);
+  }
   jar.delete(SESSION_COOKIE);
 }

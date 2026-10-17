@@ -2,9 +2,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 // Native forms work before JavaScript loads, including on slow LAN connections.
-export function AuthForm({ register, error }: { register: boolean; error?: string }) {
+export function AuthForm({ register = false, error }: { register: boolean; error?: string }) {
   return <div className="auth-form">
-    <h2>{register ? "יצירת חשבון" : "התחברות"}</h2>
+    <h2>{register ? "הצטרפות בהזמנה בלבד" : "התחברות"}</h2>
     <form action={`/api/auth/${register ? "register" : "login"}`} method="post">
       {register && <label>שם<input name="name" autoComplete="name" required maxLength={80}/></label>}
       <label>כתובת אימייל<input name="email" type="email" autoComplete="email" autoCapitalize="none" required maxLength={254}/></label>
@@ -12,8 +12,9 @@ export function AuthForm({ register, error }: { register: boolean; error?: strin
         {register && <small>לפחות 12 תווים. אפשר להשתמש במשפט סיסמה.</small>}
       </label>
       {error && <p role="alert" className="error-text">{error}</p>}
-      <button className="button primary" type="submit">{register ? "יצירת חשבון" : "התחברות"}<ArrowRight size={18}/></button>
+      <button className="button primary" type="submit">{register ? "הצטרפות בהזמנה בלבד" : "התחברות"}<ArrowRight size={18}/></button>
     </form>
-    <p className="auth-toggle">{register ? "כבר יש לך חשבון?" : "חדש ב־SBO?"} <Link href={register ? "/login" : "/login?mode=register"}>{register ? "התחברות" : "יצירת חשבון"}</Link></p>
+    <p><Link href="/account-action">איפוס סיסמה או שחזור חשבון</Link></p>
+    <p className="auth-toggle">{register ? "כבר יש לך חשבון?" : "חדש ב־SBO?"} <Link href={register ? "/login" : "/invite"}>{register ? "התחברות" : "יש לי הזמנה"}</Link></p>
   </div>;
 }

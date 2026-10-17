@@ -1,0 +1,46 @@
+import {test,expect} from '@playwright/test';
+import {Client} from 'pg';
+import {createHash} from 'node:crypto';
+import {verifiedInvitation,registerInvited} from './invitation-fixture';
+const headers={Origin:'http://localhost:3000'},password='V6 secure test 2026!';
+test('V6 invitations, isolation, visibility, archives, sessions and account lifecycle',async({browser})=>{
+ test.setTimeout(180000);
+ const db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();
+ const stamp=Date.now(),emails=['admin','a','b','new'].map(n=>`v6-${n}-${stamp}@example.test`),contexts=await Promise.all([0,1,2,3].map(()=>browser.newContext({baseURL:'http://localhost:3000'})));
+ const [admin,a,b,newUser]=contexts.map(c=>c.request);
+ try{
+  for(const [i,request] of [admin,a,b].entries())expect((await registerInvited(request,{headers,data:{email:emails[i],password,name:`V6 ${i}`}})).ok()).toBeTruthy();
+  const ids=(await db.query('SELECT id,email FROM "User" WHERE email=ANY($1::text[])',[emails])).rows;const id=(email:string)=>ids.find(r=>r.email===email).id;
+  await db.query('UPDATE "User" SET role=\'admin\' WHERE email=$1',[emails[0]]);
+  expect((await a.get('/api/admin/users')).status()).toBe(403);expect((await a.post('/api/admin/invite',{headers,data:{email:emails[3],confirmEmail:emails[3]}})).status()).toBe(403);
+  expect((await newUser.post('/api/auth/register',{headers,data:{email:emails[3],password,name:'new'}})).status()).toBe(403);
+  const issued=await admin.post('/api/admin/invite',{headers,data:{email:emails[3],confirmEmail:emails[3]}});expect(issued.status()).toBe(200);const invite=await issued.json();const raw=new URL(invite.url).hash.slice(7);
+  expect((await newUser.post('/api/invitation',{headers,data:{token:raw,action:'inspect'}})).ok()).toBeTruthy();
+  expect((await newUser.post('/api/auth/register',{headers,data:{email:emails[3],password,name:'new',verificationToken:raw}})).status()).toBe(403);
+  expect(JSON.stringify(await (await admin.get('/api/admin/invitations')).json())).not.toContain(raw);
+  expect((await admin.post('/api/admin/revoke-invite',{headers,data:{id:invite.id}})).ok()).toBeTruthy();expect((await newUser.post('/api/invitation',{headers,data:{token:raw,action:'inspect'}})).status()).toBe(400);
+  const proof=await verifiedInvitation(emails[3]);expect((await newUser.post('/api/auth/register',{headers,data:{email:`wrong-${stamp}@example.test`,password,name:'wrong',verificationToken:proof.token}})).status()).toBe(403);
+  const concurrent=await Promise.all([1,2].map(()=>newUser.post('/api/auth/register',{headers,data:{email:emails[3],password,name:'new',verificationToken:proof.token}})));expect(concurrent.filter(r=>r.ok())).toHaveLength(1);
+  expect((await newUser.post('/api/module-preferences',{headers,data:{action:'onboarding',modules:[]}})).ok()).toBeTruthy();expect((await (await newUser.get('/api/module-preferences')).json()).enabled).toEqual([]);
+  const page=await contexts[3].newPage();await page.goto('/');await expect(page.getByRole('heading',{name:'בוחרים במה להתחיל'})).toBeVisible();await page.close();
+  expect((await a.post('/api/modules/water-reminders',{headers,data:{enabled:true,startTime:'08:00',endTime:'16:00',intervalMinutes:60}})).ok()).toBeTruthy();
+  expect((await a.post('/api/module-preferences',{headers,data:{action:'visibility',module:'water',enabled:false}})).status()).toBe(409);
+  expect((await a.post('/api/module-preferences',{headers,data:{action:'visibility',module:'water',enabled:false,reminders:'pause'}})).ok()).toBeTruthy();let reminders=await (await a.get('/api/reminder-controls')).json();expect(reminders.rows.find((r:any)=>r.source==='water')).toMatchObject({enabled:false,pausedByHide:true});
+  await a.post('/api/module-preferences',{headers,data:{action:'visibility',module:'water',enabled:true,reminders:'resume'}});reminders=await (await a.get('/api/reminder-controls')).json();expect(reminders.rows.find((r:any)=>r.source==='water').enabled).toBe(true);
+  await a.post('/api/reminder-controls',{headers,data:{source:'water',sourceId:id(emails[1]),enabled:false}});await a.post('/api/module-preferences',{headers,data:{action:'visibility',module:'water',enabled:false}});await a.post('/api/module-preferences',{headers,data:{action:'visibility',module:'water',enabled:true}});expect((await (await a.get('/api/reminder-controls')).json()).rows.find((r:any)=>r.source==='water').enabled).toBe(false);
+  expect((await b.post('/api/reminder-controls',{headers,data:{source:'water',sourceId:id(emails[1]),enabled:true}})).status()).toBe(404);
+  for(const [n,plate] of [[1,'123-45-678'],[2,'987-65-432']] as const)expect((await a.post('/api/modules/vehicles',{headers,data:{name:`Vehicle ${n}`,year:2024,roadMonth:5,licensePlate:plate,odometerKm:1000,fuelTankLiters:60}})).ok()).toBeTruthy();
+  const vehicles=(await db.query('SELECT id FROM "Vehicle" WHERE "userId"=$1 ORDER BY "createdAt"',[id(emails[1])])).rows;
+  expect((await b.post('/api/vehicle-management',{headers,data:{id:vehicles[0].id,action:'archive'}})).status()).toBe(404);await a.post('/api/vehicle-management',{headers,data:{id:vehicles[0].id,action:'archive'}});expect((await db.query('SELECT "isPrimary" FROM "Vehicle" WHERE id=$1',[vehicles[1].id])).rows[0].isPrimary).toBe(true);
+  const employer=await (await a.post('/api/employments',{headers,data:{action:'create',name:'Employer one'}})).json();expect(employer.id).toBeTruthy();const scope=`?employment=${employer.id}`;
+  const entry=await a.post('/api/work/entries'+scope,{headers,data:{date:'2026-10-01',type:'WORK',startTime:'08:00',endTime:'16:00',endDate:'2026-10-01',breakMinutes:30,overtimeApproved:false,distanceKm:0,tripId:null,notes:'private history'}});expect(entry.ok()).toBeTruthy();
+  const second=await a.post('/api/employments',{headers,data:{action:'create',name:'Employer two',archiveCurrent:true}});expect(second.ok()).toBeTruthy();expect((await a.post('/api/work/entries'+scope,{headers,data:{}})).status()).toBe(409);expect((await b.get('/api/work/data'+scope)).status()).toBe(404);
+  const exported=await (await a.get('/api/data/export')).json();expect(exported.workHistory.flatMap((w:any)=>w.entries).some((e:any)=>e.notes==='private history')).toBe(true);expect(JSON.stringify(await (await b.get('/api/data/export')).json())).not.toContain('private history');
+  const sessions=await (await a.get('/api/security/sessions')).json();const session=sessions.sessions.find((s:any)=>s.current);await db.query('INSERT INTO "PushSubscription" (id,"userId","sessionId",endpoint,p256dh,auth,"updatedAt") VALUES ($1,$2,$3,$4,\'x\',\'y\',now())',[`sub-${stamp}`,id(emails[1]),session.id,`https://fcm.googleapis.com/fcm/send/v6-${stamp}`]);
+  expect((await admin.post('/api/admin/status',{headers,data:{id:id(emails[1]),status:'suspended',password}})).ok()).toBeTruthy();expect((await a.get('/api/work/data')).status()).toBe(401);expect((await db.query('SELECT enabled FROM "PushSubscription" WHERE id=$1',[`sub-${stamp}`])).rows[0].enabled).toBe(false);
+  await admin.post('/api/admin/status',{headers,data:{id:id(emails[1]),status:'active',password}});expect((await a.post('/api/auth/login',{headers,data:{email:emails[1],password}})).ok()).toBeTruthy();
+  expect((await a.post('/api/account/delete',{headers,data:{password,confirm:'מחיקת החשבון'}})).ok()).toBeTruthy();expect((await a.get('/api/account/profile')).status()).toBe(401);expect((await a.post('/api/account/recover',{headers,data:{email:emails[1],password,confirm:true}})).ok()).toBeTruthy();
+  expect((await admin.post('/api/account/delete',{headers,data:{password,confirm:'מחיקת החשבון'}})).status()).toBe(400);
+  expect((await a.post('/api/account/profile',{headers:{Origin:'https://evil.example'},data:{name:'bad',firstName:'',lastName:'',phone:''}})).status()).toBe(403);
+ }finally{await Promise.allSettled(contexts.map(c=>c.close()));await db.query('DELETE FROM "Invitation" WHERE email=ANY($1::text[])',[emails]);await db.query('DELETE FROM "User" WHERE email=ANY($1::text[])',[emails]);await db.end();}
+});

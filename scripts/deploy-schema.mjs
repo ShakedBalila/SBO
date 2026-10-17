@@ -18,6 +18,7 @@ const migrations=[
   ,'../supabase/migrations/20261013144500_audit_owner_access.sql'
   ,'../supabase/migrations/20261013192448_workouts_v4.sql'
   ,'../supabase/migrations/20261015180206_v5_cross_module_photo_work.sql'
+  ,'../supabase/migrations/20261016211855_v6_accounts_modules.sql'
 ];
 const pool=new Pool({connectionString:url,connectionTimeoutMillis:15000,max:1});
 try{

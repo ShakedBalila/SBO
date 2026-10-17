@@ -15,6 +15,7 @@ async function mutate(request: Request, context: Context, remove: boolean) {
       const existing = await tx.task.findFirst({ where: { id, userId: user.id, deletedAt: null } });
       if (!existing) throw new HttpError(404, "המשימה לא נמצאה.");
       if (input) {
+        if(input.reminderMinutes!==existing.reminderMinutes||input.startTime!==existing.startTime)await tx.reminderOverride.upsert({where:{userId_source_sourceId:{userId:user.id,source:"task",sourceId:id}},create:{userId:user.id,source:"task",sourceId:id,enabled:true,resumedAt:new Date()},update:{enabled:true,pauseReason:null,resumedAt:new Date()}});
         await tx.task.update({ where: { id, userId: user.id }, data: { ...input, startDate:input.startDate?new Date(input.startDate):null,endDate:input.endDate?new Date(input.endDate):null,dueDate:input.startDate?new Date(input.startDate):null,time:input.startTime,recurrenceUntil: input.recurrenceUntil ? new Date(input.recurrenceUntil) : null, completedAt: input.status === "DONE" ? existing.completedAt ?? new Date() : null } });
       } else {
         await tx.task.update({ where: { id, userId: user.id }, data: { deletedAt: new Date() } });

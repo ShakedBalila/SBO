@@ -15,7 +15,7 @@ export type WorkEntryRow = {id:string;date:string;type:string;startedAt:string|n
 export type WorkTripRow = {id:string;destination:string;startDate:string;endDate:string;status:string;details:Record<string,string|number>};
 export type WorkExpenseRow = {id:string;tripId:string|null;date:string;category:string;amount:number;currency:string;exchangeRate:number;rateDate:string;rateSource:string;paymentSource:string;reimbursable:boolean;paid:boolean;notes:string;documentId:string|null};
 export type WorkDocumentRow = {id:string;tripId:string|null;entryId:string|null;name:string;category:string;mimeType:string;size:number;createdAt:string;documentDate:string|null;payslipMonth:string|null};
-export type WorkData = {contract:WorkContract;entries:WorkEntryRow[];trips:WorkTripRow[];expenses:WorkExpenseRow[];documents:WorkDocumentRow[];today:string;timezone:string};
+export type WorkData = {employments?:{id:string;name:string;archivedAt:string|null}[];employmentId?:string|null;archived?:boolean;contractVersions?:{effectiveFrom:string;contract:WorkContract}[];contract:WorkContract;entries:WorkEntryRow[];trips:WorkTripRow[];expenses:WorkExpenseRow[];documents:WorkDocumentRow[];today:string;timezone:string};
 export const workTypes:Record<string,string> = {WORK:'עבודה',HOME:'עבודה מהבית',TRAVEL:'נסיעה',SICK:'מחלה',VACATION:'חופשה',OTHER:'אחר'};
 export const workClock=(minutes:number)=>`${Math.floor(Math.max(0,minutes)/60)}:${String(Math.floor(Math.max(0,minutes)%60)).padStart(2,'0')}`;
 export function dayKey(date:Date,timezone:string){return new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).format(date);}
@@ -60,19 +60,24 @@ export function monthSummary(entries:WorkEntryRow[],month:string,contract:WorkCo
 }
 export function inEmployment(date:string,contract:WorkContract){return Boolean(contract.employmentStartDate&&date>=contract.employmentStartDate&&(!contract.employmentEndDate||date<=contract.employmentEndDate));}
 export function isWorkingDay(date:string,contract:WorkContract){return contract.workDays.includes(new Date(`${date}T00:00:00Z`).getUTCDay());}
-export function vacationBalance(entries:WorkEntryRow[],year:string,contract:WorkContract,today:string){
+export function vacationBalance(entries:WorkEntryRow[],year:string,contract:WorkContract,today:string,versions:WorkData['contractVersions']=[]){
   const cutoff=today<`${year}-12-31`?today:`${year}-12-31`;
+  const ordered=[...versions].sort((a,b)=>b.effectiveFrom.localeCompare(a.effectiveFrom));
+  const effective=(date:string)=>ordered.find(v=>v.effectiveFrom<=date)?.contract??contract;
+  const allDays=Array.from({length:12},(_,i)=>monthDays(`${year}-${String(i+1).padStart(2,'0')}`)).flat();
   let accrued=0;
-  if(contract.employmentStartDate&&cutoff>=`${year}-01-01`){
-    for(let m=1;m<=12;m++){
-      const dates=monthDays(`${year}-${String(m).padStart(2,'0')}`);
-      const active=dates.filter(d=>d<=cutoff&&inEmployment(d,contract));
-      if(contract.vacationAccrual==='monthly')accrued+=contract.vacationDays/12*active.length/dates.length;
+  if(cutoff>=`${year}-01-01`)for(let m=1;m<=12;m++){
+    const dates=monthDays(`${year}-${String(m).padStart(2,'0')}`);
+    for(const date of dates){
+      // Future contract revisions never rewrite entitlement earned in earlier months.
+      const terms=effective(date>cutoff?cutoff:date);
+      if(!inEmployment(date,terms)||!terms.employmentStartDate||terms.employmentStartDate>cutoff)continue;
+      if(terms.vacationAccrual==='annual')accrued+=terms.vacationDays/allDays.length;
+      else if(date<=cutoff)accrued+=terms.vacationDays/12/dates.length;
     }
-    if(contract.vacationAccrual==='annual'){const dates=Array.from({length:12},(_,i)=>monthDays(`${year}-${String(i+1).padStart(2,'0')}`)).flat();if(contract.employmentStartDate<=cutoff)accrued=contract.vacationDays*dates.filter(d=>inEmployment(d,contract)).length/dates.length;}
   }
-  const used=new Set(entries.filter(e=>e.type==='VACATION'&&e.date.startsWith(year)&&inEmployment(e.date,contract)).map(e=>e.date)).size;
-  return {accrued:Number(accrued.toFixed(2)),used,remaining:Number((accrued+contract.vacationCarryover-used).toFixed(2))};
+  const used=new Set(entries.filter(e=>e.type==='VACATION'&&e.date.startsWith(year)&&inEmployment(e.date,effective(e.date))).map(e=>e.date)).size;
+  return {accrued:Number(accrued.toFixed(2)),used,remaining:Number((accrued+effective(cutoff).vacationCarryover-used).toFixed(2))};
 }
 export function tripSummary(trip:WorkTripRow,expenses:WorkExpenseRow[]){
   const days=Math.max(1,Math.round((Date.parse(trip.endDate)-Date.parse(trip.startDate))/86400000)+1);
@@ -92,3 +97,5 @@ export function localInstant(date:string,time:string,timezone:string){
   for(let i=0;i<4;i++){const p=Object.fromEntries(formatter.formatToParts(new Date(value)).map(part=>[part.type,part.value]));const rendered=Date.parse(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:00Z`);const delta=target-rendered;if(delta===0)return new Date(value);value+=delta;}
   throw new Error('השעה אינה קיימת באזור הזמן שנבחר.');
 }
+
+export function contractForMonth(data:WorkData,month:string){return [...(data.contractVersions??[])].filter(v=>v.effectiveFrom<=`${month}-01`).sort((a,b)=>b.effectiveFrom.localeCompare(a.effectiveFrom))[0]?.contract??data.contract;}

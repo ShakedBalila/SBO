@@ -1,3 +1,4 @@
+import {registerInvited} from './invitation-fixture';
 import {test,expect} from '@playwright/test';
 import {Client} from 'pg';
 import {workDefaults} from '../../src/lib/work-calculations';
@@ -5,7 +6,7 @@ const headers={Origin:'http://localhost:3000'};
 test('V5 overview, canonical event colors, equal vehicle KPIs and inline workout editing',async({page})=>{
  test.setTimeout(150000);page.setDefaultTimeout(10000);const email='ui-v5-'+Date.now()+'@example.test',db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();
  try{
-  expect((await page.request.post('/api/auth/register',{headers,data:{name:'V5 UI',email,password:'V5Refinements123!'}})).ok()).toBeTruthy();
+  expect((await registerInvited(page.request,{headers,data:{name:'V5 UI',email,password:'V5Refinements123!'}})).ok()).toBeTruthy();
   await page.request.post('/api/modules/vehicles',{headers,data:{name:'MAZDA 3',year:2024,roadMonth:5,licensePlate:'123-45-678',odometerKm:1000,fuelTankLiters:60}});
   await page.request.post('/api/modules/events',{headers,data:{title:'צבע מדויק',date:'2026-10-15',endDate:'2026-10-18',color:'#eff6fc',time:'09:00',reminderMinutes:0}});
   for(const size of [{width:320,height:568},{width:390,height:844},{width:507,height:834},{width:834,height:1112},{width:1440,height:900}]){
@@ -28,7 +29,7 @@ test('V5 overview, canonical event colors, equal vehicle KPIs and inline workout
 test('V5 work persists paid/unpaid breaks, allows missing-contract capture, quick absences and calendar reset',async({page})=>{
  test.setTimeout(120000);page.setDefaultTimeout(10000);const email='work-v5-'+Date.now()+'@example.test',db=new Client({connectionString:process.env.DATABASE_URL});await db.connect();
  try{
-  await page.request.post('/api/auth/register',{headers,data:{name:'V5 Work',email,password:'V5Working12345!'}});const userId=(await db.query('SELECT id FROM "User" WHERE email=$1',[email])).rows[0].id;
+  await registerInvited(page.request,{headers,data:{name:'V5 Work',email,password:'V5Working12345!'}});const userId=(await db.query('SELECT id FROM "User" WHERE email=$1',[email])).rows[0].id;
   await page.goto('/work');await page.getByRole('button',{name:'השלמת תנאי החוזה'}).click();const contract=page.locator('.work-modal[open]');await expect(contract.locator('.field-invalid')).toHaveCount(2);await expect(contract).toContainText('נדרש לחישובי שכר');await contract.getByLabel('תאריך תחילת העסקה',{exact:true}).fill('2026-10-01');await contract.getByLabel('שכר בסיס ברוטו (₪)',{exact:true}).fill('16000');await expect(contract.locator('.field-invalid')).toHaveCount(0);await page.keyboard.press('Escape');
   const started=await page.request.post('/api/work/clock',{headers,data:{action:'start'}});expect(started.ok(),await started.text()).toBeTruthy();const entryId=(await started.json()).id;expect((await page.request.post('/api/work/clock',{headers,data:{action:'start'}})).status()).toBe(409);
   expect((await page.request.post('/api/work/clock',{headers,data:{action:'pause'}})).ok()).toBeTruthy();expect((await page.request.post('/api/work/clock',{headers,data:{action:'pause'}})).status()).toBe(409);

@@ -1,3 +1,4 @@
+export const VEHICLE_COST_COLORS={fuel:'#ebc568',carWashes:'#63c5da',insurance:'#bda6ef',maintenance:'#ffad72',parking:'#7bd6ab',other:'#a9b9ca'} as const;
 type Row=Record<string,unknown>;
 export const washTypes={Exterior:'חיצונית',InteriorExterior:'פנים וחוץ',Premium:'פרימיום',Detailing:'דיטיילינג',Other:'אחר'};
 const date=(value:unknown)=>value instanceof Date?value.toISOString().slice(0,10):String(value??'');

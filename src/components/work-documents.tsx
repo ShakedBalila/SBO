@@ -12,11 +12,12 @@ async function compress(file:File){
     return blob&&blob.size<file.size?new File([blob],file.name.replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'}):file;
   }catch{return file;}
 }
-export async function uploadWorkDocument(original:File,metadata:Metadata){
+export async function uploadWorkDocument(original:File,metadata:Metadata,employmentId?:string|null){
+  const scope=employmentId?`?employment=${encodeURIComponent(employmentId)}`:"";
   if(!original.size||original.size>limit)throw new Error('יש לבחור PDF או תמונה עד 10 MB.');
-  const file=await compress(original),result=await json(await fetch('/api/work/documents/init',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...metadata,name:file.name,size:file.size,mimeType:file.type})}));
-  try{for(let offset=0;offset<file.size;offset+=chunkSize){const form=new FormData();form.set('chunk',file.slice(offset,offset+chunkSize));form.set('offset',String(offset));await json(await fetch(`/api/work/documents/${result.id}`,{method:'PATCH',body:form}));}return result.id as string;}
-  catch(error){await fetch(`/api/work/documents/${result.id}`,{method:'DELETE'}).catch(()=>{});throw error;}
+  const file=await compress(original),result=await json(await fetch('/api/work/documents/init'+scope,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...metadata,name:file.name,size:file.size,mimeType:file.type})}));
+  try{for(let offset=0;offset<file.size;offset+=chunkSize){const form=new FormData();form.set('chunk',file.slice(offset,offset+chunkSize));form.set('offset',String(offset));await json(await fetch(`/api/work/documents/${result.id}${scope}`,{method:'PATCH',body:form}));}return result.id as string;}
+  catch(error){await fetch(`/api/work/documents/${result.id}${scope}`,{method:'DELETE'}).catch(()=>{});throw error;}
 }
 export function PrivateDocumentLink({id,children,download=false,name='מסמך',label,className}:{id:string;children:ReactNode;download?:boolean;name?:string;label?:string;className?:string}){
   const [busy,setBusy]=useState(false),[error,setError]=useState('');

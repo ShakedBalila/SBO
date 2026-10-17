@@ -1,21 +1,21 @@
 .module-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:18px; margin-bottom:24px; }
 .module-stats>div { padding:24px; border:1px solid var(--line); border-radius:14px; background:#182030; text-align:center; }
-.module-stats small { display:block; color:var(--muted); font-size:12px; }
-.module-stats strong { display:block; font-size:28px; font-weight:600; margin:12px 0 6px; }
+.module-stats small { display:block; color:var(--muted); font-size:0.75rem; }
+.module-stats strong { display:block; font-size:1.75rem; font-weight:600; margin:12px 0 6px; }
 .module-stats strong,.module-stats small { text-align:center; }
-.module-stats strong span { font-size:14px; font-weight:400; color:var(--muted); }
+.module-stats strong span { font-size:0.875rem; font-weight:400; color:var(--muted); }
 .journal-panel,.goals-panel,.quick-water,.water-reminders { background:#182030; border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:24px; }
 .journal-panel .section-heading { margin-bottom:0; }
 .journal-panel .feedback,.goals-panel .feedback,.quick-water .feedback,.water-reminders .feedback { padding:8px 0 0; min-height:0; }
 .journal-row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px 0; border-top:1px solid var(--line); }
-.journal-row h3 { font-size:14px; font-weight:600; overflow-wrap:anywhere; }
-.journal-row p { color:var(--muted); font-size:12px; margin-top:7px; line-height:1.7; }
+.journal-row h3 { font-size:0.875rem; font-weight:600; overflow-wrap:anywhere; }
+.journal-row p { color:var(--muted); font-size:0.75rem; margin-top:7px; line-height:1.7; }
 .journal-row>div:first-child { min-width:0; }
 .journal-empty { color:var(--muted); padding:35px 0; text-align:center; line-height:1.8; }
-.goals-panel h2,.quick-water h2,.water-reminders h2 { font-size:16px; font-weight:600; margin-bottom:10px; }
-.goals-panel>p { font-size:12px; color:var(--muted); }
+.goals-panel h2,.quick-water h2,.water-reminders h2 { font-size:1rem; font-weight:600; margin-bottom:10px; }
+.goals-panel>p { font-size:0.75rem; color:var(--muted); }
 .goals-panel form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:18px; margin-top:20px; }
-.goals-panel label { flex:1; min-width:180px; font-size:12px; color:#c0cce1; }
+.goals-panel label { flex:1; min-width:180px; font-size:0.75rem; color:#c0cce1; }
 .goals-panel input { display:block; margin-top:8px; }
 .quick-water>div { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-rows:88px; gap:12px; margin-top:16px; }
 .quick-water .water-quick-button { grid-column:span 1; }
@@ -26,18 +26,18 @@
 .water-serving-icon { width:31px; height:31px; fill:none; stroke:#78dcdf; stroke-width:2; stroke-linejoin:round; }
 .water-serving-icon.large { width:36px; height:36px; }
 .water-serving-icon .fill { fill:#2f9fc688; stroke:#62e0df; }
-.module-hint { color:#e3c183; margin-top:18px; font-size:12px; }
-.source-note,.alerts-panel { background:#182030; border:1px solid var(--line); border-radius:14px; padding:18px 22px; margin-bottom:24px; color:var(--muted); font-size:12px; line-height:1.7; }
+.module-hint { color:#e3c183; margin-top:18px; font-size:0.75rem; }
+.source-note,.alerts-panel { background:#182030; border:1px solid var(--line); border-radius:14px; padding:18px 22px; margin-bottom:24px; color:var(--muted); font-size:0.75rem; line-height:1.7; }
 .source-note a { color:#9fb3ff; text-decoration:underline; }
-.alerts-panel h2 { color:var(--ink); font-size:15px; margin-bottom:12px; }
+.alerts-panel h2 { color:var(--ink); font-size:0.9375rem; margin-bottom:12px; }
 .alerts-panel p+p { margin-top:8px; }
 .live-card-body { min-height:209px; display:flex; flex-direction:column; justify-content:center; gap:12px; }
-.live-card-body .big-number { font-size:34px; }
-.live-card-body p { color:var(--muted); font-size:12px; }
+.live-card-body .big-number { font-size:2.125rem; }
+.live-card-body p { color:var(--muted); font-size:0.75rem; }
 .card-meter { height:7px; border-radius:20px; background:#2b374e; overflow:hidden; margin-top:8px; }
 .card-meter span { height:100%; display:block; background:var(--accent); border-radius:20px; }
 .scanner-panel,.cost-chart { background:#182030; border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:24px; }
-.scanner-panel p,.cost-chart p { color:var(--muted); font-size:12px; line-height:1.7; }
+.scanner-panel p,.cost-chart p { color:var(--muted); font-size:0.75rem; line-height:1.7; }
 .water-workspace { --water-cyan:#4aa8aa; --water-blue:#1b50b9; --water-deep:#0e493d; }
 .water-page-heading { padding-block:30px 26px; }
 .water-page-heading .module-icon { width:58px; height:58px; border-radius:18px; color:#77e5e2; background:linear-gradient(145deg,#154d5c,#173765); box-shadow:0 14px 30px #07111c88; }
@@ -52,14 +52,14 @@
 .hydration-water i { position:absolute; width:8px; height:8px; border:1px solid #e9ffffaa; border-radius:50%; background:#fff2; animation:water-bubble 3.2s ease-in infinite; }
 .hydration-water i:nth-child(1){left:24%;bottom:18%;}.hydration-water i:nth-child(2){left:66%;bottom:42%;animation-delay:.8s;width:12px;height:12px}.hydration-water i:nth-child(3){left:48%;bottom:68%;animation-delay:1.6s;width:6px;height:6px}
 .hydration-reading { position:absolute; z-index:4; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#f3ffff; text-shadow:0 2px 12px #062538cc; }
-.hydration-reading strong { font-size:34px; line-height:1; }
-.hydration-reading span { margin-top:9px; font-size:12px; color:#d8f5f5; }
-.hydration-reading b { margin-top:16px; padding:6px 11px; border:1px solid #dbffff55; border-radius:999px; background:#07182277; font-size:12px; }
+.hydration-reading strong { font-size:2.125rem; line-height:1; }
+.hydration-reading span { margin-top:9px; font-size:0.75rem; color:#d8f5f5; }
+.hydration-reading b { margin-top:16px; padding:6px 11px; border:1px solid #dbffff55; border-radius:999px; background:#07182277; font-size:0.75rem; }
 .water-week { min-width:0; }
 .water-week-heading { display:grid; grid-template-columns:44px 1fr 44px; align-items:center; gap:12px; text-align:center; }
 .water-week-heading span,.water-week-heading strong { display:block; }
-.water-week-heading span { color:#81b6ba; font-size:13px; }
-.water-week-heading strong { margin-top:7px; font-size:25px; }
+.water-week-heading span { color:#81b6ba; font-size:0.8125rem; }
+.water-week-heading strong { margin-top:7px; font-size:1.5625rem; }
 .water-week-heading button { width:44px; height:44px; display:grid; place-items:center; border:1px solid #45606c; border-radius:50%; background:#172b38; color:#b8e4e4; }
 .water-week-heading button:disabled { opacity:.28; }
 .water-week-heading svg { width:20px; height:20px; }
@@ -69,12 +69,12 @@
 .water-week-bars i { position:absolute; inset-inline:0; bottom:0; z-index:0; display:block; width:100%; min-height:3px; border-radius:999px; background:linear-gradient(#4bd9d7,#1b50b9); transition:height .2s ease; }
 .water-day-pill { position:relative; isolation:isolate; }
 .water-time-scale { position:absolute; z-index:2; inset:10px 0; direction:ltr; pointer-events:none; }
-.water-time-scale b { position:absolute; left:50%; transform:translate(-50%,50%); color:#e9ffff; font-size:8px; font-weight:700; line-height:1; text-shadow:0 1px 4px #04131d; }
-.water-week-bars small { display:flex; align-items:center; justify-content:center; gap:3px; min-width:0; color:#8eabb4; font-size:10px; white-space:nowrap; }
-.water-week-bars small time { font-size:8px; font-weight:500; letter-spacing:-.15px; }
+.water-time-scale b { position:absolute; left:50%; transform:translate(-50%,50%); color:#e9ffff; font-size:0.5rem; font-weight:700; line-height:1; text-shadow:0 1px 4px #04131d; }
+.water-week-bars small { display:flex; align-items:center; justify-content:center; gap:3px; min-width:0; color:#8eabb4; font-size:0.625rem; white-space:nowrap; }
+.water-week-bars small time { font-size:0.5rem; font-weight:500; letter-spacing:-.15px; }
 .water-week-bars .today>span { outline:2px solid #4aa8aa88; outline-offset:3px; }
 .water-week-bars .today small { color:#70dedb; font-weight:700; }
-.water-day-total { color:#7e9ca5; font-size:8px; font-weight:600; white-space:nowrap; }
+.water-day-total { color:#7e9ca5; font-size:0.5rem; font-weight:600; white-space:nowrap; }
 .water-week-bars .late .water-day-pill { outline-color:#ff4f62; background:#6f1e2b66; box-shadow:0 0 24px #f23c5066; }
 .water-week-bars .late .water-day-pill i { background:linear-gradient(#ff7582,#c42139); }
 .water-week-bars .late small,.water-week-bars .late .water-day-total { color:#ff7f8b; }
@@ -84,10 +84,10 @@
 .water-reminder-title svg { width:23px; height:23px; }
 .water-reminder-title>div { min-width:0; text-align:center; }
 .water-reminder-title h2 { margin:0; }
-.water-reminder-title p { color:var(--muted); font-size:12px; margin-top:5px; }
+.water-reminder-title p { color:var(--muted); font-size:0.75rem; margin-top:5px; }
 .water-reminders form { display:flex; align-items:end; gap:14px; flex-wrap:wrap; }
 .water-reminder-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; width:100%; flex:1 0 100%; }
-.water-reminders label { color:#c0cce1; font-size:12px; }
+.water-reminders label { color:#c0cce1; font-size:0.75rem; }
 .water-reminder-grid label { text-align:center; }
 .water-reminders input,.water-reminders select { display:block; margin-top:8px; min-height:46px; direction:ltr; text-align:center; text-align-last:center; }
 .water-reminder-toggle { display:flex; align-items:center; justify-content:space-between; width:100%; min-height:52px; padding:0 15px; border:1px solid #304258; border-radius:12px; background:#131b29; cursor:pointer; }
@@ -114,29 +114,29 @@
 .fuel-entry-modal { max-width:720px; }
 .fuel-entry-modal .record-form-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
 .license-plate-input { display:flex; align-items:center; justify-content:center; gap:4px; min-height:49px; margin-top:8px; padding:7px 9px; border:1px solid #304258; border-radius:9px; background:#111824; }
-.license-plate-input input { width:29px; min-width:0; height:34px; margin:0!important; padding:3px; text-align:center; font-size:19px; font-weight:700; }
-.license-plate-input span { color:#93a1b7; font-size:20px; }
-.record-status { padding:5px 9px; border-radius:999px; background:#244237; color:#8de0bd; font-size:11px; font-weight:700; white-space:nowrap; }
+.license-plate-input input { width:29px; min-width:0; height:34px; margin:0!important; padding:3px; text-align:center; font-size:1.1875rem; font-weight:700; }
+.license-plate-input span { color:#93a1b7; font-size:1.25rem; }
+.record-status { padding:5px 9px; border-radius:999px; background:#244237; color:#8de0bd; font-size:0.6875rem; font-weight:700; white-space:nowrap; }
 .record-status.open { background:#503926; color:#ffc078; }
 .fuel-price-card { width:100%; padding:24px; border:1px solid var(--line); border-radius:14px; background:#182030; color:var(--ink); text-align:center; }
 .fuel-price-card small,.fuel-price-card strong,.fuel-price-card em { display:block; }
-.fuel-price-card small { color:var(--muted); font-size:12px; }
-.fuel-price-card strong { margin:12px 0 6px; font-size:28px; font-style:normal; }
-.fuel-price-card strong span { color:var(--muted); font-size:14px; font-weight:400; }
-.fuel-price-card em { color:#9fb3ff; font-size:11px; font-style:normal; }
+.fuel-price-card small { color:var(--muted); font-size:0.75rem; }
+.fuel-price-card strong { margin:12px 0 6px; font-size:1.75rem; font-style:normal; }
+.fuel-price-card strong span { color:var(--muted); font-size:0.875rem; font-weight:400; }
+.fuel-price-card em { color:#9fb3ff; font-size:0.6875rem; font-style:normal; }
 .fuel-price-modal { max-width:560px; }
 .station-prices { display:grid; gap:10px; }
 .station-prices a { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:17px; border:1px solid var(--line); border-radius:11px; background:#111824; }
-.station-prices span,.station-prices strong { font-size:16px; font-weight:700; }
+.station-prices span,.station-prices strong { font-size:1rem; font-weight:700; }
 .price-updated { display:block; margin-top:14px; color:var(--muted); text-align:center; }
-.vehicle-summary { font-size:20px!important; }
+.vehicle-summary { font-size:1.25rem!important; }
 .vehicles-panel { padding-block:18px; }
 .vehicles-panel .section-heading { margin-bottom:8px; }
 .car-notifications { display:grid; grid-template-columns:1fr minmax(220px,320px); align-items:center; gap:16px; margin-bottom:24px; padding:18px 22px; border:1px solid var(--line); border-radius:14px; background:#182030; }
 .car-notifications>div { display:flex; align-items:center; gap:12px; }
 .car-notifications>div>svg { color:#73d2aa; flex:none; }
 .car-notifications strong,.car-notifications small { display:block; }
-.car-notifications small { margin-top:4px; color:var(--muted); font-size:11px; }
+.car-notifications small { margin-top:4px; color:var(--muted); font-size:0.6875rem; }
 .car-notifications .water-reminder-toggle { min-height:46px; }
 .car-notifications>.button,.car-notifications>.feedback,.car-notifications>.error-text { grid-column:1/-1; justify-self:center; }
 .insurance-requirement { margin:-8px 0 14px; text-align:center; }
@@ -145,15 +145,15 @@
 @keyframes water-wave { to { transform:translateX(5%) rotate(-1deg); } }
 @keyframes water-bubble { from { transform:translateY(12px); opacity:0; } 35% { opacity:1; } to { transform:translateY(-85px); opacity:0; } }
 .scanner-panel { display:flex; align-items:center; justify-content:space-between; gap:18px; }
-.scanner-panel>div { display:flex; align-items:center; gap:14px; }.scanner-panel h2 { font-size:16px; margin-bottom:5px; }
+.scanner-panel>div { display:flex; align-items:center; gap:14px; }.scanner-panel h2 { font-size:1rem; margin-bottom:5px; }
 .barcode-video { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:12px; margin:12px 0; background:#0c111d; }.barcode-video.hidden { display:none; }.full-button { width:100%; justify-content:center; margin:12px 0; }
-.metabolism-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:18px; }.metabolism-cards>div { background:#111826; border:1px solid var(--line); border-radius:12px; padding:16px; }.metabolism-cards small,.metabolism-cards span { color:var(--muted); font-size:11px; display:block; }.metabolism-cards strong { font-size:28px; display:block; margin:5px 0; }.goal-actions { display:flex; gap:10px; align-items:center; }
-.chart-legend { display:flex; flex-wrap:wrap; gap:14px; color:var(--muted); font-size:11px; margin:14px 0 25px; }.chart-legend span:before { content:""; display:inline-block; width:8px; height:8px; border-radius:2px; margin-left:5px; }.fuel:before,.bar .fuel{background:#5b8cff}.insurance:before,.bar .insurance{background:#9a73ea}.maintenance:before,.bar .maintenance{background:#f0a84b}.other:before,.bar .other{background:#61c59a}
-.bars { display:flex; align-items:flex-end; gap:12px; height:235px; direction:ltr; }.bar-column { flex:1; min-width:0; text-align:center; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-end; height:100%; }.bar-column small { font-size:9px; color:var(--muted); height:20px; white-space:nowrap; }.bar-column strong { color:var(--muted); font-size:10px; margin-top:8px; }.bar { border-radius:7px 7px 3px 3px; overflow:hidden; min-height:4px; display:flex; flex-direction:column-reverse; background:#26334b; }.bar span { display:block; width:100%; }
+.metabolism-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:18px; }.metabolism-cards>div { background:#111826; border:1px solid var(--line); border-radius:12px; padding:16px; }.metabolism-cards small,.metabolism-cards span { color:var(--muted); font-size:0.6875rem; display:block; }.metabolism-cards strong { font-size:1.75rem; display:block; margin:5px 0; }.goal-actions { display:flex; gap:10px; align-items:center; }
+.chart-legend { display:flex; flex-wrap:wrap; gap:14px; color:var(--muted); font-size:0.6875rem; margin:14px 0 25px; }.chart-legend span:before { content:""; display:inline-block; width:8px; height:8px; border-radius:2px; margin-left:5px; }.fuel:before,.bar .fuel{background:#5b8cff}.insurance:before,.bar .insurance{background:#9a73ea}.maintenance:before,.bar .maintenance{background:#f0a84b}.other:before,.bar .other{background:#61c59a}
+.bars { display:flex; align-items:flex-end; gap:12px; height:235px; direction:ltr; }.bar-column { flex:1; min-width:0; text-align:center; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-end; height:100%; }.bar-column small { font-size:0.5625rem; color:var(--muted); height:20px; white-space:nowrap; }.bar-column strong { color:var(--muted); font-size:0.625rem; margin-top:8px; }.bar { border-radius:7px 7px 3px 3px; overflow:hidden; min-height:4px; display:flex; flex-direction:column-reverse; background:#26334b; }.bar span { display:block; width:100%; }
 @media(max-width:650px) {
   .module-stats { gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); }
   .module-stats>div { padding:18px 14px; }
-  .module-stats strong { font-size:23px; overflow-wrap:anywhere; }
+  .module-stats strong { font-size:1.4375rem; overflow-wrap:anywhere; }
   .journal-panel,.goals-panel,.quick-water,.water-reminders { padding:20px 16px; }
   .journal-row { gap:10px; }
   .journal-row .row-actions { flex-shrink:0; }
@@ -162,25 +162,25 @@
   .live-card-body { min-height:170px; }
   .water-workspace .module-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .water-workspace .module-stats>div { min-width:0; padding:14px 8px; text-align:center; }
-  .water-workspace .module-stats small { min-height:28px; font-size:9px; line-height:1.45; }
-  .water-workspace .module-stats strong { margin:7px 0 0; font-size:17px; }
-  .water-workspace .module-stats strong span { display:block; margin-top:3px; font-size:9px; }
+  .water-workspace .module-stats small { min-height:28px; font-size:0.5625rem; line-height:1.45; }
+  .water-workspace .module-stats strong { margin:7px 0 0; font-size:1.0625rem; }
+  .water-workspace .module-stats strong span { display:block; margin-top:3px; font-size:0.5625rem; }
   .water-page-heading { padding-block:22px 18px; }
-  .water-page-heading h1 { max-width:250px; font-size:27px; }
+  .water-page-heading h1 { max-width:250px; font-size:1.6875rem; }
   .water-page-heading .module-icon { width:50px; height:50px; }
   .water-dashboard-card { grid-template-columns:1fr; gap:24px; min-height:0; padding:22px 15px 20px; border-radius:24px; }
   .hydration-vessel { width:165px; height:208px; }
-  .hydration-reading strong { font-size:32px; }
+  .hydration-reading strong { font-size:2rem; }
   .water-week-heading { grid-template-columns:42px 1fr 42px; gap:7px; }
-  .water-week-heading strong { font-size:19px; }
+  .water-week-heading strong { font-size:1.1875rem; }
   .water-week-heading button { width:42px; height:42px; }
   .water-week-bars { gap:7px; height:225px; margin-top:18px; }
   .water-week-bars>div>span { height:188px; max-width:39px; }
-  .water-time-scale b { font-size:7px; }
+  .water-time-scale b { font-size:0.4375rem; }
   .quick-water>div { grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:84px; gap:10px; }
   .quick-water .water-quick-button { grid-column:span 1; }
   .quick-water .manual-water-button { grid-column:span 2; }
-  .quick-water .button { min-height:0; font-size:12px; }
+  .quick-water .button { min-height:0; font-size:0.75rem; }
   .water-reminder-title { align-items:start; grid-template-columns:42px 1fr 42px; gap:8px; }
   .water-reminder-title:after { width:42px; }
   .water-reminder-title p { line-height:1.6; }
@@ -195,7 +195,7 @@
   .water-workspace .goals-panel .goal-actions { margin-top:14px; }
   .water-device-setup { align-items:stretch; flex-direction:column; }
   .water-device-setup .button { width:100%; justify-content:center; }
-  .scanner-panel{align-items:flex-start;flex-direction:column}.scanner-panel .button{width:100%;justify-content:center}.goal-actions{align-items:stretch;flex-direction:column}.goal-actions .button{width:100%;justify-content:center}.bars{gap:5px}.bar-column small{font-size:7px}.cost-chart{padding:18px 12px}
+  .scanner-panel{align-items:flex-start;flex-direction:column}.scanner-panel .button{width:100%;justify-content:center}.goal-actions{align-items:stretch;flex-direction:column}.goal-actions .button{width:100%;justify-content:center}.bars{gap:5px}.bar-column small{font-size:0.4375rem}.cost-chart{padding:18px 12px}
 }
 
 @media(min-width:651px) and (max-width:900px) {
@@ -212,8 +212,8 @@
 
 .car-workspace .module-stats { grid-template-columns:repeat(4,minmax(0,1fr)); }
 .module-stats .car-notifications { display:flex; flex-direction:column; gap:10px; margin:0; padding:16px; min-width:0; }
-.module-stats .car-notifications strong { font-size:14px; }
-.module-stats .car-notifications small { font-size:11px; }
+.module-stats .car-notifications strong { font-size:0.875rem; }
+.module-stats .car-notifications small { font-size:0.6875rem; }
 .module-stats .car-notifications .water-reminder-toggle { width:100%; margin:0; padding:10px; }
 .record-form-grid>label { display:flex; flex-direction:column; justify-content:flex-end; }
 .record-form-grid>label>input,.record-form-grid>label>select,.record-form-grid>label>.israeli-date-picker { width:100%; min-height:44px; }
@@ -241,14 +241,14 @@
 .vehicle-logo img { position:absolute; inset:8px; width:calc(100% - 16px); height:calc(100% - 16px); opacity:0; }
 .vehicle-logo img.loaded { opacity:1; }
 .vehicle-logo:not(.fallback) svg,.vehicle-logo:not(.fallback) .vehicle-logo-word { display:none; }
-.vehicle-logo-word { max-width:100%; overflow:hidden; color:#a9d8c5; font-size:8px; font-weight:800; letter-spacing:-.03em; text-overflow:ellipsis; }
+.vehicle-logo-word { max-width:100%; overflow:hidden; color:#a9d8c5; font-size:0.5rem; font-weight:800; letter-spacing:-.03em; text-overflow:ellipsis; }
 .vehicle-logo.fallback { color:#81d1b4; }
 .overview-vehicle { display:flex; align-items:center; gap:13px; padding-inline:0 18px; border-inline-start:0; border-inline-end:1px solid var(--line); text-align:right; }
 .overview-vehicle>div { min-width:0; }
 .home-water-week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; height:88px; align-items:end; direction:rtl; }
 .home-water-week>span { position:relative; height:72px; overflow:hidden; border-radius:999px; background:#26384b; }
 .home-water-week i { position:absolute; inset-inline:0; bottom:0; min-height:3px; background:linear-gradient(#4bd9d7,#1b50b9); }
-.home-water-week b { position:absolute; inset-inline:0; bottom:7px; z-index:1; color:#e7f8ff; font-size:9px; text-align:center; }
+.home-water-week b { position:absolute; inset-inline:0; bottom:7px; z-index:1; color:#e7f8ff; font-size:0.5625rem; text-align:center; }
 .home-water-week .today { outline:2px solid #54d5d2; outline-offset:2px; }
 .water-overview-body { display:grid; grid-template-columns:minmax(0,.9fr) minmax(160px,1.1fr); align-items:center; gap:18px; }
 .water-secondary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch; gap:24px; margin-bottom:24px; }
@@ -261,12 +261,12 @@
 .record-detail-grid { display:grid; grid-template-columns:repeat(4,minmax(125px,1fr)); gap:10px; margin-top:14px; }
 .record-detail-grid>span { min-width:0; padding:11px; border:1px solid #303d53; border-radius:10px; background:#111a29; text-align:center; }
 .record-detail-grid small,.record-detail-grid strong { display:block; overflow-wrap:anywhere; }
-.record-detail-grid small { color:var(--muted); font-size:10px; }
-.record-detail-grid strong { margin-top:5px; font-size:12px; }
+.record-detail-grid small { color:var(--muted); font-size:0.625rem; }
+.record-detail-grid strong { margin-top:5px; font-size:0.75rem; }
 .vehicles-panel .journal-row { align-items:flex-start; padding:16px; border:1px solid var(--line); border-radius:13px; background:#151d2b; }
 .vehicles-panel .journal-row>div:first-child { flex:1; }
 .fuel-journal .journal-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; min-height:68px; padding:11px 4px; }
-.fuel-journal .journal-row h3 { font-size:14px; }
+.fuel-journal .journal-row h3 { font-size:0.875rem; }
 .fuel-journal .journal-row p { margin-top:4px; line-height:1.45; }
 .fuel-journal .record-status { min-width:54px; text-align:center; }
 .policies-panel .insurance-requirement { margin:0 0 16px; padding:12px; border:1px solid #4c465c; border-radius:10px; background:#262234; }
@@ -280,15 +280,15 @@
 .food-search { position:relative; display:flex; align-items:center; }
 .food-search svg { position:absolute; right:13px; width:18px; color:var(--muted); }
 .food-search input { padding-inline-start:12px; padding-inline-end:42px; text-align:center; }
-.food-grams { display:flex; flex-direction:column; gap:7px; color:var(--muted); font-size:12px; }
+.food-grams { display:flex; flex-direction:column; gap:7px; color:var(--muted); font-size:0.75rem; }
 .food-grams input { text-align:center; }
 .food-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:16px; }
 .food-results article { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px; border:1px solid var(--line); border-radius:11px; background:#111824; text-align:right; }
 .food-results strong,.food-results small,.food-results span { display:block; }
-.food-results small,.food-results span { margin-top:4px; color:var(--muted); font-size:10px; }
+.food-results small,.food-results span { margin-top:4px; color:var(--muted); font-size:0.625rem; }
 @media(min-width:1200px){
   .module-workspace>.journal-panel,.module-workspace>.cost-chart,.module-workspace>.scanner-panel,.module-workspace>.food-bank,.module-workspace>.goals-panel { width:100%; }
-  .journal-row h3 { font-size:15px; }
+  .journal-row h3 { font-size:0.9375rem; }
 }
 @media(max-width:900px){
   .water-secondary-grid { grid-template-columns:1fr; gap:0; }
@@ -313,19 +313,19 @@
 }
 @media(max-width:430px){
   .nutrition-goals form { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
-  .nutrition-goals form>label { font-size:11px; }
+  .nutrition-goals form>label { font-size:0.6875rem; }
   .food-bank form { grid-template-columns:1fr; }
   .food-bank form>.button { grid-column:auto; }
 }
 
-.nutrition-workspace{max-width:1120px;margin-inline:auto}.nutrition-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.nutrition-heading>div{text-align:right}.nutrition-day-nav{display:grid;grid-template-columns:48px minmax(0,360px) 48px;align-items:center;justify-content:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:#07263a}.nutrition-day-nav>div{display:grid;grid-template-columns:1fr 160px;align-items:center;gap:10px;text-align:center}.nutrition-day-nav strong{font-size:18px}.nutrition-summary{display:grid;grid-template-columns:1.25fr repeat(3,1fr);gap:12px;margin-block:16px}.nutrition-summary>div{display:flex;min-width:0;min-height:112px;flex-direction:column;align-items:center;justify-content:center;padding:14px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(145deg,#0a2d40,#061d2d);text-align:center}.nutrition-summary .calorie-summary{border-color:#d8aa65}.nutrition-summary small,.nutrition-summary span{color:var(--muted)}.nutrition-summary strong{font-size:27px}.nutrition-summary span{font-size:11px}.nutrition-primary-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:620px;margin:0 auto}.nutrition-diary,.personal-foods{margin-block:16px}.nutrition-entry-list,.personal-food-list{display:grid;gap:9px}.nutrition-entry-list article{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(280px,1fr) 44px;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#08283a}.nutrition-entry-list h3,.nutrition-entry-list p{margin:0;text-align:right}.nutrition-entry-list p{color:var(--muted);font-size:12px}.entry-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.entry-macros span{display:flex;flex-direction:column;align-items:center;padding:7px;border-radius:8px;background:#0b3348;color:var(--muted);font-size:10px}.entry-macros b{color:var(--ink);font-size:14px}.personal-food-list{grid-template-columns:repeat(2,minmax(0,1fr))}.personal-food-list article{display:grid;grid-template-columns:minmax(0,1fr) 44px 44px;align-items:center;gap:5px;padding:10px;border:1px solid var(--line);border-radius:11px;background:#08283a}.personal-food-list article>div{display:flex;min-width:0;flex-direction:column}.personal-food-list small{color:var(--muted)}.nutrition-add-modal{width:min(720px,calc(100% - 24px))}.nutrition-results{display:grid;max-height:min(52vh,520px);gap:8px;margin:12px 0;overflow-y:auto}.nutrition-results article{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:center;border:1px solid var(--line);border-radius:11px;background:#08283a}.food-result-main{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:3px;padding:11px;border:0;background:transparent;color:var(--ink);text-align:right}.food-result-main small{color:#65d8ff}.food-result-main span{color:var(--muted);font-size:11px}.is-favorite{color:#ffd466}.selected-food{display:flex;width:100%;flex-direction:column;align-items:center;margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:11px;background:#08283a;color:var(--ink)}.selected-food small{color:#65d8ff}.nutrition-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:12px 0}.nutrition-preview span{display:flex;min-width:0;flex-direction:column;align-items:center;padding:10px 4px;border-radius:9px;background:#0b3348;color:var(--muted);font-size:10px}.nutrition-preview b{color:var(--ink);font-size:16px}.nutrition-food-modal,.nutrition-goals-modal{width:min(700px,calc(100% - 24px))}.nutrition-food-modal .form-grid,.nutrition-goals-modal .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.nutrition-food-modal .wide-field{grid-column:1/-1}.goal-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 16px}.goal-mode button{min-height:44px;border:1px solid var(--line);border-radius:10px;background:#08283a;color:var(--muted)}.goal-mode button.selected{border-color:#56d4ff;background:#0b4057;color:#c9f6ff}.nutrition-workspace .scanner-panel{display:flex;align-items:center;justify-content:space-between;gap:16px}.nutrition-workspace .scanner-panel>div{display:flex;align-items:center;gap:12px}.nutrition-workspace .scanner-panel h2,.nutrition-workspace .scanner-panel p{margin:0;text-align:right}
-@media(max-width:650px){.nutrition-heading{align-items:stretch;flex-direction:column;text-align:center}.nutrition-heading>div{text-align:center}.nutrition-day-nav{grid-template-columns:44px minmax(0,1fr) 44px;gap:5px;padding:10px 6px}.nutrition-day-nav>div{grid-template-columns:1fr;gap:6px}.nutrition-day-nav strong{font-size:16px}.nutrition-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-block:12px}.nutrition-summary>div{min-height:94px;padding:10px 6px}.nutrition-summary strong{font-size:22px}.nutrition-primary-actions{gap:8px}.nutrition-primary-actions .button{white-space:normal}.nutrition-workspace .scanner-panel{align-items:stretch;flex-direction:column}.nutrition-workspace .scanner-panel>div{justify-content:center}.nutrition-workspace .scanner-panel h2,.nutrition-workspace .scanner-panel p{text-align:center}.nutrition-entry-list article{grid-template-columns:minmax(0,1fr) 40px;gap:8px}.nutrition-entry-list article>.icon-button{grid-column:2;grid-row:1}.entry-macros{grid-column:1/-1;grid-row:2}.personal-food-list{grid-template-columns:1fr}.nutrition-add-modal,.nutrition-food-modal,.nutrition-goals-modal{width:calc(100% - 16px);max-height:calc(100dvh - 24px);padding:16px 12px}.nutrition-preview{grid-template-columns:repeat(2,1fr)}.nutrition-food-modal .form-grid,.nutrition-goals-modal .form-grid{gap:9px}.nutrition-food-modal .form-grid label,.nutrition-goals-modal .form-grid label{font-size:12px}}
+.nutrition-workspace{max-width:1120px;margin-inline:auto}.nutrition-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.nutrition-heading>div{text-align:right}.nutrition-day-nav{display:grid;grid-template-columns:48px minmax(0,360px) 48px;align-items:center;justify-content:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:#07263a}.nutrition-day-nav>div{display:grid;grid-template-columns:1fr 160px;align-items:center;gap:10px;text-align:center}.nutrition-day-nav strong{font-size:1.125rem}.nutrition-summary{display:grid;grid-template-columns:1.25fr repeat(3,1fr);gap:12px;margin-block:16px}.nutrition-summary>div{display:flex;min-width:0;min-height:112px;flex-direction:column;align-items:center;justify-content:center;padding:14px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(145deg,#0a2d40,#061d2d);text-align:center}.nutrition-summary .calorie-summary{border-color:#d8aa65}.nutrition-summary small,.nutrition-summary span{color:var(--muted)}.nutrition-summary strong{font-size:1.6875rem}.nutrition-summary span{font-size:0.6875rem}.nutrition-primary-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:620px;margin:0 auto}.nutrition-diary,.personal-foods{margin-block:16px}.nutrition-entry-list,.personal-food-list{display:grid;gap:9px}.nutrition-entry-list article{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(280px,1fr) 44px;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#08283a}.nutrition-entry-list h3,.nutrition-entry-list p{margin:0;text-align:right}.nutrition-entry-list p{color:var(--muted);font-size:0.75rem}.entry-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.entry-macros span{display:flex;flex-direction:column;align-items:center;padding:7px;border-radius:8px;background:#0b3348;color:var(--muted);font-size:0.625rem}.entry-macros b{color:var(--ink);font-size:0.875rem}.personal-food-list{grid-template-columns:repeat(2,minmax(0,1fr))}.personal-food-list article{display:grid;grid-template-columns:minmax(0,1fr) 44px 44px;align-items:center;gap:5px;padding:10px;border:1px solid var(--line);border-radius:11px;background:#08283a}.personal-food-list article>div{display:flex;min-width:0;flex-direction:column}.personal-food-list small{color:var(--muted)}.nutrition-add-modal{width:min(720px,calc(100% - 24px))}.nutrition-results{display:grid;max-height:min(52vh,520px);gap:8px;margin:12px 0;overflow-y:auto}.nutrition-results article{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:center;border:1px solid var(--line);border-radius:11px;background:#08283a}.food-result-main{display:flex;min-width:0;flex-direction:column;align-items:flex-start;gap:3px;padding:11px;border:0;background:transparent;color:var(--ink);text-align:right}.food-result-main small{color:#65d8ff}.food-result-main span{color:var(--muted);font-size:0.6875rem}.is-favorite{color:#ffd466}.selected-food{display:flex;width:100%;flex-direction:column;align-items:center;margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:11px;background:#08283a;color:var(--ink)}.selected-food small{color:#65d8ff}.nutrition-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:12px 0}.nutrition-preview span{display:flex;min-width:0;flex-direction:column;align-items:center;padding:10px 4px;border-radius:9px;background:#0b3348;color:var(--muted);font-size:0.625rem}.nutrition-preview b{color:var(--ink);font-size:1rem}.nutrition-food-modal,.nutrition-goals-modal{width:min(700px,calc(100% - 24px))}.nutrition-food-modal .form-grid,.nutrition-goals-modal .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.nutrition-food-modal .wide-field{grid-column:1/-1}.goal-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 16px}.goal-mode button{min-height:44px;border:1px solid var(--line);border-radius:10px;background:#08283a;color:var(--muted)}.goal-mode button.selected{border-color:#56d4ff;background:#0b4057;color:#c9f6ff}.nutrition-workspace .scanner-panel{display:flex;align-items:center;justify-content:space-between;gap:16px}.nutrition-workspace .scanner-panel>div{display:flex;align-items:center;gap:12px}.nutrition-workspace .scanner-panel h2,.nutrition-workspace .scanner-panel p{margin:0;text-align:right}
+@media(max-width:650px){.nutrition-heading{align-items:stretch;flex-direction:column;text-align:center}.nutrition-heading>div{text-align:center}.nutrition-day-nav{grid-template-columns:44px minmax(0,1fr) 44px;gap:5px;padding:10px 6px}.nutrition-day-nav>div{grid-template-columns:1fr;gap:6px}.nutrition-day-nav strong{font-size:1rem}.nutrition-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-block:12px}.nutrition-summary>div{min-height:94px;padding:10px 6px}.nutrition-summary strong{font-size:1.375rem}.nutrition-primary-actions{gap:8px}.nutrition-primary-actions .button{white-space:normal}.nutrition-workspace .scanner-panel{align-items:stretch;flex-direction:column}.nutrition-workspace .scanner-panel>div{justify-content:center}.nutrition-workspace .scanner-panel h2,.nutrition-workspace .scanner-panel p{text-align:center}.nutrition-entry-list article{grid-template-columns:minmax(0,1fr) 40px;gap:8px}.nutrition-entry-list article>.icon-button{grid-column:2;grid-row:1}.entry-macros{grid-column:1/-1;grid-row:2}.personal-food-list{grid-template-columns:1fr}.nutrition-add-modal,.nutrition-food-modal,.nutrition-goals-modal{width:calc(100% - 16px);max-height:calc(100dvh - 24px);padding:16px 12px}.nutrition-preview{grid-template-columns:repeat(2,1fr)}.nutrition-food-modal .form-grid,.nutrition-goals-modal .form-grid{gap:9px}.nutrition-food-modal .form-grid label,.nutrition-goals-modal .form-grid label{font-size:0.75rem}}
 @media(max-width:390px){.nutrition-primary-actions{grid-template-columns:1fr}.nutrition-summary{gap:6px}.nutrition-food-modal .form-grid,.nutrition-goals-modal .form-grid{grid-template-columns:1fr}.nutrition-food-modal .wide-field{grid-column:auto}}
 .nutrition-row-actions{display:flex;align-items:center;justify-content:center;gap:4px}
 .nutrition-entry-list article{grid-template-columns:minmax(150px,1.2fr) minmax(280px,1fr) 92px}
 @media(max-width:650px){.nutrition-entry-list article{grid-template-columns:minmax(0,1fr) 44px}.nutrition-row-actions{grid-column:2;grid-row:1/3;flex-direction:column}.nutrition-entry-list .entry-macros{grid-column:1;grid-row:2}}
 .nutrition-primary-actions{grid-template-columns:repeat(3,minmax(0,1fr));max-width:820px}.protein-action{border:1px solid #9b7bff;background:linear-gradient(135deg,#5e42ba,#382781);color:#fff}.measure-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.measure-toggle button{min-height:44px;border:1px solid var(--line);border-radius:10px;background:#08283a;color:var(--muted)}.measure-toggle button.selected{border-color:#56d4ff;background:#0b4057;color:#d7f8ff}.serving-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.serving-fields label{margin:0}.amount-explanation{text-align:center;color:#7fdcf8}.creatine-card{display:grid;grid-template-columns:minmax(220px,1fr) 140px 120px auto;align-items:end;gap:12px;margin-block:16px;padding:18px;border:1px solid #8a74df;border-radius:15px;background:linear-gradient(145deg,#19264a,#0b253a)}.creatine-card>div{display:flex;align-items:center;gap:12px;align-self:center}.creatine-card>div>svg{color:#bca9ff}.creatine-card span{display:flex;flex-direction:column}.creatine-card small{color:var(--muted)}.creatine-card>label:not(.water-reminder-toggle){margin:0}.protein-modal{width:min(650px,calc(100% - 24px))}.scanned-product{display:flex;flex-direction:column;align-items:center;padding:14px;border:1px solid var(--line);border-radius:12px;background:#08283a}.scanned-product small{color:var(--muted)}
-.personal-foods-workspace{max-width:1050px;margin-inline:auto}.personal-food-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.personal-food-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;margin-block:18px}.personal-food-toolbar .search-field{margin:0}.personal-food-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.personal-food-cards article{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#08283a}.personal-food-cards h2,.personal-food-cards p{margin:0}.personal-food-cards p{color:var(--muted);font-size:12px}.personal-food-icon{display:grid;width:48px;height:48px;place-items:center;border-radius:13px;background:#0b4057;color:#6bddff}.food-macro-line{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.food-macro-line span{padding:4px 7px;border-radius:7px;background:#0b3348;color:#b8dbe7;font-size:10px}.card-actions{display:flex;gap:4px}.improved-food-modal fieldset{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px}.improved-food-modal legend{padding-inline:8px;color:#69dcff;font-weight:700}.improved-food-modal .macro-input-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.personal-foods-workspace{max-width:1050px;margin-inline:auto}.personal-food-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.personal-food-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;margin-block:18px}.personal-food-toolbar .search-field{margin:0}.personal-food-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.personal-food-cards article{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#08283a}.personal-food-cards h2,.personal-food-cards p{margin:0}.personal-food-cards p{color:var(--muted);font-size:0.75rem}.personal-food-icon{display:grid;width:48px;height:48px;place-items:center;border-radius:13px;background:#0b4057;color:#6bddff}.food-macro-line{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.food-macro-line span{padding:4px 7px;border-radius:7px;background:#0b3348;color:#b8dbe7;font-size:0.625rem}.card-actions{display:flex;gap:4px}.improved-food-modal fieldset{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px}.improved-food-modal legend{padding-inline:8px;color:#69dcff;font-weight:700}.improved-food-modal .macro-input-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:760px){.creatine-card{grid-template-columns:1fr 1fr}.creatine-card>div{grid-column:1/-1}.creatine-card .button{grid-column:1/-1}.personal-food-cards{grid-template-columns:1fr}}
 @media(max-width:650px){.nutrition-primary-actions{grid-template-columns:1fr 1fr}.nutrition-primary-actions>a{grid-column:1/-1}.serving-fields{grid-template-columns:1fr 1fr}.serving-fields label:first-child{grid-column:1/-1}.personal-food-heading{align-items:stretch;flex-direction:column;text-align:center}.personal-food-toolbar{grid-template-columns:1fr}.personal-food-toolbar .button{width:100%}.improved-food-modal .macro-input-grid{grid-template-columns:1fr 1fr}.personal-food-cards article{grid-template-columns:44px minmax(0,1fr);padding:12px}.personal-food-icon{width:42px;height:42px}.personal-food-cards .card-actions{grid-column:1/-1;justify-content:flex-end}}
 @media(max-width:390px){.nutrition-primary-actions,.creatine-card,.serving-fields{grid-template-columns:1fr}.nutrition-primary-actions>a,.creatine-card>div,.creatine-card .button,.serving-fields label:first-child{grid-column:auto}.improved-food-modal .macro-input-grid{grid-template-columns:1fr}}

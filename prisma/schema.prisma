@@ -31,6 +31,17 @@ model User {
   email String @unique
   name String
   passwordHash String
+  role String @default("user") @db.VarChar(12)
+  status String @default("active") @db.VarChar(24)
+  emailVerifiedAt DateTime?
+  deletionRequestedAt DateTime?
+  firstName String @default("") @db.VarChar(80)
+  lastName String @default("") @db.VarChar(80)
+  phone String @default("") @db.VarChar(30)
+  avatar Bytes?
+  identities AccountIdentity[]
+  accountTokens AccountToken[]
+  employments Employment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   settings UserSettings?
@@ -70,6 +81,14 @@ model UserSettings {
   locale String @default("he")
   timezone String @default("Asia/Jerusalem")
   enabledModules String[] @default(["tasks", "water", "car", "nutrition"])
+  modulePreferencesInitialized Boolean @default(false)
+  dashboardOrder String[] @default(["tasks", "work", "water", "nutrition", "car", "workouts"])
+  navigationOrder String[] @default(["tasks", "water", "nutrition", "car", "workouts", "work"])
+  notificationsEnabled Boolean @default(true)
+  notificationsResumedAt DateTime?
+  pausedModules String[] @default([])
+  reducedMotion Boolean @default(false)
+  textScale Int @default(100)
   waterGoalMl Int?
   waterDayStart String @default("08:00") @db.VarChar(5)
   waterDayEnd String @default("20:00") @db.VarChar(5)
@@ -238,6 +257,9 @@ model Vehicle {
   fuelTankLiters Decimal? @db.Decimal(8, 1)
   acquisitionDate DateTime? @db.Date
   createdAt DateTime @default(now())
+  isPrimary Boolean @default(false)
+  remindersResumedAt DateTime?
+  archivedAt DateTime?
   fuelEntries FuelEntry[]
   policies VehiclePolicy[]
   reminders VehicleReminder[]
@@ -446,6 +468,8 @@ model EventType {
 model PushSubscription {
   id String @id @default(cuid())
   userId String
+  connectedAt DateTime @default(now())
+  sessionId String?
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   endpoint String @unique @db.Text
   p256dh String @db.Text
@@ -480,6 +504,8 @@ model WorkSettings {
 model WorkEntry {
   id String @id @default(cuid())
   userId String
+  employmentId String?
+  employment Employment? @relation(fields: [employmentId, userId], references: [id, userId], onDelete: NoAction)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   date DateTime @db.Date
   type String @db.VarChar(16)
@@ -499,6 +525,8 @@ model WorkEntry {
 model WorkTrip {
   id String @id @default(cuid())
   userId String
+  employmentId String?
+  employment Employment? @relation(fields: [employmentId, userId], references: [id, userId], onDelete: NoAction)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   destination String @db.VarChar(200)
   startDate DateTime @db.Date
@@ -514,6 +542,8 @@ model WorkTrip {
 model WorkExpense {
   id String @id @default(cuid())
   userId String
+  employmentId String?
+  employment Employment? @relation(fields: [employmentId, userId], references: [id, userId], onDelete: NoAction)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   tripId String?
   trip WorkTrip? @relation(fields: [tripId, userId], references: [id, userId], onDelete: NoAction)
@@ -537,6 +567,8 @@ model WorkDocument {
   uploadSize Int?
   id String @id @default(cuid())
   userId String
+  employmentId String?
+  employment Employment? @relation(fields: [employmentId, userId], references: [id, userId], onDelete: NoAction)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   tripId String?
   trip WorkTrip? @relation(fields: [tripId, userId], references: [id, userId], onDelete: NoAction)
@@ -589,4 +621,86 @@ model PersonalRecipe {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([userId, name])
+}
+model Invitation {
+  id String @id @default(cuid())
+  email String
+  tokenHash String @unique
+  issuerId String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  usedAt DateTime?
+  revokedAt DateTime?
+  deliveryState String @default("created")
+  @@index([email, expiresAt])
+}
+model AccountIdentity {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  provider String
+  subject String
+  createdAt DateTime @default(now())
+  @@unique([provider,subject])
+  @@unique([userId,provider])
+}
+model AccountToken {
+  id String @id @default(cuid())
+  userId String?
+  user User? @relation(fields:[userId],references:[id],onDelete:Cascade)
+  tokenHash String @unique
+  purpose String
+  email String
+  invitationId String?
+  expiresAt DateTime
+  usedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId, purpose])
+}
+model OAuthAttempt {
+  id String @id @default(cuid())
+  stateHash String @unique
+  browserHash String
+  verifier String
+  nonce String
+  userId String?
+  invitationHash String?
+  expiresAt DateTime
+}
+model ReminderOverride {
+  id String @id @default(cuid())
+  userId String
+  source String
+  sourceId String
+  enabled Boolean @default(true)
+  pauseReason String?
+  resumedAt DateTime?
+  @@unique([userId, source, sourceId])
+  @@index([userId])
+}
+model Employment {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  name String @db.VarChar(150)
+  type String @default("monthly")
+  archivedAt DateTime?
+  createdAt DateTime @default(now())
+  contracts WorkContractVersion[]
+  entries WorkEntry[]
+  trips WorkTrip[]
+  expenses WorkExpense[]
+  documents WorkDocument[]
+  @@unique([id,userId])
+  @@index([userId])
+}
+model WorkContractVersion {
+  id String @id @default(cuid())
+  userId String
+  employmentId String
+  employment Employment @relation(fields:[employmentId,userId],references:[id,userId],onDelete:Cascade)
+  effectiveFrom DateTime @db.Date
+  contract Json
+  createdAt DateTime @default(now())
+  @@unique([employmentId,effectiveFrom])
 }

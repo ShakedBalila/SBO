@@ -12,9 +12,9 @@
 .calendar-day{display:flex;flex-direction:column;align-items:stretch}
 .day-number{width:auto;min-width:42px;margin:0 7px 5px auto;padding-inline:5px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .calendar-holidays,.calendar-day-items{flex:0 0 auto}.calendar-day-items{padding-top:calc(var(--range-lanes,0)*30px)}
-.more-items{margin:3px 6px 0 auto;padding:2px 6px;border:1px solid color-mix(in srgb,var(--gold) 55%,transparent);border-radius:6px;color:#f6d867;font-size:10px;line-height:16px;letter-spacing:0;white-space:nowrap}
+.more-items{margin:3px 6px 0 auto;padding:2px 6px;border:1px solid color-mix(in srgb,var(--gold) 55%,transparent);border-radius:6px;color:#f6d867;font-size:0.625rem;line-height:16px;letter-spacing:0;white-space:nowrap}
 .event-item,.calendar-range-bar{background:color-mix(in srgb,var(--event-color) 55%,#061722)!important;color:#fff!important;text-shadow:0 1px 2px #000b}
 
 .security-sessions{margin-top:16px}.session-list{display:grid;gap:10px;margin:18px 0}.session-list article{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px;border:1px solid var(--line);border-radius:12px;background:#09283b}.session-list article>div{display:grid;gap:3px}.session-list small{color:var(--muted)}
-@media(max-width:650px){.session-list article{grid-template-columns:22px minmax(0,1fr)}.session-list article .button{grid-column:1/-1}.day-number{min-width:31px;font-size:9px;margin-inline-end:3px}.more-items{font-size:8px;padding:1px 3px;margin-inline-end:2px}.dashboard-redesign .overview-water .card-image-layer img{object-fit:cover}}
+@media(max-width:650px){.session-list article{grid-template-columns:22px minmax(0,1fr)}.session-list article .button{grid-column:1/-1}.day-number{min-width:31px;font-size:0.5625rem;margin-inline-end:3px}.more-items{font-size:0.5rem;padding:1px 3px;margin-inline-end:2px}.dashboard-redesign .overview-water .card-image-layer img{object-fit:cover}}
 

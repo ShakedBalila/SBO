@@ -13,11 +13,12 @@ export async function moduleData(userId: string, timezone: string) {
     db.waterEntry.findMany({where:{userId,date:{gte:weekStart,lte:weekEnd}},select:{date:true,amountMl:true}}),
     db.nutritionEntry.aggregate({ where: { userId, date }, _sum: { calories: true, proteinG: true, carbsG:true, fatG:true } }),
     db.fuelEntry.findMany({ where: { userId, date: { gte: month, lte: date } }, select: { liters: true, pricePerLiter: true, totalCost:true } }),
-    db.vehicle.findMany({where:{userId},orderBy:{createdAt:'asc'},select:{id:true,name:true,licensePlate:true,year:true,roadMonth:true,odometerKm:true},take:3}),
-    db.vehicle.count({where:{userId}}),
+    db.vehicle.findMany({where:{userId,archivedAt:null},orderBy:[{isPrimary:'desc'},{createdAt:'asc'}],select:{id:true,name:true,licensePlate:true,year:true,roadMonth:true,odometerKm:true},take:3}),
+    db.vehicle.count({where:{userId,archivedAt:null}}),
     db.vehiclePolicy.findMany({where:{userId},orderBy:{endDate:'desc'},select:{vehicleId:true,type:true,endDate:true}}),
     db.vehicleReminder.findMany({where:{userId,type:'Test'},orderBy:{expiryDate:'desc'},select:{vehicleId:true,expiryDate:true}})
   ]);
+  const paused=await db.reminderOverride.findMany({where:{userId,source:{in:['water','creatine']},enabled:false}});if(storedSettings){if(paused.some(o=>o.source==='water'))storedSettings.waterReminderEnabled=false;if(paused.some(o=>o.source==='creatine'))storedSettings.creatineReminderEnabled=false;}
   const targets=nutritionTargets(storedSettings);
   const settings=storedSettings?{...storedSettings,calorieGoal:storedSettings.nutritionGoalMode==='manual'?storedSettings.calorieGoal:targets?.calorieGoal??null,proteinGoalG:storedSettings.nutritionGoalMode==='manual'?storedSettings.proteinGoalG:targets?.proteinGoalG??null}:null;
   const waterWeek=Array.from({length:7},(_,index)=>{const day=new Date(weekStart);day.setUTCDate(day.getUTCDate()+index);const key=day.toISOString().slice(0,10);return {date:key,amountMl:waterWeekEntries.filter(entry=>entry.date.toISOString().slice(0,10)===key).reduce((sum,entry)=>sum+entry.amountMl,0)};});
