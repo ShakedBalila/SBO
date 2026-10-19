@@ -99,8 +99,11 @@ async function handle(request: Request, context: Context) {
           if(changedBoundary)await transaction.fuelEntry.updateMany({where:{userId:user.id,OR:[{id},{distanceStartRefuelId:id}]},data:{distanceConfirmedAt:null}});
           if(changedOdometer)await transaction.fuelEntry.updateMany({where:{userId:user.id,distanceSource:'ODOMETER_CONFIRMED',OR:[{id},{distanceStartRefuelId:id}]},data:{distanceConfirmedAt:null}});
           let savedId=id;
-          if(id)count=(await transaction.fuelEntry.updateMany({where,data})).count;
-          else savedId=(await transaction.fuelEntry.create({data:{...data,userId:user.id}})).id;
+          if(id){
+            count=(await transaction.fuelEntry.updateMany({where,data})).count;
+            if(old?.distanceConfirmedAt&&actualDistanceKm===null&&Object.hasOwn(input,'actualDistanceKm')&&Object.hasOwn(input,'distanceConfirmed')&&!distanceConfirmed)
+              await transaction.fuelEntry.updateMany({where,data:{actualDistanceKm:null,distanceConfirmedAt:null,distanceStartRefuelId:null}});
+          }else savedId=(await transaction.fuelEntry.create({data:{...data,userId:user.id}})).id;
           const rows=await transaction.fuelEntry.findMany({where:{userId:user.id,vehicleId:parsed.vehicleId}});
           if(actualDistanceKm!==null&&actualDistanceKm>0){
             if(!distanceConfirmed)throw new HttpError(400,'יש לאשר שהמרחק בפועל שייך למחזור התדלוק הזה.');
