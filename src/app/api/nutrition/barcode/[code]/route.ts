@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@/lib/auth';
+import { db } from '@/lib/db';
 import { apiError, HttpError } from '@/lib/http';
 
 export async function GET(_: Request, { params }: { params: Promise<{ code: string }> }) {
   try {
-    if (!await currentUser()) throw new HttpError(401, 'יש להתחבר מחדש.');
+    const user=await currentUser();if (!user) throw new HttpError(401, 'יש להתחבר מחדש.');
     const code = (await params).code.trim();
     if (!/^\d{8,14}$/.test(code)) throw new HttpError(400, 'הברקוד אינו תקין.');
+    const personal=await db.userFood.findFirst({where:{userId:user.id,barcode:code},orderBy:{updatedAt:'desc'}});
+    if(personal)return NextResponse.json({code,name:personal.name,brand:personal.brand,servingSize:`${personal.servingGrams} g`,foodKey:`user:${personal.id}`,source:'המאגר האישי שלי',per100g:{calories:personal.caloriesPer100,proteinG:Number(personal.proteinPer100G),carbsG:Number(personal.carbsPer100G),fatG:Number(personal.fatPer100G)}},{headers:{'Cache-Control':'private, no-store'}});
     const fields = 'code,product_name,product_name_he,brands,serving_size,nutriments';
     const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${fields}`, {
-      headers: { 'User-Agent': 'SBO/1.0 (https://sbo-pi.vercel.app)' }, next: { revalidate: 86400 }
+      headers: { 'User-Agent': 'SBO/1.0 (https://sbo-pi.vercel.app)' }, signal:AbortSignal.timeout(8000), next: { revalidate: 86400 }
     });
     if (!response.ok) throw new HttpError(502, 'מאגר המוצרים אינו זמין כרגע.');
     const result = await response.json();

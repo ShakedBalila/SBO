@@ -19,7 +19,7 @@ html[data-reduce-motion=true] *,html[data-reduce-motion=true] *::before,html[dat
 
 .module-reminder-panel{margin-top:20px}.module-reminder-panel>summary{cursor:pointer;min-height:44px;padding:12px;color:var(--gold)}
 
-html[data-text-scale="150"] .dashboard-home.dashboard-redesign .dashboard-stack,html[data-text-scale="200"] .dashboard-home.dashboard-redesign .dashboard-stack{height:auto;grid-template-columns:1fr;grid-auto-rows:auto}
+html[data-text-scale="150"] .dashboard-home.dashboard-redesign .dashboard-stack,html[data-text-scale="200"] .dashboard-home.dashboard-redesign .dashboard-stack{height:auto;grid-template-columns:1fr;grid-auto-rows:auto;flex:none;min-height:min-content;align-content:start}
 html[data-text-scale="150"] .dashboard-home.dashboard-redesign .overview-card,html[data-text-scale="200"] .dashboard-home.dashboard-redesign .overview-card{min-height:260px;height:auto;padding-top:64px}
 html[data-text-scale="150"] .form-grid,html[data-text-scale="200"] .form-grid{grid-template-columns:minmax(0,1fr)!important}
 html[data-text-scale="200"] .settings-v6-layout{grid-template-columns:minmax(0,1fr)}
@@ -102,3 +102,48 @@ html[data-text-scale="200"] .settings-category-list{grid-template-columns:minmax
   aspect-ratio:1;
  }
 }
+
+/* Accessible editing, clear device/account status and readable date controls. */
+[aria-invalid="true"]{border-color:#ff9d9d!important;outline:2px solid #ff9d9d;outline-offset:2px}
+.search-field:focus-within{outline:2px solid #36c6fc;outline-offset:3px}
+.notification-device h2{width:100%;margin:0;font-size:1.125rem}
+.notification-device{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;text-align:center}.notification-device>.button{justify-self:center;width:100%;max-width:480px}
+.notification-test{display:block;margin:16px auto;max-width:100%;white-space:normal}
+.utility-workspace>.reminder-controls{padding:18px;border:1px solid var(--gold);border-radius:16px;background:var(--surface);margin-top:20px}
+.notification-account-state{color:var(--gold)}
+.nutrition-reminder-link,.reminder-row .v6-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px}
+.workout-calendar-heading label{display:flex;flex-direction:column;gap:6px;min-width:0}
+.workout-calendar-heading .israeli-date-picker{width:170px;max-width:100%;min-height:46px}
+@media(max-width:650px){
+ input:not([type=checkbox]):not([type=radio]),select,textarea{font-size:max(16px,1rem)}
+ .workout-calendar-heading{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:end;gap:8px}
+ .workout-calendar-heading label{align-items:center}
+ .workout-calendar-heading .israeli-date-picker{width:100%;min-width:0}
+ .workout-calendar-heading .israeli-date-picker input{max-width:none}
+ .workout-calendar-heading .workout-period-tabs{grid-column:1/-1;justify-self:center}
+}
+/* Enlarged text must determine card height; the art stays below the title. */
+html[data-text-scale="150"] .dashboard-home.dashboard-redesign .overview-card,
+html[data-text-scale="200"] .dashboard-home.dashboard-redesign .overview-card{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);grid-template-rows:2.625rem minmax(min-content,auto);column-gap:8px;padding:0!important;direction:ltr;
+}
+html[data-text-scale="150"] .dashboard-home.dashboard-redesign .overview-card .overview-content,
+html[data-text-scale="200"] .dashboard-home.dashboard-redesign .overview-card .overview-content{
+ grid-column:2;grid-row:2;width:auto;height:auto;min-height:min-content;margin:0!important;padding:12px 8px 16px;overflow-wrap:anywhere;direction:rtl;
+}
+html[data-text-scale="150"] .dashboard-home.dashboard-redesign .overview-card .card-image-layer,
+html[data-text-scale="200"] .dashboard-home.dashboard-redesign .overview-card .card-image-layer{
+ position:absolute;inset:2.625rem auto 0 0;width:calc((100% - 8px)/2.35);height:auto;max-height:none;
+}
+html[data-text-scale="150"] .dashboard-home.dashboard-redesign .overview-card h2,
+html[data-text-scale="200"] .dashboard-home.dashboard-redesign .overview-card h2{top:.625rem}
+html[data-text-scale="150"] .bottom-nav span,html[data-text-scale="200"] .bottom-nav span{max-width:100%;font-size:clamp(12px,3.3vw,16px);white-space:normal;overflow-wrap:anywhere;text-align:center}
+@media(max-width:650px){
+ .dashboard-home.dashboard-redesign .today-counts small,.dashboard-home.dashboard-redesign .dashboard-gauge small{font-size:max(11px,.625rem);line-height:1.4}
+}
+
+@media(max-width:350px){
+ .dashboard-home.dashboard-redesign .overview-tasks .today-counts{flex-direction:column!important;gap:6px}
+ .dashboard-home.dashboard-redesign .overview-tasks .today-counts span{width:100%}
+}
+@media(max-width:650px){.workout-calendar b{white-space:nowrap;font-size:clamp(10px,2.8vw,12px)}}

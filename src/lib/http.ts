@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { validationMessage } from './validation-errors';
 export class HttpError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
@@ -20,7 +21,10 @@ export async function jsonBody(request: Request) {
 }
 export function apiError(error: unknown) {
   if (error instanceof HttpError) return NextResponse.json({ error: error.message }, { status: error.status });
-  if (error instanceof z.ZodError) return NextResponse.json({ error: error.issues[0]?.message ?? "יש לבדוק את פרטי הטופס." }, { status: 400 });
+  if (error instanceof z.ZodError) {
+    const issue=error.issues[0];
+    return NextResponse.json({error:issue?validationMessage(issue):'יש לבדוק את פרטי הטופס.',field:typeof issue?.path[0]==='string'?issue.path[0]:undefined},{status:400});
+  }
   console.error("SBO request failed", error instanceof Error ? error.name : "Unknown error", error && typeof error === 'object' && 'code' in error ? error.code : '');
   return NextResponse.json({ error: "SBO לא הצליח לשמור או לטעון את הנתונים. יש לבדוק את החיבור ולנסות שוב." }, { status: 503 });
 }

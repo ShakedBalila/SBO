@@ -63,11 +63,25 @@ export async function POST(request:Request,context:Context){try{
   const avatar=await sharp(bytes,{limitInputPixels:20_000_000}).rotate().resize(384,384,{fit:'cover',position:'centre'}).jpeg({quality:85}).toBuffer();
   await db.user.update({where:{id:session.userId},data:{avatar}});return NextResponse.json({ok:true});
  }
- const body=await jsonBody(request);
  if(action==='profile'){
-  const data=z.object({name:z.string().trim().min(1).max(100),firstName:z.string().trim().max(80),lastName:z.string().trim().max(80),phone:z.string().trim().max(30)}).strict().parse(body);
-  await db.user.update({where:{id:session.userId},data});await audit({userId:session.userId,action:'PROFILE_UPDATED',changedFields:Object.keys(data)});return NextResponse.json({ok:true});
+  const multipart=request.headers.get('content-type')?.includes('multipart/form-data');
+  if(multipart&&Number(request.headers.get('content-length')??0)>3_300_000)throw new HttpError(413,'יש לבחור תמונה עד 3 מגה־בייט.');
+  const form=multipart?await request.formData():null;
+  const body=form?Object.fromEntries([...form.entries()].filter(([key])=>key!=='file')):await jsonBody(request);
+  const data=z.object({name:z.string().trim().min(1,'יש להזין שם תצוגה.').max(100),firstName:z.string().trim().max(80),lastName:z.string().trim().max(80),phone:z.string().trim().max(30)}).strict().parse(body);
+  let avatar:Buffer|undefined;
+  if(form?.has('file')){
+   await accountLimit(`avatar:${session.userId}`,20);
+   const file=form.get('file');if(!(file instanceof File)||file.size>3_000_000||!file.size)throw new HttpError(400,'יש לבחור תמונה עד 3 מגה־בייט.');
+   try{
+    const bytes=Buffer.from(await file.arrayBuffer()),metadata=await sharp(bytes,{limitInputPixels:20_000_000}).metadata();
+    if(!metadata.format||!['jpeg','png','webp'].includes(metadata.format))throw new HttpError(400,'ניתן לבחור JPEG, PNG או WebP.');
+    avatar=await sharp(bytes,{limitInputPixels:20_000_000}).rotate().resize(384,384,{fit:'cover',position:'centre'}).jpeg({quality:85}).toBuffer();
+   }catch(error){if(error instanceof HttpError)throw error;throw new HttpError(400,'לא ניתן לקרוא את התמונה. יש לבחור תמונה תקינה עד 20 מגה פיקסל.');}
+  }
+  await db.user.update({where:{id:session.userId},data:{...data,...(avatar?{avatar:new Uint8Array(avatar)}:{})}});await audit({userId:session.userId,action:'PROFILE_UPDATED',changedFields:[...Object.keys(data),...(avatar?['avatar']:[])]});return NextResponse.json({ok:true});
  }
+ const body=await jsonBody(request);
  if(action==='remove-avatar'){await db.user.update({where:{id:session.userId},data:{avatar:null}});return NextResponse.json({ok:true});}
  if(action==='preferences'){
   const data=z.object({reducedMotion:z.boolean(),textScale:z.union([z.literal(100),z.literal(125),z.literal(150),z.literal(200)])}).strict().parse(body);
